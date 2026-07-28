@@ -246,6 +246,43 @@ function computePreview(liveBoard: Board, candidateEffects: EffectPrimitive[]): 
   remaining an independent value.
 - **Bound memory to the phase.** Clear both undo and redo stacks on Commit
   (Player-Phase end). This keeps peak memory at F3's ~74 KB on 8×8.
+- **Battle-scoped consumable charges roll back with the snapshot** *(added
+  2026-07-28 by `/architecture-review`; see below).* Any once-per-battle charge —
+  a Pilots action-economy skill's extra Move slot (`pilots.md` Core Rule 4),
+  Passive Module S4 Last Stand's death save, a Gadget's per-battle use — must be
+  captured in, and restored from, the same snapshot as the board. Charge
+  bookkeeping and board state move in lockstep at the same undo depth, exactly as
+  `heroes-and-abilities.md` already specifies for the Move/Ability slots.
+
+### Battle-scoped charges and undo (amendment, 2026-07-28)
+
+`/architecture-review` found this ADR contained **no mention of action slots or
+consumable charges** while `pilots.md` introduced an action-economy skill lane
+whose defining example (*Reserve Thrusters* — a second Move slot, once per
+battle) is exactly such a charge. Neither this ADR nor `pilots.md` said what
+undo does to it.
+
+**Decision: charges roll back.** Undoing an action that spent a once-per-battle
+charge restores that charge.
+
+The reasoning is symmetry, not generosity. Undo exists so the player can *explore*
+a turn before committing (Pillar 1 — perfect information means the player is
+entitled to see consequences before accepting them). A charge that does not roll
+back makes exploration cost something, which turns undo into a trap: the player
+who tries a line and reverts is punished relative to the player who guessed
+correctly first. That inverts the pillar.
+
+The obvious objection — "then a player can undo-farm infinite bonus Moves" — does
+not hold: undo restores the *board* as well, so the move being unwound is unwound
+too. There is no net gain, only a restored option. The asymmetric case (board
+restored, charge consumed) is the one that produces a bug report.
+
+**Constraint this places on charge storage:** a battle-scoped charge must live in
+snapshotted state, not in a side table the snapshot does not cover. Any system
+adding a per-battle consumable must put it somewhere `Board.snapshot()` captures,
+or extend the snapshot explicitly and amend this ADR. Charges that are *not*
+battle-scoped — a pilot's `xp`, a run-level node bonus — are out of scope here and
+must not be snapshotted; they are run state, and undo is Player-Phase scoped.
 
 ## Alternatives Considered
 

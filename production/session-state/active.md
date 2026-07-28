@@ -242,3 +242,27 @@ ce7fe48 Update GDDs with 3 new content designs
 2b4fb2f content: add enemy roster (11 archetypes), passive modules (14), and gadgets (9)
 6aa50ef feat: complete pre-production pipeline — epics, stories, sprint-1, hero roster
 ```
+
+## Session Extract — /architecture-review 2026-07-28 (Alpha delta)
+
+- Verdict: **CONCERNS → resolved** (3 gaps found, all 3 fixed in-pass)
+- Requirements: 147 total — 125 baseline + **22 new Alpha TRs registered**
+  (`TR-PILOT-001..008`, `TR-NODEBONUS-001..003`, `TR-A11Y-001..005`,
+  `TR-SETTINGS-001..006`). The 4 Alpha systems were previously invisible to
+  `/create-stories` and `/story-done`.
+- GDD revision flags: None (no engine — pure web)
+- Gaps found and closed:
+  1. `settings-and-options.md` added a **third** persistence domain while ADR-0003
+     (Accepted) stated "two" in six places → ADR-0003 §2 rewritten as a **domain
+     registry**; the arity was a miscount, isolation is the real invariant
+  2. `RunState.nodeBonuses` was added to the Run Save payload with **no ADR**,
+     while `pilotDeaths` went through ADR-0012 the same day → recorded in
+     ADR-0003 §2 with a standing rule that payload additions need an ADR
+  3. ADR-0007 (undo/preview) had **zero** mention of action slots while Pilots
+     introduced once-per-battle charges → amended: **charges roll back with the
+     snapshot**, and battle-scoped charges must live in snapshotted state
+- Report: `docs/architecture/architecture-review-2026-07-28-alpha-delta.md`
+
+**Sprint 1 unaffected** — all three sat in Feature/Alpha layers. GAP 3 is the one
+an implementer could have hit early (undo is a Sprint 1 story) and is now
+specified before any code was written against the ambiguity.

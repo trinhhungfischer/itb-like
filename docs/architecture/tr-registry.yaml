@@ -23,7 +23,7 @@
 #   see requirements-traceability.md for coverage rationale).
 
 version: 1
-last_updated: "2026-07-28"
+last_updated: "2026-07-28"  # Alpha TRs appended by /architecture-review delta pass
 
 requirements:
 
@@ -1064,6 +1064,193 @@ requirements:
     system: Onboarding / Tutorial
     gdd: design/gdd/onboarding-tutorial.md
     requirement: "Three fixed hand-authored Tutorial Battle Templates with a legibility board-size ramp (5×5 → 6×6 → 8×8) using Board & Grid's per-battle board-size override; a one-time Skip offer."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Pilots (design/gdd/pilots.md) ───────────────────────────────────────────
+  # Alpha tier. Added 2026-07-28 by /architecture-review delta pass.
+  - id: TR-PILOT-001
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "PilotInstance record {id, pilotDefinitionId, level, xp, skills[], status} in a run-level RunState.pilots pool, with RosterMember.pilotId as the single assignment authority (null = AI Core, not an entity)."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-002
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Pilot death committed to the Run Save at the moment of death via commitPilotDeath(pilotId) - not at battle_ended - appending to an append-only pilotDeaths[]; idempotent, never debounced, written before the UI announces the death."
+    adr: "ADR-0012"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-003
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Death trigger keys on the shared Unit record's terminal Removed(Defeated | Fell) state (Formula F4); a prevented removal (Passive Module S4 Last Stand) is not a death."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-004
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Level-up skill offers generated via the shared mulberry32 PRNG salted with (runSeed, pilot.id, pilot.level) - procedural generation between battles only, never in-battle randomness."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-005
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Level derived from cumulative xp against the ascending pilot_level_thresholds array (Formula F2) rather than stored, so level and xp cannot desynchronise across a save/load boundary."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-006
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Content/config-load validation (Formula F8) REJECTS rather than clamps: a non-ascending pilot_level_thresholds array, or a skill catalog smaller than pilot_skill_offer_count + pilot_max_level, is a load-time failure."
+    adr: "ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-007
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Action-economy skills grant battle-scoped once-per-battle charges (e.g. a second Move slot) that must live in snapshotted state and roll back with undo at the same depth as the board."
+    adr: "ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PILOT-008
+    system: Pilots
+    gdd: design/gdd/pilots.md
+    requirement: "Battle HUD renders a mech's effective action-slot count when a pilot skill modifies it (Pillar 1 in-battle visibility) - display-only, no simulation effect."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── 4X-lite Node Bonuses (design/gdd/node-bonuses.md) ───────────────────────
+  - id: TR-NODEBONUS-001
+    system: 4X-lite Node Bonuses
+    gdd: design/gdd/node-bonuses.md
+    requirement: "RunState.nodeBonuses append-only multiset plus one-shot consumption flags (Supply Line, Contingency) persisted in the Run Save payload; magnitudes derived from the multiset (Formula F2), never stored, so they cannot desynchronise."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-NODEBONUS-002
+    system: 4X-lite Node Bonuses
+    gdd: design/gdd/node-bonuses.md
+    requirement: "Observes the MapNode Unvisited -> Claimed transition as its sole trigger; adds no map state, no transition, and no new player decision to Run Structure / Node Map."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-NODEBONUS-003
+    system: 4X-lite Node Bonuses
+    gdd: design/gdd/node-bonuses.md
+    requirement: "Supplies an offer-count delta (Formula F3) that Draft / Loadout Meta adds to its own offerCount; this system never redefines offerCount itself."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Accessibility (design/gdd/accessibility.md) ─────────────────────────────
+  # Requirements authority - authors no runtime code. Most entries are verification
+  # gates binding other systems at authoring time, not architectural decisions.
+  - id: TR-A11Y-001
+    system: Accessibility
+    gdd: design/gdd/accessibility.md
+    requirement: "Colour is never the sole information channel: every verb-family, telegraph, hazard, team and unit state identifiable by shape or icon. Verified by the greyscale test (Formula F3) as a BLOCKING per-screen gate."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-A11Y-002
+    system: Accessibility
+    gdd: design/gdd/accessibility.md
+    requirement: "WCAG 2.1 contrast floors enforced by Formula F1 relative-luminance ratio: body text >= 4.5:1, large/UI text >= 3:1. Not tunable."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-A11Y-003
+    system: Accessibility
+    gdd: design/gdd/accessibility.md
+    requirement: "Every screen usable at uiScale 1.5 with no clipping, overlap or truncation - verified per locale, not once in English."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-A11Y-004
+    system: Accessibility
+    gdd: design/gdd/accessibility.md
+    requirement: "Every binding in interaction-patterns.md is user-reassignable and every action reachable keyboard-only; no binding may be hardcoded."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-A11Y-005
+    system: Accessibility
+    gdd: design/gdd/accessibility.md
+    requirement: "No accommodation may alter simulation state: a deterministic replay produces identical results regardless of settings. This is what keeps accessibility orthogonal to difficulty."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Settings / Options (design/gdd/settings-and-options.md) ─────────────────
+  - id: TR-SETTINGS-001
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "Settings occupy their own persistence domain vanguard.settings.v{N} - a peer of Meta and Run, not a client - with its own schemaVersion, migration chain and checksum, so a corruption elsewhere cannot cost the player their keybindings or colorblind mode."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-SETTINGS-002
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "Every value has a default resolvable without storage (Formula F3); stored value beats platform default beats hardcoded default (Formula F2 ordering), so an explicit player choice is never overridden by an OS preference on relaunch."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-SETTINGS-003
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "Out-of-range stored values fall back PER KEY, not per payload - one bad value must never discard a whole settings file. Unknown keys written by a newer build are preserved on rewrite."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-SETTINGS-004
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "Changes apply immediately with no Apply button and no restart; writes are debounced by settings_write_debounce_ms. A failed write never blocks play (session-only degradation)."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-SETTINGS-005
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "Volume sliders reach audio only via Audio System's setBusGain(bus, db), converting 0-100 to decibels by 20*log10(v/100) with v=0 special-cased to -inf; never manipulates a bus directly."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-SETTINGS-006
+    system: Settings / Options
+    gdd: design/gdd/settings-and-options.md
+    requirement: "No setting may alter simulation state (mirrors TR-A11Y-005), which is what makes settings safe to exclude from the Run Save."
     adr: ""
     created: 2026-07-28
     revised: ""

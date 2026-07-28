@@ -23,8 +23,9 @@ Unlocks. Consistent with `design/architecture/cross-system-contracts.md`
 
 Pins the on-disk save format for VANGUARD's browser-local persistence: a
 `{schemaVersion, checksum, data}` envelope written to `window.localStorage`
-under two independent, independently-versioned domains (`vanguard.meta.v{N}`,
-`vanguard.run.v{N}`), with sequential per-domain migration, a pinned
+under a **registry of independent, independently-versioned domains** — three as
+of 2026-07-28 (`vanguard.meta.v{N}`, `vanguard.run.v{N}`,
+`vanguard.settings.v{N}`) — with sequential per-domain migration, a pinned
 order-sensitive 32-bit checksum for corruption detection, and build-then-swap
 atomic writes. Resolves Run Persistence Open Q1 (production checksum algorithm)
 and defers the Result-vs-throw error contract (Open Q2) to ADR-0005.
@@ -110,8 +111,10 @@ blocked on this decision being formalized.
 
 ### Requirements
 
-- Two independent persistence domains isolated so a corruption or migration
-  failure in one can never take down the other.
+- Independent persistence domains isolated so a corruption or migration failure
+  in one can never take down another. *(Amended 2026-07-28: originally worded
+  "two"; the count is not the architectural property — the isolation is. See
+  Decision §2.)*
 - Integer `schemaVersion` per domain, with a deterministic sequential migration
   chain (`migrate_vN_to_vN+1`) and a well-defined response to newer-than-code
   saves.
@@ -127,7 +130,7 @@ blocked on this decision being formalized.
 ## Decision
 
 Persist all VANGUARD state as a **versioned, checksummed JSON envelope in
-`window.localStorage`**, under two independent domains, written with a
+`window.localStorage`**, under a registry of independent domains, written with a
 build-then-swap atomic pattern. Concretely:
 
 **1. Envelope.** Every save (either domain) is a JSON object:
@@ -144,16 +147,39 @@ build-then-swap atomic pattern. Concretely:
 - `data` — the opaque, domain-owned payload. Persistence treats it as opaque;
   its shape is owned by the schema co-owner systems.
 
-**2. Two independent domains, independently versioned.**
+**2. A registry of independent domains, independently versioned.**
 
-- **Meta Save** — key `vanguard.meta.v{N}` — permanent, survives across runs
-  (unlocked heroes / enemy variants / difficulty tiers, cumulative statistics).
-- **Run Save** — key `vanguard.run.v{N}` — the single in-progress run (node-map
-  graph + position + claimed nodes, roster + upgrades, draft history, immutable
-  `runSeed`, start timestamp). Deleted at campaign-level run end.
-- The two domains share **no** version counter; each migrates on its own chain.
-  Different domains being on different `schemaVersion` values simultaneously is
-  expected and correct.
+*Amended 2026-07-28. This section originally read "Two independent domains" and
+enumerated exactly two. That was a **miscount of the architecture, not a
+constraint of it** — nothing in the envelope, checksum, migration, or atomic-write
+design depends on there being two. `settings-and-options.md` (#28) correctly added
+a third and would otherwise have silently contradicted an Accepted ADR.*
+
+The architectural property is **isolation**, not arity: every domain owns its key,
+its `schemaVersion`, its migration chain, and its failure mode, so a corruption or
+migration failure in one can never affect another. New domains may be added by
+extending the registry below; doing so requires no change to any other part of
+this ADR.
+
+| Domain | Key | Lifetime | Payload owner |
+|---|---|---|---|
+| **Meta Save** | `vanguard.meta.v{N}` | Permanent, across runs | Meta-progression / Unlocks — unlocked heroes, enemy variants, difficulty tiers, cumulative statistics |
+| **Run Save** | `vanguard.run.v{N}` | One in-progress run; deleted at campaign-level run end | Run Structure / Node Map + Draft / Loadout Meta — node-map graph, position, claimed nodes, roster + upgrades, draft history, immutable `runSeed`, start timestamp, `pilotDeaths[]` (**ADR-0012**), `nodeBonuses` multiset + one-shot consumption flags (`node-bonuses.md` Rule 12) |
+| **Settings** | `vanguard.settings.v{N}` | Permanent, survives run *and* Meta reset | Settings / Options (#28) — audio, display/accessibility, input bindings, locale |
+
+- Domains share **no** version counter; each migrates on its own chain. Different
+  domains sitting on different `schemaVersion` values simultaneously is expected
+  and correct.
+- **The Settings domain is a peer, not a client.** Run Persistence does not call
+  it and it does not call Run Persistence; it implements this ADR's architecture
+  independently. That is deliberate — settings are what a player most needs
+  *after* something else has gone wrong, so a colorblind player must never lose
+  their palette mode to a corrupted Meta Save.
+- **Run Save payload additions require an ADR.** `pilotDeaths` went through
+  ADR-0012; `nodeBonuses` is recorded here (added 2026-07-28) after
+  `/architecture-review` found it had been added to the GDD without one. The
+  payload is opaque to Persistence but its growth is an architectural concern,
+  because every field lands in the migration chain.
 
 **3. Single run slot (v1).** Exactly one Run Save may exist at a time. Starting a
 new run while one exists is a UI-level confirm/overwrite flow owned by Run
