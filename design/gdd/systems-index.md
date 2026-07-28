@@ -52,9 +52,9 @@ solvable, interesting battles). The target build is pure web (TypeScript + PixiJ
 | 23 | Gadgets / Secondary Weapons | Progression | Vertical Slice | Designed | design/content/secondary-weapons-and-gadgets.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
 | 24 | Enemy Roster Content | Content | Vertical Slice | Designed | design/content/enemy-roster-and-archetypes.md | Enemy, Abilities & Telegraph, Encounter Generator |
 | 25 | Pilots | Progression | Alpha | Designed | design/gdd/pilots.md | Draft / Loadout Meta, Heroes & Abilities, Turn & Phase Manager, Run Persistence |
-| 26 | 4X-lite Node Bonuses | Gameplay | Alpha | Not Started | — | Run Structure / Node Map |
-| 27 | Accessibility (inferred) | Meta | Alpha | Not Started | — | Battle HUD, Board Rendering & Juice |
-| 28 | Settings / Options (inferred) | Meta | Alpha | Not Started | — | Audio System, Input & Selection, Accessibility |
+| 26 | 4X-lite Node Bonuses | Gameplay | Alpha | Designed | design/gdd/node-bonuses.md | Run Structure / Node Map, Draft / Loadout Meta, Run Persistence |
+| 27 | Accessibility (inferred) | Meta | Alpha | Designed | design/gdd/accessibility.md | Art Bible, Map/Run UI, Input & Selection, Audio System |
+| 28 | Settings / Options (inferred) | Meta | Alpha | Designed | design/gdd/settings-and-options.md | Accessibility, Audio System, Input & Selection, Map/Run UI |
 
 ---
 
@@ -114,7 +114,10 @@ and only light narrative framing.)*
 8. **Difficulty Tiers** — depends on: Encounter Generator, Enemy, Abilities & Telegraph.
 9. **Run Structure / Node Map** — depends on: Encounter Generator, Objective / Win-Lose.
 10. **Draft / Loadout Meta** — depends on: Heroes & Abilities, Ability Upgrades, Run Structure / Node Map.
-11. **4X-lite Node Bonuses** — depends on: Run Structure / Node Map.
+11. **4X-lite Node Bonuses** — depends on: Run Structure / Node Map (observes the
+    `Unvisited → Claimed` transition, its only extension point), Draft / Loadout Meta
+    (supplies an offer-count delta), Run Persistence. Adds no map state and no new
+    player decision.
 12. **Meta-progression / Unlocks** — depends on: Run Persistence, Heroes & Abilities, Draft / Loadout Meta.
 
 ### Presentation Layer (depends on features)
@@ -128,8 +131,16 @@ and only light narrative framing.)*
 ### Polish Layer (depends on everything)
 
 1. **Onboarding / Tutorial** — depends on: Battle HUD, Heroes & Abilities, Enemy, Abilities & Telegraph.
-2. **Accessibility** — depends on: Battle HUD, Board Rendering & Juice.
-3. **Settings / Options** — depends on: Audio System, Input & Selection, Accessibility.
+2. **Accessibility** — depends on: Art Bible (palette/shape language), Map/Run UI
+   (`uiScale`, `reduced_motion` knob definitions), Input & Selection (binding set),
+   Audio System (no-information-by-audio commitment), Battle HUD, Board Rendering &
+   Juice. It is the **requirements authority** — it says what must be configurable
+   and to what threshold, and builds no UI of its own.
+3. **Settings / Options** — depends on: Accessibility (its Required Accommodations
+   table dictates catalog completeness), Audio System (`setBusGain`), Input &
+   Selection, Map/Run UI. It is the **shell** — screen, schema, storage domain
+   (`vanguard.settings.v{N}`), and apply pipeline. It is a **peer** of Run
+   Persistence, not a client of it.
 
 ---
 
@@ -159,8 +170,8 @@ and only light narrative framing.)*
 | 20 | Audio System | Vertical Slice | Presentation | game-designer, audio-director | S |
 | 21 | Onboarding / Tutorial | Vertical Slice | Polish | game-designer, ux-designer | M |
 | 22 | Pilots ✅ | Alpha | Feature | game-designer, systems-designer | M |
-| 23 | 4X-lite Node Bonuses | Alpha | Feature | game-designer, systems-designer | M |
-| 24 | Accessibility | Alpha | Polish | accessibility-specialist, ux-designer | M |
+| 23 | 4X-lite Node Bonuses ✅ | Alpha | Feature | game-designer, systems-designer | M |
+| 24 | Accessibility ✅ | Alpha | Polish | accessibility-specialist, ux-designer | M |
 | 25 | Settings / Options | Alpha | Polish | game-designer, ux-designer | S |
 
 *Effort: S = 1 session, M = 2-3 sessions, L = 4+ sessions.*
@@ -205,23 +216,29 @@ decisions, not single-system fixes — they belong in the architecture phase.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 28 |
-| Design docs started | 25 |
+| Design docs started | **28** |
 | Design docs reviewed | 24 |
 | Design docs approved | 24 |
 | MVP systems designed | 10/10 |
 | Vertical Slice systems designed | 14/14 |
-| Alpha systems designed | 1/4 |
+| Alpha systems designed | **4/4** |
 
 *(All 24 MVP+VS GDDs independently design-reviewed 2026-07-28, then reconciled against
 `design/architecture/cross-system-contracts.md`.)*
 
-*(**#25 Pilots** authored 2026-07-28 — see `design/gdd/pilots.md` and
-`docs/superpowers/specs/2026-07-28-pilots-design.md`. It supersedes the original
-"Pilots / Hero Modifiers" chassis-modifier concept, which was found to duplicate
-Passive Modules' lane; the game's mecha fiction was declared in `game-concept.md` at
-the same time. **Not yet independently design-reviewed** — run
-`/design-review design/gdd/pilots.md` in a fresh session. Alpha #26–#28 remain Not
-Started.)*
+**All four Alpha GDDs authored 2026-07-28. None has been independently
+design-reviewed yet** — run each in a **fresh session**:
+
+| # | System | Doc | Note |
+|---|---|---|---|
+| 25 | Pilots | `design/gdd/pilots.md` | Supersedes the "Pilots / Hero Modifiers" chassis-modifier concept, which duplicated Passive Modules' lane. Declared the game's mecha fiction in `game-concept.md`. Spec: `docs/superpowers/specs/2026-07-28-pilots-design.md` |
+| 26 | 4X-lite Node Bonuses | `design/gdd/node-bonuses.md` | Answers `game-concept.md`'s open question "node bonuses vs. real territory control" → **bonuses only** |
+| 27 | Accessibility | `design/gdd/accessibility.md` | Requirements authority. Expands `design/ux/accessibility-requirements.md` with formulas and blocking verification gates |
+| 28 | Settings / Options | `design/gdd/settings-and-options.md` | Resolves `run-persistence.md` Open Question #8 → settings get **their own domain**, `vanguard.settings.v{N}` |
+
+*Numbering drift corrected in the same pass: `design/ux/accessibility-requirements.md`
+called Accessibility "#24", and `input-and-selection.md` called Settings "#25" (which
+is Pilots) in three places.*
 
 ---
 

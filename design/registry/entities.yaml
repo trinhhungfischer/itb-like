@@ -345,6 +345,46 @@ constants:
       requires a larger skill catalog per Formula F3."
     added: 2026-07-28
     revised: ""
+  - name: node_bonus_stack_cap
+    status: active
+    source: design/gdd/node-bonuses.md
+    referenced_by:
+      - design/gdd/node-bonuses.md
+    value: 3
+    unit: stacks
+    note: "Maximum counted stacks per node bonus (Formula F2). A run claims map_depth+1 = 7
+      nodes total, so this caps route-commitment payoff. At 1 every bonus becomes binary
+      (claimed/not) and route DEPTH stops mattering; above 7 it never binds. Retune together
+      with map_depth — changing run length invalidates it."
+    added: 2026-07-28
+    revised: ""
+  - name: settings_write_debounce_ms
+    status: active
+    source: design/gdd/settings-and-options.md
+    referenced_by:
+      - design/gdd/settings-and-options.md
+    value: 500
+    unit: milliseconds
+    note: "Debounce between a committed settings change and the localStorage write. Bounds
+      the loss window if a session ends abruptly. Below ~100ms a slider drag thrashes
+      synchronous localStorage on the main thread; above ~2000ms a change made just before
+      closing the tab is reliably lost."
+    added: 2026-07-28
+    revised: ""
+  - name: delta_e_min
+    status: active
+    source: design/gdd/accessibility.md
+    referenced_by:
+      - design/gdd/accessibility.md
+    value: 15
+    unit: CIEDE2000
+    note: "Minimum perceptual separation between any two palette colors under simulated
+      deuteranopia/protanopia/tritanopia (Formula F4). ADVISORY gate, not blocking: shape/icon
+      redundancy (Core Rule 2, Formula F3 greyscale test) is the correctness guarantee, and an
+      8-hue palette may legitimately fail F4. If it fails consistently the fix is a smaller
+      palette, NOT a lower threshold."
+    added: 2026-07-28
+    revised: ""
   - name: pilot_skill_offer_count
     status: active
     source: design/gdd/pilots.md

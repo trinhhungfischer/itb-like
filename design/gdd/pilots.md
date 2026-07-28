@@ -556,7 +556,8 @@ screen is introduced.**
 - **End-of-run summary** — lists every pilot, living and dead, with final level.
 
 **Accessibility note:** pilot identity must not rely on portrait alone — name text is
-required alongside it. This feeds the Accessibility system (#27, Not Started).
+required alongside it — a portrait alone fails Accessibility A1 (shape/icon redundancy)
+and its F3 greyscale test, both BLOCKING gates in `accessibility.md` (#27).
 
 ---
 

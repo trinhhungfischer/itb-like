@@ -102,7 +102,7 @@ on.
    this cue this battle*, which is itself a deterministic, replayable fact.
 7. **Bus architecture.** Four buses feed a Master bus: **Music**, **SFX**, **UI**,
    **Ambience**. Every cue is authored to exactly one bus. `Settings / Options`
-   (Alpha-tier, undesigned) is expected to expose independent Master/Music/SFX volume
+   (Alpha-tier, `settings-and-options.md`, Designed 2026-07-28) exposes independent Master/Music/SFX/UI/Ambience volume
    sliders that scale each bus's gain multiplicatively — this document owns the bus API
    those sliders call, not the sliders themselves.
 8. **Music ducking (Formula F4).** Any `Critical`-priority SFX cue triggers a short,
@@ -199,7 +199,7 @@ battles or saved to Run Persistence.
 | **Input & Selection** ✅ | hover/select/confirm/cancel UI events | — | Input owns interaction state; Audio maps it to `sfx_ui_*` cues. Confirmed against `input-and-selection.md`'s actual emitted event vocabulary (hover/select/cancel/confirm) |
 | **Board Rendering & Juice** ✅ | — (peer, not a dependency) | — | Both are read-only consumers of the same Combat/Turn event streams; kept in sync by triggering off the same source events, never off each other's animation callbacks, to avoid audio drift |
 | **Battle HUD** ✅ | — (peer, not a dependency) | — | Same peer relationship as Board Rendering & Juice |
-| **Settings / Options** | — | exposes bus-gain API (`setBusGain(bus, db)`) | Audio owns the bus/gain model; Settings owns the UI that calls it. **Forward dependency** — Settings depends on Audio, per `systems-index.md`. Status: Not Started |
+| **Settings / Options** ✅ (`settings-and-options.md`, Designed 2026-07-28) | — | exposes bus-gain API (`setBusGain(bus, db)`) | Audio owns the bus/gain model; Settings owns the UI that calls it. Settings converts its 0–100 sliders to decibels via its Formula F1 (`20·log₁₀(v/100)`, with `v=0` special-cased to `-∞`) and combines each bus with Master before calling this API. It never manipulates a bus directly |
 
 **Contract this system requires from callers (gaps to close in the owning systems'
 GDDs — see Bidirectional-consistency note, Dependencies):**
@@ -218,8 +218,12 @@ GDDs — see Bidirectional-consistency note, Dependencies):**
 
 > **Dependency status:** Heroes & Abilities, Enemy, Abilities & Telegraph, Move
 > Preview, Objective / Win-Lose, Board & Grid, Input & Selection, Board Rendering &
-> Juice, and Battle HUD are all ✅ Designed (`systems-index.md`). Settings / Options and
-> Accessibility remain Not Started. The interfaces above have been reconciled against
+> Juice, and Battle HUD are all ✅ Designed (`systems-index.md`). Settings / Options
+> (#28) and Accessibility (#27) became ✅ Designed 2026-07-28 — Settings calls this
+> document's `setBusGain(bus, db)` and never touches a bus directly; Accessibility A9
+> makes this document's Rule 12 ("a stinger's absence must never remove any
+> information") a BLOCKING verification gate rather than an authoring intention. The
+> interfaces above have been reconciled against
 > each system's actual GDD; the remaining field-level gaps (missing `sfx_cue_id`,
 > missing `telegraphedLethalThreatCount(turn)`) are flagged inline above and in the
 > Bidirectional-consistency note below — they are contract gaps for the owning systems

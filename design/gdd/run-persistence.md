@@ -168,7 +168,7 @@ checksummed, and stored; the owning systems define *what* the payload contains.
 | **Meta-progression / Unlocks** ✅ | unlocked heroes/variants/tiers, statistics | unlock events (Rule 5); run-end merge (Rule 4f(i)) | Meta-progression owns unlock rules and the catalog; Persistence stores the record |
 | **Heroes & Abilities** ✅ | — (roster record references hero ids) | — | Indirect — Persistence stores ids/refs, not hero definitions |
 | **Encounter Generator** ✅ | — | — | Contract only: `generateEncounter(runSeed, nodeId, difficultyConfig, rosterSnapshot)` must be pure/deterministic (Rule 10); Persistence never stores its output |
-| **Settings / Options** | — | — | **Out of scope.** Settings are not part of this system's save domains in v1 (see Open Questions) |
+| **Settings / Options** ✅ (`settings-and-options.md`, Designed 2026-07-28) | — | — | **Out of scope, and now confirmed as such.** Settings own a separate `vanguard.settings.v{N}` domain implementing this document's architecture as a **peer, not a client** — no call passes in either direction. This isolation is deliberate: a corruption in Meta or Run must never cost the player their settings (see Open Questions #8) |
 | **Battle HUD / Onboarding** ✅ | save-state signals (saved / couldn't load / storage full) for toast display | — | Persistence emits events; UI owns presentation |
 
 **Proposed engine API** (contract): `saveRun(data) → WriteResult`,
@@ -555,9 +555,15 @@ context per the project's Story Type table).
    limitation (Edge Cases), not solved. If it becomes a real problem, a future
    fix would use the `storage` event or `BroadcastChannel` to detect/reconcile
    concurrent tabs — out of scope for this GDD.
-8. **Settings / Options persistence** — whether settings get their own save
-   domain/key or piggyback on Meta Save is deferred to the **Settings / Options**
-   GDD; this system currently defines only the Run and Meta domains.
+8. **Settings / Options persistence — RESOLVED 2026-07-28.**
+   `settings-and-options.md` chose **its own domain**: `vanguard.settings.v{N}`,
+   a third sibling to `vanguard.meta.v{N}` and `vanguard.run.v{N}`, with its own
+   `schemaVersion`, migration chain, and checksum. It is a **peer, not a client**
+   — it does not call this system, and this system does not call it. What it
+   borrows is this document's architecture (envelope, checksum, per-domain
+   version, sequential migration, four-state load model), which is why a
+   corruption here can never cost the player their keybindings or colorblind
+   mode. This system still defines only the Run and Meta domains.
 9. **Payload schema shapes** (node record fields, hero/upgrade record fields,
    unlock catalog fields) are deferred to **Run Structure / Node Map**, **Draft
    / Loadout Meta**, and **Meta-progression / Unlocks** respectively — this GDD

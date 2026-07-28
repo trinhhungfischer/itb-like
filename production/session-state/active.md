@@ -12,8 +12,11 @@
 |------|--------|----------|
 | Game Concept | ✅ Complete | `design/gdd/game-concept.md` |
 | Systems Index | ✅ 28 systems (10 MVP, 14 VS, 4 Alpha) | `design/gdd/systems-index.md` |
-| GDDs | ✅ **25/28 Designed** (MVP 10/10, VS 14/14, Alpha 1/4) | `design/gdd/*.md` |
-| Pilots (#25) | ✅ Designed 2026-07-28 — pending independent review | `design/gdd/pilots.md` |
+| GDDs | ✅ **28/28 Designed** (MVP 10/10, VS 14/14, Alpha 4/4) | `design/gdd/*.md` |
+| Alpha #25 Pilots | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/pilots.md` |
+| Alpha #26 Node Bonuses | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/node-bonuses.md` |
+| Alpha #27 Accessibility | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/accessibility.md` |
+| Alpha #28 Settings | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/settings-and-options.md` |
 | Game Fiction | ✅ Mecha declared 2026-07-28 | `design/gdd/game-concept.md` § Fiction and Terminology |
 | Art Bible | ✅ §1-4 Complete | `design/art/art-bible.md` |
 | Architecture | ✅ PASS | `docs/architecture/architecture.md` |
@@ -92,11 +95,12 @@ HeroRunState {
    - Run Persistence, Passive Modules, Gadgets, Enemy Roster (P1)
 
 3. **Remaining design gaps** (non-blocking):
-   - Alpha #26 4X-lite Node Bonuses, #27 Accessibility, #28 Settings — Not Started
+   - **All 28 GDDs authored.** The 4 Alpha docs are unreviewed — see below.
    - AI Formula F2 attackRange=0 edge case
    - Wraith two-target input UX flow
-   - `design/accessibility-requirements.md` and `design/ux/accessibility-requirements.md`
-     are duplicates — dedupe before designing #27
+   - *(Resolved: `design/accessibility-requirements.md` is NOT a duplicate — it is a
+     22-line pointer that explicitly names `design/ux/accessibility-requirements.md`
+     as canonical. Nothing to dedupe.)*
 
 ### Pilots (#25) — completed 2026-07-28
 
@@ -118,6 +122,48 @@ Simulation core: **zero changes**.
 - ⚠️ Known risk: mechs now carry **5 customization axes** vs Into the Breach's 2.
   Mitigations are Core Rule 5's lane ban and portrait-not-icon presentation. If
   playtest shows legibility suffering, first lever is `equipmentSlots` 2 → 1.
+
+### Alpha #26–#28 — completed 2026-07-28
+
+Each resolved a decision another doc had explicitly deferred to it:
+
+- **#26 Node Bonuses** answers `game-concept.md`'s open question *"node bonuses vs.
+  real territory control"* → **bonuses only**. Consumes exactly the one extension
+  point `run-structure-node-map.md` promised (`MapNode.state == Claimed`); adds no map
+  state, no transition, and **no new player decision** — route choice already exists.
+- **#27 Accessibility** is the **requirements authority**, not a UI system. It expands
+  `design/ux/accessibility-requirements.md` into 11 required accommodations, 4 formulas
+  (WCAG contrast, UI scale, greyscale test, CIEDE2000 palette separation), and 9
+  verification gates — 8 BLOCKING.
+- **#28 Settings** is the **shell** and resolves `run-persistence.md` Open Question #8
+  → settings get **their own domain** `vanguard.settings.v{N}`, a peer of Meta/Run, so
+  a save corruption can never cost a player their keybindings or colorblind mode.
+
+**Lane discipline applied deliberately**, after the Pilots/Passive-Modules collision
+showed what happens without it: #27 owns *which* accommodations must exist and to what
+threshold; #28 owns the screen, schema, storage, and apply pipeline. Neither may change
+the other's domain.
+
+**Numbering drift found and fixed**: `ux/accessibility-requirements.md` called
+Accessibility "#24"; `input-and-selection.md` called Settings "#25" (which is Pilots)
+in three places.
+
+### ⚠️ Review debt — 4 GDDs unreviewed
+
+None of the Alpha docs has had an independent `/design-review`, and **no specialist
+gate ran on any of them** (subagent dispatch was unavailable). Run each in a **fresh
+session** — the reviewing agent must not inherit the authoring context:
+
+```
+/design-review design/gdd/pilots.md
+/design-review design/gdd/node-bonuses.md
+/design-review design/gdd/accessibility.md
+/design-review design/gdd/settings-and-options.md
+```
+
+`accessibility.md` in particular should not reach production without an
+`accessibility-specialist` pass; `settings-and-options.md` is almost entirely UI and
+never saw a `ux-designer`.
 
 ### Key Architecture Reminders
 - **Deterministic**: No RNG in battle. PRNG = mulberry32, seeded once per encounter.

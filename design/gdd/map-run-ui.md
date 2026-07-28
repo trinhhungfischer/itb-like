@@ -291,10 +291,10 @@ a fully-confirmed player action.
 | **Draft / Loadout Meta** ✅ | `Roster` (for the Roster Summary Widget), live `DraftOffer[]`/`RestChoice` sets, `RosterMember` HP for Rest preview (Formula F5) | Offer pick resolution, `RestChoice` resolution (Heal/Train), Starting Roster Draft's `squad_size` picks | Draft / Loadout Meta owns offer content and legality; Map/Run UI owns the screen and forwards the player's pick verbatim |
 | **Run Persistence** ✅ (indirect) | Whatever `RunMap`/offer/Roster state Persistence hands back on `loadRun()` resume | — | Read-only; session-resume recovery is entirely Persistence's contract (`run-persistence.md`), Map/Run UI just re-renders whatever it's given, per its own scope note in Edge Cases |
 | **Draft/Loadout UI** ✅ (sibling) | — | Hands off control to Draft/Loadout UI's `RosterHub` state on Roster Summary Widget activation (Rule 2) | **Soft** — the Roster Hub / Loadout Config split is confirmed against that document's own Core Rule 1; the Offer/Rest/StartingDraft screen-ownership overlap between the two documents remains an open item (Open Questions) |
-| **4X-lite Node Bonuses** (undesigned, Alpha tier, out of v1 scope) | `MapNode.state == Claimed` (the only extension point `run-structure-node-map.md` commits to) | — | **Soft, deferred** — this document reserves a badge-render slot on `Claimed` nodes (Visual/Audio Requirements) but implements no bonus logic |
+| **4X-lite Node Bonuses** ✅ (`node-bonuses.md`, Designed 2026-07-28) | `MapNode.state == Claimed` (the only extension point `run-structure-node-map.md` commits to) | — | **Hard** — the reserved badge-render slot on `Claimed` nodes is now filled by that system's bonus icons; this document also renders its active-bonus panel, its pre-claim bonus preview (required by Pillar 1), and consumes its `revealDepth` (Formula F4) |
 | **Audio System** ✅ (indirect) | — | Fires named UI event hooks (Visual/Audio Requirements) for Audio System to bind SFX to | **Soft** — Map/Run UI enumerates the hook points; Audio System owns all playback, matching this project's established convention (e.g. `run-structure-node-map.md`'s equivalent section) |
-| **Accessibility** (undesigned, Alpha tier) | — | Exposes `uiScale` (Formula F5) and `reduced_motion` as settings surfaces that Accessibility/Settings can read and let the player configure | **Soft, provisional** downstream |
-| **Settings / Options** (undesigned, Alpha tier) | — | Same `uiScale`/`reduced_motion` surface as above | **Soft, provisional** downstream |
+| **Accessibility** ✅ (`accessibility.md`, Designed 2026-07-28) | — | Exposes `uiScale` (Formula F5) and `reduced_motion`. Accessibility requires `uiScale` cover `[1.0, 1.5]` without clipping (its A3) and `reduced_motion` default from the OS `prefers-reduced-motion` query (its A8) — it constrains the required range, it does not redefine the knobs | **Hard** downstream |
+| **Settings / Options** ✅ (`settings-and-options.md`, Designed 2026-07-28) | — | Same `uiScale`/`reduced_motion` surface; Settings persists and surfaces them in its own `vanguard.settings.v{N}` domain and must not redefine their ranges | **Hard** downstream |
 
 **Bidirectional-consistency notes** (this document does not edit any of the
 files below, per this task's constraints — flagged for the next
@@ -560,10 +560,10 @@ wrap more readily rather than ever shrinking text to force a fit).
 | Dependent System | Interface (what it uses) | Hard / Soft |
 |---|---|---|
 | **Draft/Loadout UI** ✅ (sibling) | Receives control (enters its `RosterHub` state) on Roster Summary Widget activation (Rule 2); returns control to `MapScreen` on close | **Soft** — Roster Hub / Loadout Config screen-ownership confirmed against that document's own Core Rule 1; the Offer/Rest/StartingDraft overlap between the two documents remains an open item (Open Questions) |
-| **4X-lite Node Bonuses** (undesigned, Alpha tier) | Reserved badge-render slot on `Claimed` nodes | **Soft, deferred** |
+| **4X-lite Node Bonuses** ✅ | Badge on `Claimed` nodes, active-bonus panel, pre-claim bonus preview, `revealDepth` | **Hard** |
 | **Audio System** ✅ | Named UI event hooks (Visual/Audio Requirements) | **Soft** |
-| **Accessibility** (undesigned, Alpha tier) | `uiScale`, `reduced_motion` settings surface (Formula F5, Visual/Audio Requirements) | **Soft, provisional** |
-| **Settings / Options** (undesigned, Alpha tier) | Same settings surface as above | **Soft, provisional** |
+| **Accessibility** ✅ | `uiScale`, `reduced_motion` settings surface (Formula F5, Visual/Audio Requirements) | **Hard** |
+| **Settings / Options** ✅ | Same settings surface as above | **Hard** |
 
 **Bidirectional-consistency note:** see the "Bidirectional-consistency
 notes" paragraph at the end of Interactions with Other Systems above for

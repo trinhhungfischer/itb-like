@@ -4,8 +4,10 @@
 > driver: Pillar #5 "Read in Ten Seconds" and the art direction "one accent color per
 > verb-family" mean the game leans on color to communicate — so **color must never be
 > the sole channel**. Targets WCAG 2.1 AA where applicable. (Full-featured
-> accessibility options are the Alpha system #24; this document is the requirements
-> baseline every earlier system must respect.)
+> accessibility options are Alpha system **#27**, now designed as
+> [`design/gdd/accessibility.md`](../gdd/accessibility.md) — corrected from "#24"
+> on 2026-07-28; this document is the requirements baseline every earlier system
+> must respect, and the GDD is its formal expansion with verification procedures.)
 
 ## 1. Color independence (CRITICAL)
 

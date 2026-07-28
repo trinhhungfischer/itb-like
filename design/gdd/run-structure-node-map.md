@@ -340,7 +340,7 @@ battle stack and *what* happens to the campaign as a result.
 | **Run Persistence** ✅ | `loadRun() → RunMap + currentNodeId + node states` on resume | `saveRun(data)` on node entry (Rule 4a-equivalent) and node resolution (Rule 4b-equivalent), matching `run-persistence.md`'s Rule 4a/4b write triggers exactly; `clearRun()` semantics on run end are Persistence's own Rule 4f, triggered by this system's `run_completed`/`run_abandoned` event and `processRunEnd(outcome)` (Rule 15) | **Confirmed Hard, bidirectionally** — `run-persistence.md`'s own Dependencies section lists this exact edge back |
 | **Draft / Loadout Meta** ✅ | `rosterSnapshot` (current roster, forwarded to Difficulty Tiers) | Delegates Reward/Rest node resolution and post-Battle/Elite/Boss-Victory reward triggers to it; awaits its `resolveNode(nodeId, {outcome: Completed})` completion callback (Rule 12) | **Hard, blocking** — resolves `systems-index.md`'s declared "Draft / Loadout Meta depends on … Run Structure / Node Map" from the other side, confirmed by `draft-and-loadout-meta.md`'s own Interactions table |
 | **Heroes & Abilities** ✅ (indirect, via Draft / Loadout Meta) | Roster composition/liveness feeding `rosterSnapshot` | — | Indirect — Run Structure only forwards what Draft / Loadout Meta / Heroes & Abilities produce |
-| **4X-lite Node Bonuses** (Not Started, Alpha tier — out of v1 scope) | — | Exposes `MapNode.state == Claimed` as the only extension point this document commits to; passive per-node bonuses are entirely that system's future concern | **Soft, deferred** — `systems-index.md` lists it depending on Run Structure; this document only guarantees the `Claimed` flag exists for it to read later |
+| **4X-lite Node Bonuses** ✅ (`node-bonuses.md`, Designed 2026-07-28) | — | Exposes `MapNode.state == Claimed` as the only extension point this document commits to; all bonus logic is that system's | **Hard** — that document observes the `Unvisited → Claimed` transition and `MapNode.type`, and adds **no** new state and **no** new transition here. This document's map model is unchanged by it |
 | **Map/Run UI** ✅ | — | The full `RunMap` (all nodes/edges/types/tiers/states) and `reachableNodes()` for rendering the map screen and enforcing which nodes are clickable; calls `enterNode()` on player click | Read-only consumer; Pillar #1's "reveal everything" requirement (Rule 3) is *this* system's guarantee, which the UI merely renders — confirmed **Hard** by `map-run-ui.md`'s own Interactions table |
 | **Meta-progression / Unlocks** ✅ | `ascension_max_offset` ceiling and the player's currently-unlocked `ascensionOffset` (forwarded, unmodified, to Difficulty Tiers) | `processRunEnd(outcome)` (Rule 15) as the terminal hook Meta-progression's own `processRunEnd(runSummary, metaStats, catalog)` is invoked from, once per run, with `battle_ended`'s `nodeType` (Battle/Elite/Boss) available for `RunSummary` assembly | **Hard** — resolves the gap `meta-progression-and-unlocks.md` flagged ("Run Structure / Node Map … would need to call `processRunEnd()`") |
 
@@ -669,7 +669,7 @@ two targets `{1,2}` computed above, translated through Formula F3).
 | Dependent System | Interface (what it uses) | Hard / Soft |
 |---|---|---|
 | **Draft / Loadout Meta** ✅ | Delegation calls on Reward/Rest node entry and post-Battle-Victory; reads `rosterSnapshot` state it itself maintains, exposed back to this system | **Hard** — confirmed by `draft-and-loadout-meta.md`'s own Interactions table |
-| **4X-lite Node Bonuses** (Not Started) | Reads `MapNode.state == Claimed` per node; all bonus logic is that system's own, entirely out of this document's v1 scope | **Soft, deferred (Alpha tier)** |
+| **4X-lite Node Bonuses** ✅ | Reads `MapNode.state == Claimed` and `MapNode.type` per node; all bonus logic is that system's own | **Hard** |
 | **Map/Run UI** ✅ | Reads the full `RunMap` + `reachableNodes()` for rendering; calls `enterNode()` on player click | **Hard** — confirmed by `map-run-ui.md`'s own Interactions table |
 | **Meta-progression / Unlocks** ✅ | Calls into the `processRunEnd(outcome)` hook (Rule 15) once per terminal run event; its own `processRunEnd(runSummary, metaStats, catalog)` consumes the `RunSummary` this system assembles | **Hard** — resolves the gap `meta-progression-and-unlocks.md` flagged |
 
@@ -981,10 +981,11 @@ implementation):**
    Loadout Meta**'s (and a future event-content system's) to define — this
    document only specifies the completion-callback contract those systems
    must satisfy.
-9. **4X-lite node "claim" bonuses.** Explicitly out of v1 scope (per
-   `systems-index.md`'s Alpha-tier placement of "4X-lite Node Bonuses") — this
-   document only guarantees `MapNode.state == Claimed` exists as a stable
-   read surface for that future system.
+9. **4X-lite node "claim" bonuses — RESOLVED 2026-07-28.** `node-bonuses.md` is
+   now Designed. It consumes exactly the read surface this document promised —
+   `MapNode.state == Claimed` plus `MapNode.type` — and adds no state, no
+   transition, and no new player decision here. This document's map model is
+   unchanged.
 10. **`DifficultyConfig`'s numeric balance content** (`depthRange`,
     `narrownessMax`, `countScalePerTier` per tier) — deferred to
     `assets/data/` content authoring, and potentially to a future dedicated

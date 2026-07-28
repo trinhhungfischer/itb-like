@@ -152,7 +152,7 @@ mutates Board, Combat, or Turn state directly).
 | **Board Rendering & Juice** ✅ | tile size, board screen-origin, camera/zoom state — the concrete values plugged into Formulas 1–2; `isAnimating()` — the animation half of the Locked gate (Core Rule 8) | hover tile, selected unit, targeting highlight set, keyboard-cursor position — so Rendering can draw them | **Hard, bidirectional.** Status: Designed. The screen↔tile transform must be identical on both sides — **flagged as an architecture decision** (shared coordinate-transform module, not duplicated math). Already listed as a **Hard** dependent in `board-rendering-and-juice.md`'s Dependencies table, including the `isAnimating()` interface. |
 | **Battle HUD** ✅ | — | selected unit, available action modes, Inspect-panel target (hovered/clicked unit of either side) | **Hard**, Status: Designed. Already listed as a **Hard** dependent in `battle-hud.md`'s Dependencies table ("Selected unit, available action modes, `Inspect` target"). HUD renders whatever Input & Selection reports; Input & Selection never renders UI chrome itself. |
 | **Enemy, Abilities & Telegraph** ✅ | (for Inspect mode) enemy unit's telegraphed next action, for read-only display | — | **Soft**, Status: Designed. Input & Selection only forwards "this unit was inspected" — telegraph *content* is that system's. `enemy-abilities-and-telegraph.md` does not yet list Input & Selection as a dependent — see Open Questions. |
-| **Settings / Options** | — | (future) key bindings / click-tolerance overrides | **Soft**, future (Alpha tier, system #25). Not implemented in v1; this GDD's tuning knobs are the seed values Settings will eventually expose. |
+| **Settings / Options** ✅ (`settings-and-options.md`, Designed 2026-07-28) | — | Key bindings and `require_confirm_click` | **Hard** (Alpha tier, system **#28** — corrected from "#25", which is Pilots). This document owns what a binding *does* and this GDD's tuning knobs are its defaults; Settings owns what key it is on, and persists it. Accessibility A5 requires **every** binding here be remappable — none may be hardcoded. |
 
 ## Formulas
 
@@ -283,9 +283,11 @@ silently applied to stale state.
   untouched (nothing was committed) — this is a *free* cancel, distinct from
   Turn & Phase Manager's committed-action Undo.
 - **`Escape` while `UnitSelected`:** returns to `Idle` (deselects).
-- **`Escape` while `Idle`:** opens the pause/options menu. **PROVISIONAL** —
-  Settings/Options (system #25) is undesigned; this is a reserved hook, not an
-  implemented behavior in v1's MVP scope.
+- **`Escape` while `Idle`:** opens the pause/options menu. Settings / Options
+  (system **#28**, `settings-and-options.md`, Designed 2026-07-28) is the screen
+  this reaches. Per that document's Rule 15, opening it mid-battle pauses without
+  advancing a turn, consuming an action, or touching the undo stack. Still a
+  reserved hook in v1's MVP scope — the binding exists, the screen is Alpha-tier.
 - **Window/canvas loses focus while `Targeting`:** the active preview is
   cleared (nothing to show against a paused input stream) but the selection and
   target mode **persist** — focus regaining resumes exactly where the player
@@ -347,8 +349,8 @@ See the Downstream table below.
 | **Board Rendering & Juice** | hover tile, selected unit, targeting highlight set, keyboard-cursor position — to draw them | **Hard** |
 | **Battle HUD** | selected unit, available action modes, Inspect target | **Hard** |
 | **Move Preview** | the hover/target event stream that triggers each preview request | **Hard** |
-| **Settings / Options** *(Alpha tier)* | key bindings, click-tolerance overrides | **Soft**, future |
-| **Accessibility** *(Alpha tier)* | confirmation of full keyboard-only operability; hooks for input remapping | **Soft**, future |
+| **Settings / Options** ✅ *(#28)* | key bindings, `require_confirm_click` | **Hard** |
+| **Accessibility** ✅ *(#27)* | full keyboard-only operability (its A7) and complete remapping coverage (its A5) — both are BLOCKING verification gates there, not aspirations | **Hard** |
 
 **Bidirectional-consistency note:** All five upstream systems above are
 Status: Designed and were re-read this pass to confirm both sides agree.
@@ -563,6 +565,8 @@ accessibility criteria, per the project's UI test-evidence tier). Default board
    touch); if touch is added later, `require_confirm_click`'s two-step pattern
    is the natural fallback (tap = preview/arm, tap again = commit). *Owner:*
    revisit if a platform target changes.
-10. **Settings/Options key-remapping UI.** This GDD defines default bindings
-    and tuning-knob seed values only; the remapping interface itself belongs to
-    system #25 (Alpha tier). *Owner:* Settings / Options.
+10. **Settings/Options key-remapping UI — RESOLVED 2026-07-28.** This GDD defines
+    default bindings and tuning-knob seed values only; the remapping interface
+    belongs to system **#28** (`settings-and-options.md` — corrected from "#25",
+    which is Pilots). That document owns the capture flow and conflict handling;
+    `accessibility.md` A5 makes complete remapping coverage a BLOCKING gate.
