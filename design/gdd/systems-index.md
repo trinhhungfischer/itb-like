@@ -217,8 +217,9 @@ decisions, not single-system fixes — they belong in the architecture phase.
 |--------|-------|
 | Total systems identified | 28 |
 | Design docs started | **28** |
-| Design docs reviewed | 24 |
+| Design docs reviewed | **25** (24 baseline + `pilots.md`) |
 | Design docs approved | 24 |
+| Reviews run but verdict unrecorded | **3** (#26, #27, #28) |
 | MVP systems designed | 10/10 |
 | Vertical Slice systems designed | 14/14 |
 | Alpha systems designed | **4/4** |
@@ -226,8 +227,12 @@ decisions, not single-system fixes — they belong in the architecture phase.
 *(All 24 MVP+VS GDDs independently design-reviewed 2026-07-28, then reconciled against
 `design/architecture/cross-system-contracts.md`.)*
 
-**All four Alpha GDDs authored 2026-07-28. None has been independently
-design-reviewed yet** — run each in a **fresh session**:
+**All four Alpha GDDs authored 2026-07-28.** `/design-review` was run on all four in
+independent terminal sessions the same day. **Only `pilots.md` recorded a result** —
+verdict **MAJOR REVISION NEEDED**, with all 9 blocking items fixed in-doc. The other
+three left the working tree unchanged, which is indistinguishable from a clean pass
+and must not be read as one. Re-run them in a **fresh session** and capture the
+verdict in each document's Review Status block:
 
 | # | System | Doc | Note |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # Active Session State
 
-**Last Updated:** 2026-07-28 (all 28 GDDs authored; Alpha reviews run, verdicts uncaptured)
+**Last Updated:** 2026-07-28 — 28/28 GDDs · 12 ADRs · 147 TRs · consistency + architecture reviews done
 **Stage:** Pre-Production (PASS since 2026-07-28)
 **Sprint:** Sprint 1 planned (not started), Sprint 2 planned
 
@@ -13,16 +13,16 @@
 | Game Concept | ✅ Complete | `design/gdd/game-concept.md` |
 | Systems Index | ✅ 28 systems (10 MVP, 14 VS, 4 Alpha) | `design/gdd/systems-index.md` |
 | GDDs | ✅ **28/28 Designed** (MVP 10/10, VS 14/14, Alpha 4/4) | `design/gdd/*.md` |
-| Alpha #25 Pilots | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/pilots.md` |
-| Alpha #26 Node Bonuses | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/node-bonuses.md` |
-| Alpha #27 Accessibility | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/accessibility.md` |
-| Alpha #28 Settings | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/settings-and-options.md` |
+| Alpha #25 Pilots | ✅ Designed · ✅ **reviewed** (MAJOR REVISION NEEDED → fixed) | `design/gdd/pilots.md` |
+| Alpha #26 Node Bonuses | ✅ Designed · ⚠️ review ran, **no verdict recorded** | `design/gdd/node-bonuses.md` |
+| Alpha #27 Accessibility | ✅ Designed · ⚠️ review ran, **no verdict recorded** | `design/gdd/accessibility.md` |
+| Alpha #28 Settings | ✅ Designed · ⚠️ review ran, **no verdict recorded** | `design/gdd/settings-and-options.md` |
 | Game Fiction | ✅ Mecha declared 2026-07-28 | `design/gdd/game-concept.md` § Fiction and Terminology |
 | Art Bible | ✅ §1-4 Complete | `design/art/art-bible.md` |
 | Architecture | ✅ PASS | `docs/architecture/architecture.md` |
-| ADRs | ✅ 11 Accepted (adr-0001..0011) | `docs/architecture/adr-*.md` |
+| ADRs | ✅ **12 Accepted** (adr-0001..0012) | `docs/architecture/adr-*.md` |
 | Control Manifest | ✅ Complete | `docs/architecture/control-manifest.md` |
-| Traceability | ✅ 126 TRs mapped | `docs/architecture/requirements-traceability.md` |
+| Traceability | ✅ **147 TRs** (125 baseline + 22 Alpha) | `docs/architecture/tr-registry.yaml` |
 | UX Specs | ✅ Battle HUD UX spec | `design/ux/battle-hud-ux-spec.md` |
 | Vertical Slice | ✅ Prototype playable | `prototypes/vanguard-vertical-slice/` |
 | Hero Roster | ✅ 12 heroes, 4 squads | `design/content/hero-roster-and-squads.md` |
@@ -86,27 +86,21 @@ HeroRunState {
 **All 28 GDDs are authored.** Design work is complete in volume; what remains is
 reconciliation, then implementation.
 
-**0. Capture the 4 Alpha review verdicts** ← *do this first, it is cheap and it
-unblocks the systems-index status column.* See "Review debt" below.
+✅ **Done 2026-07-28:** `/consistency-check` (4 findings, all closed) ·
+`/architecture-review` Alpha delta (3 gaps, all closed) · ADR-0012 authored ·
+22 Alpha TRs registered. See the Session Extract at the end of this file.
 
-**1. Run `/consistency-check`** — the Alpha tier added 4 GDDs and amended 11 more in
-one day. Cross-doc values should be verified mechanically before Sprint 1 starts.
-Specifically worth checking: the three-way lane boundary (Ability Upgrades →
-`AbilityDefinition` fields; Passive Modules → chassis fields; Pilots → action economy),
-since the original Pilots contract was found stale precisely because nobody
-re-checked it after Passive Modules was authored.
+**0. Re-review #26, #27, #28** — their `/design-review` runs left no verdict and no
+document change. That is indistinguishable from a clean pass and must not be read as
+one: `pilots.md`'s review returned **MAJOR REVISION NEEDED** and rewrote a rule that
+was factually unachievable. Capture each verdict in the GDD's Review Status block.
 
-**2. Re-run `/architecture-review`** — architecture was signed off covering 21 GDDs.
-It now covers 28. None of the 4 Alpha systems touches the simulation core, so no
-change is expected — but "no change expected" is a claim worth verifying rather than
-assuming, especially the `vanguard.settings.v{N}` peer-domain decision.
-
-**3. Implement Sprint 1** — Foundation + Core layers (18 stories, 61 pts, 2 weeks)
+**1. Implement Sprint 1** — Foundation + Core layers (18 stories, 61 pts, 2 weeks)
    - Board & Grid, Turn & Phase Manager, Event Bus (Foundation)
    - Combat Resolution, Input & Selection, Move Preview (Core)
    - Production code at `src/` (not `prototypes/`)
 
-**4. After Sprint 1** → Sprint 2 — Feature layer + Content systems (21 stories, 106 pts)
+**2. After Sprint 1** → Sprint 2 — Feature layer + Content systems (21 stories, 106 pts)
    - Heroes & Abilities, Enemy AI, Objectives (P0)
    - Run Persistence, Passive Modules, Gadgets, Enemy Roster (P1)
 
@@ -140,7 +134,10 @@ Pillar 1 (Perfect Information) breaks. The original draft claimed otherwise; the
 review retracted it.
 
 - Spec: `docs/superpowers/specs/2026-07-28-pilots-design.md`
-- GDD: `design/gdd/pilots.md` — **not yet independently design-reviewed**
+- GDD: `design/gdd/pilots.md` — ✅ **independently design-reviewed** 2026-07-28
+  (MAJOR REVISION NEEDED; all 9 blocking items resolved in-doc, commit `f59f5da`).
+  That review also produced **ADR-0012** and corrected Rule 21, which had asserted a
+  guarantee `run-persistence.md` could not provide.
 - ⚠️ Known risk: mechs now carry **5 customization axes** vs Into the Breach's 2.
   Mitigations are Core Rule 5's lane ban and portrait-not-icon presentation. If
   playtest shows legibility suffering, first lever is `equipmentSlots` 2 → 1.

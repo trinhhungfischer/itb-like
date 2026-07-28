@@ -566,8 +566,12 @@ What this document requires *of* that UI:
 
 ## Review Status
 
-> **Design Review**: not yet run. Execute `/design-review design/gdd/accessibility.md`
-> in a **fresh session**.
+> **Design Review**: **run 2026-07-28** by the user in an independent terminal
+> session — **but no verdict, findings, or document changes were recorded.** The
+> working tree was unchanged afterward. **Treat this document as unverified**; re-run
+> `/design-review design/gdd/accessibility.md` in a fresh session and capture the
+> verdict here. For contrast, `pilots.md`'s review returned MAJOR REVISION NEEDED and
+> wrote its fixes into the document — a silent run is not evidence of quality.
 >
 > **Specialist gates not consulted** (Lean review mode; subagent dispatch unavailable):
 > `accessibility-specialist` and `ux-designer` — the two most relevant to this document

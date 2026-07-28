@@ -516,9 +516,14 @@ bonuses — shape/icon redundancy per `design/ux/accessibility-requirements.md` 
 
 ## Review Status
 
-> **Design Review**: not yet run. Execute `/design-review design/gdd/node-bonuses.md`
-> in a **fresh session** — the reviewing agent must be independent of this authoring
-> context.
+> **Design Review**: **run 2026-07-28** by the user in an independent terminal
+> session — **but no verdict, findings, or document changes were recorded.** The
+> working tree was unchanged afterward. This is indistinguishable from a clean pass:
+> it may mean the review found nothing, or that its output stayed in that terminal.
+> **Treat this document as unverified.** Re-run
+> `/design-review design/gdd/node-bonuses.md` in a fresh session and capture the
+> verdict here. For contrast, `pilots.md`'s review returned MAJOR REVISION NEEDED and
+> wrote its fixes into the document — so a silent run is not evidence of quality.
 >
 > **Specialist gates not consulted** (Lean review mode; subagent dispatch unavailable):
 > `systems-designer` (Formulas, Edge Cases), `qa-lead` (Acceptance Criteria),

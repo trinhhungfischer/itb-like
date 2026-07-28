@@ -628,8 +628,17 @@ needs an accommodation mid-battle needs the full set.
 
 ## Review Status
 
-> **Design Review**: not yet run. Execute
-> `/design-review design/gdd/settings-and-options.md` in a **fresh session**.
+> **Design Review**: **run 2026-07-28** by the user in an independent terminal
+> session — **but no verdict, findings, or document changes were recorded.** The
+> working tree was unchanged afterward. **Treat this document as unverified**; re-run
+> `/design-review design/gdd/settings-and-options.md` in a fresh session and capture
+> the verdict here. For contrast, `pilots.md`'s review returned MAJOR REVISION NEEDED
+> and wrote its fixes into the document — a silent run is not evidence of quality.
+>
+> **Note:** `/architecture-review` (2026-07-28) separately found that this document's
+> third-persistence-domain decision contradicted ADR-0003's stated "two domains".
+> ADR-0003 was amended rather than this document changed — the decision here was
+> sound, the ADR's arity was a miscount.
 >
 > **Specialist gates not consulted** (Lean review mode; subagent dispatch unavailable):
 > `ux-designer` (this document is almost entirely UI — the most significant omission),
