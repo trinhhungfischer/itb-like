@@ -384,14 +384,25 @@ export class SelectionStateMachine {
       return SELECTION_OK;
     }
 
-    this.deps.eventBus.emit({ type: 'confirm', unitId: state.unitId, mode: state.mode, target: tile });
     const outcome = this.deps.actionCommitter.commit(state.unitId, state.mode, tile, this.deps.board);
 
     if (!outcome.committed) {
       // Legal per the query but refused by the committer (e.g. stale mid-resolution
       // state) — defensive fallback; state remains Targeting, no lock entered.
+      // NOTE: `confirm` is deliberately NOT emitted on this path (see below).
       return selectionReject('IllegalTarget');
     }
+
+    // `confirm` is emitted only AFTER the committer accepts.
+    //
+    // Corrected 2026-07-28 by code review. This emit previously sat *before* the
+    // commit call, so a refused commit still fired `confirm` — and every
+    // Presentation subscriber (Battle HUD, Audio, Board Rendering) would have
+    // played a committed-action animation and sound for an action that never
+    // happened. `ConfirmEvent`'s own doc comment says the event means the action
+    // "commits immediately", which the old ordering contradicted on the refusal
+    // branch.
+    this.deps.eventBus.emit({ type: 'confirm', unitId: state.unitId, mode: state.mode, target: tile });
 
     this.pendingPostLockState = outcome.unitHasActionsRemaining
       ? { status: 'UnitSelected', unitId: state.unitId }

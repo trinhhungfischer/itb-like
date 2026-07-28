@@ -23,6 +23,7 @@
  * source of truth for "where is unit X," matching ADR-0001's ownership.
  */
 
+import type { CombatStateView } from './combat-state-interface.js';
 import { invariant } from '../board/board-result.js';
 import type { HazardType, Tile } from '../board/board-types.js';
 import type { UnitId } from '../board/board-types.js';
@@ -42,7 +43,7 @@ function tileKey(tile: Tile): string {
  * Construct one instance per battle (`CombatState.empty()`); `resolve()`
  * mutates it in place, exactly as it mutates the `Board` it is given.
  */
-export class CombatState {
+export class CombatState implements CombatStateView {
   private readonly units = new Map<UnitId, UnitRecord>();
   private readonly hazardDurations = new Map<string, number | null>();
 

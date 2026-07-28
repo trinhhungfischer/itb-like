@@ -113,12 +113,46 @@ diverge from it.
 
 ## Decision
 
-**`resolve(board: Board, effects: EffectPrimitive[]) → CombatEvent[]` is the ONLY code
-that mutates board state.** It is exposed by Combat Resolution and consumed by callers
+**`resolve(board, state, effects, options?) → CombatEvent[]` is the ONLY code that
+mutates battle state.** It is exposed by Combat Resolution and consumed by callers
 (via Turn & Phase Manager for the live path, and by Move Preview for the dry-run path).
-No other system mutates occupancy, terrain, hazards, or flags; Board & Grid's mutation
-API (`place`/`clear`/`setTerrain`/`setHazard`/`setFlag`) is invoked *only* from inside
-`resolve()`.
+No other system mutates occupancy, terrain, hazards, flags, HP, or hazard immunities;
+Board & Grid's mutation API (`place`/`clear`/`setTerrain`/`setHazard`/`setFlag`) is
+invoked *only* from inside `resolve()`.
+
+> **⚠️ AMENDED 2026-07-28 during implementation — the signature gained a second
+> parameter.** This section originally read
+> `resolve(board: Board, effects: EffectPrimitive[]) → CombatEvent[]`.
+>
+> **Why it had to change:** `Board` deliberately stores only *spatial* facts — terrain,
+> occupancy, hazard type, flags. It has no HP and no `hazardImmunities`. Those belong to
+> ADR-0008's canonical `Unit` record, owned by **Heroes & Abilities** — a Feature-layer
+> module Combat **must not import**, because doing so inverts the very dependency
+> direction this ADR exists to protect. So a Core-layer holder was needed, and
+> `CombatState` is it: caller-owned, mutated only inside `resolve()`, carrying its own
+> `snapshot()` exactly as `Board` does.
+>
+> **What did NOT change:** the single-mutation-path invariant, the closed primitive
+> vocabulary, sequential resolution, determinism, and preview-commit parity. This is an
+> amendment, not a supersession.
+>
+> **Why it is recorded here rather than in a code comment:** Sprint 2's Heroes &
+> Abilities, Enemy AI and Objective stories are all pointed at *this document* as the
+> contract to implement `compileEffects()` against. Anyone writing against the old
+> two-argument text would produce code that does not compile. Flagged by code review
+> (2026-07-28) as the one item blocking Sprint 2 kickoff.
+>
+> **Position is deliberately NOT duplicated into `CombatState`.** Combat derives a
+> unit's tile by scanning `Board`'s occupancy (`findTile()`), so `Board` remains the
+> single source of truth for where a unit is. ADR-0008 describes `Unit.position` as
+> "kept in sync by Combat Resolution" — a field that must be *kept* in sync is a field
+> that can fall out of sync, so Combat keeps no second copy.
+>
+> **Consumers depend on `CombatStateView`, not the concrete class** — the interface in
+> `src/core/combat/combat-state-interface.ts`, mirroring the `Board` / `BoardImpl`
+> split. Added by the same review to close a Dependency-Inversion gap: `resolve()`
+> depended on `Board` through an interface but on `CombatState` concretely, leaving no
+> abstraction for a test double or an alternate storage strategy.
 
 **The primitive vocabulary is a CLOSED set of 10** (registry `combat_primitives`):
 
@@ -226,11 +260,33 @@ type CombatEvent =
   | { type: 'terrain_set';           tile: Tile; terrainType: TerrainType }
   | { type: 'unit_spawned';          unitId: UnitId; tile: Tile };
 
-// THE single board-mutation path. Pure w.r.t. inputs: no RNG, no clock.
-// Live commit:  resolve(liveBoard, effects)
-// Dry-run:      resolve(liveBoard.snapshot(), effects)   // identical entry point
-function resolve(board: Board, effects: EffectPrimitive[]): CombatEvent[];
+// THE single battle-state mutation path. Pure w.r.t. inputs: no RNG, no clock.
+// Amended 2026-07-28 — see the Decision section for why `state` exists.
+//
+// Live commit:  resolve(liveBoard, liveState, effects, { bus: sessionBus })
+// Dry-run:      resolve(liveBoard.snapshot(), liveState.snapshot(), effects)
+//                 └─ BOTH must be snapshotted. Snapshotting only the Board would
+//                    leave a preview mutating real HP while the board stays clean.
+//                 └─ Omitting `bus` makes resolve() construct a fresh private one,
+//                    so a dry run cannot leak onto the session bus (ADR-0007:
+//                    "the silence IS the boundary").
+function resolve(
+  board: Board,
+  state: CombatStateView,
+  effects: EffectPrimitive[],
+  options?: { bus?: EventBus<CombatEventMap>; config?: CombatConfig },
+): CombatEvent[];
 ```
+
+> **Known footgun, not yet closed.** `options.bus` is a plain `EventBus`, so nothing in
+> the type system distinguishes "the shared session bus" from "a disposable preview
+> bus". Two mistakes are expressible: passing the session bus into a dry run (preview
+> events leak to Audio/Rendering), and omitting the bus on a live commit (the default
+> private bus swallows every event silently, with no error). Code review proposed
+> splitting into a `resolve(..., liveBus)` with no default plus a separate
+> `resolvePreview(...)` that constructs its bus internally, making both mistakes
+> unrepresentable. Tracked in `docs/tech-debt-register.md`; deliberately not done in the
+> same change as this amendment.
 
 ### Implementation Guidelines
 

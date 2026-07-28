@@ -9,6 +9,7 @@ export { resolve } from './combat-resolve.js';
 export type { ResolveOptions } from './combat-resolve.js';
 
 export { CombatState } from './combat-state.js';
+export type { CombatStateView } from './combat-state-interface.js';
 
 export type { CombatConfig } from './combat-config.js';
 export { DEFAULT_COMBAT_CONFIG } from './combat-config.js';

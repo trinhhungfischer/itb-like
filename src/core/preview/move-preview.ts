@@ -66,7 +66,8 @@
 
 import type { Board } from '../board/board-interface.js';
 import { EventBus } from '../events/event-bus.js';
-import { resolve, CombatState } from '../combat/index.js';
+import { resolve } from '../combat/index.js';
+import type { CombatStateView } from '../combat/index.js';
 import type { CombatEventMap, EffectPrimitive } from '../combat/index.js';
 import type { CancelEvent, ConfirmEvent, HoverEvent, SelectEvent, SelectionEventMap } from '../input/selection-events.js';
 import type { ActionMode } from '../input/selection-types.js';
@@ -88,7 +89,7 @@ import type { PreviewCandidate, PreviewLifecycleState, PreviewResult } from './p
  */
 export interface MovePreviewDeps {
   readonly board: Board;
-  readonly state: CombatState;
+  readonly state: CombatStateView;
   /** Input & Selection's shared, synchronous selection-event bus (ADR-0002). Move Preview subscribes to it in the constructor and never emits onto it — Rule 1's one-way relationship. */
   readonly selectionBus: EventBus<SelectionEventMap>;
   /** Stands in for Heroes & Abilities' `compileEffects()` — see `preview-ports.ts`'s doc comment for why this seam exists. */

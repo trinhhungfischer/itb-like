@@ -490,9 +490,18 @@ describe('input-selection: selection state machine — Targeting', () => {
     const result = clickAt(h.machine, { col: 2, row: 2 }, h.view)
     expect(result).toEqual({ ok: false, reason: 'IllegalTarget' })
     expect(h.machine.getState()).toEqual({ status: 'Targeting', unitId: 'hero-1', mode: MOVE, armedTarget: null })
-    // `confirm` is emitted optimistically before the committer's outcome is known
-    // (judgement call — see the implementer's report).
-    expect(h.events).toEqual([{ type: 'confirm', unitId: 'hero-1', mode: MOVE, target: { col: 2, row: 2 } }])
+
+    // NO `confirm` is emitted when the committer refuses.
+    //
+    // Corrected 2026-07-28 by code review. This assertion previously expected a
+    // `confirm` event here, with a comment calling the optimistic emit a
+    // "judgement call". It was a bug, and this test was pinning it: every
+    // Presentation subscriber (Battle HUD, Audio, Board Rendering) would have
+    // played a committed-action animation and sound for an action that never
+    // happened. `ConfirmEvent`'s own doc comment says the event means the action
+    // "commits immediately" — which the old ordering contradicted on exactly
+    // this branch.
+    expect(h.events).toEqual([])
   })
 })
 

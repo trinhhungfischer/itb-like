@@ -13,7 +13,7 @@
 **Requirement**: `TR-COMBAT-001`, `TR-COMBAT-003`, `TR-COMBAT-004`, `TR-COMBAT-009`
 
 **ADR Governing Implementation**: ADR-0006: Combat `resolve()` as the single board-mutation path + 10-primitive vocabulary
-**ADR Decision Summary**: Combat Resolution's `resolve(board, effects[]) → events[]` is the single, exclusive path that mutates board state, and it does so through a closed vocabulary of 10 primitives.
+**ADR Decision Summary**: Combat Resolution's `resolve(board, state, effects[], options?) → events[]` is the single, exclusive path that mutates battle state, and it does so through a closed vocabulary of 10 primitives. *(Signature amended in ADR-0006 on 2026-07-28 — `state: CombatStateView` was added because Board stores no HP or hazard immunities, and `Unit` belongs to a Feature-layer module Combat must not import.)*
 
 **Secondary ADRs**: ADR-0005, ADR-0002
 
@@ -31,7 +31,7 @@
 
 *From GDD `design/gdd/combat-resolution.md`, scoped to this story:*
 
-- [ ] **GIVEN** an empty `effects[]` list, **WHEN** `resolve(board, [])`, **THEN** it returns an empty event log and the board is unchanged.
+- [ ] **GIVEN** an empty `effects[]` list, **WHEN** `resolve(board, state, [])`, **THEN** it returns an empty event log and the board is unchanged.
 - [ ] **GIVEN** an `effects[]` list of length `n`, **WHEN** `resolve()` runs, **THEN** effect `i` is applied to the board state left by effect `i−1`, for every `i` from 1 to `n`.
 - [ ] **GIVEN** identical `(board, effects)` inputs run twice on freshly-constructed identical boards, **THEN** both produce byte-identical resulting board state and identical event logs (determinism smoke test, ≥100 runs).
 - [ ] **GIVEN** an ability's effect chain is empty (`effects = []`), **WHEN** `resolve()` runs, **THEN** it returns an empty event log; legal no-op.
@@ -42,7 +42,7 @@
 
 *Derived from ADR-0006 Implementation Guidelines:*
 
-- Expose a single `resolve(board: Board, effects: EffectPrimitive[]): Event[]` function.
+- Expose a single `resolve(board: Board, state: CombatStateView, effects: EffectPrimitive[], options?): CombatEvent[]` function.
 - Process effects sequentially in a loop.
 - Emit events using the canonical event vocabulary.
 

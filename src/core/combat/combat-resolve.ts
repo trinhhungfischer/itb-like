@@ -21,7 +21,7 @@ import { invariant } from '../board/board-result.js';
 import { EventBus } from '../events/event-bus.js';
 import type { CombatConfig } from './combat-config.js';
 import { DEFAULT_COMBAT_CONFIG } from './combat-config.js';
-import { CombatState } from './combat-state.js';
+import type { CombatStateView } from './combat-state-interface.js';
 import type { EffectPrimitive, RemovalCause, UnitSpec } from './combat-types.js';
 import type { CombatEvent, CombatEventMap } from './combat-events.js';
 
@@ -43,7 +43,7 @@ export interface ResolveOptions {
 /** Internal per-call context threaded through every primitive handler. */
 interface ResolveContext {
   readonly board: Board;
-  readonly state: CombatState;
+  readonly state: CombatStateView;
   readonly bus: EventBus<CombatEventMap>;
   readonly config: CombatConfig;
   readonly events: CombatEvent[];
@@ -322,7 +322,7 @@ function dispatch(ctx: ResolveContext, effect: EffectPrimitive): void {
  */
 export function resolve(
   board: Board,
-  state: CombatState,
+  state: CombatStateView,
   effects: readonly EffectPrimitive[],
   options: ResolveOptions = {},
 ): CombatEvent[] {

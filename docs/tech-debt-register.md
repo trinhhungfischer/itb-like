@@ -25,9 +25,9 @@ decision rather than a discovery later.
   `resolve()` defaults to a fresh private bus when none is given, so a bare call is
   safe, but the misuse remains expressible. Flagged independently by three
   implementers (Event Bus, Combat, Move Preview).
-  *Closes when:* either a branded/opaque bus type makes the misuse unrepresentable,
-  or a lint rule rejects passing a session bus into a preview call. Until then it is
-  review discipline, which ADR-0007 itself acknowledges.
+  *Closes when:* see the Post-code-review entry below — code review proposed a better
+  fix than the branded type first suggested here, and found a **second** footgun in the
+  same option (omitting the bus on a live commit silently swallows every event).
   *Tracked from:* `production/epics/move-preview/story-001-dry-run-mechanism.md`
 
 - **2026-07-28** (Input & Selection, Move Preview): **DI ports stand in for
@@ -65,10 +65,72 @@ decision rather than a discovery later.
   exact string. **Raise at the retrospective.**
   *Tracked from:* sprint-wide
 
-- **2026-07-28** (Combat Resolution): **`confirm` is emitted optimistically.**
-  The selection machine emits `confirm` before the injected `ActionCommitter`'s
-  outcome is known, so a refusing committer still sees `confirm` fired. Matches the
-  GDD's literal single-clause wording.
-  *Closes when:* the GDD states the intended ordering, or the emit moves after the
-  commit result.
+- ~~**2026-07-28** (Combat Resolution): **`confirm` is emitted optimistically.**~~
+  ✅ **RESOLVED 2026-07-28** by code review. It was not a defensible judgement call —
+  every Presentation subscriber (Battle HUD, Audio, Board Rendering) would have played
+  a committed-action animation and sound for an action that never happened, and
+  `ConfirmEvent`'s own doc comment ("commits immediately") said the opposite of what the
+  code did. The emit now happens only after the committer accepts. A test was pinning
+  the old behaviour and was corrected with it.
   *Tracked from:* `production/epics/input-selection/story-002-selection-state-machine.md`
+
+## Post-code-review (2026-07-28)
+
+Three Required Changes from `/code-review` were **fixed** (ADR-0006 amended,
+`confirm` ordering corrected, `CombatStateView` interface added). What follows is
+what was deliberately left.
+
+- **2026-07-28** (Combat Resolution): **`resolve()`'s `bus` option makes two mistakes
+  expressible.** `options.bus` is a plain `EventBus`, so nothing distinguishes the
+  shared session bus from a disposable preview bus. Passing the session bus into a dry
+  run leaks preview events to Audio/Rendering; *omitting* the bus on a live commit
+  makes the default private bus swallow every event **silently, with no error** — the
+  second footgun was found by code review and had not been noticed before.
+  *Proposed fix:* split into `resolve(board, state, effects, liveBus)` with **no
+  default**, plus a separate `resolvePreview(board, state, effects)` that constructs its
+  bus internally and accepts none. Both mistakes then become compile errors rather than
+  silent runtime behaviour — strictly better than a branded type or a lint rule, and it
+  closes both directions rather than only the leak.
+  *Deliberately not done in the same change as the ADR-0006 amendment.*
+  *Tracked from:* code review, `src/core/combat/combat-resolve.ts`
+
+- **2026-07-28** (Turn & Phase Manager): **The undo seam cannot restore HP.**
+  `TurnPhaseManager.playerPhaseSnapshots` is `Board[]` only, and the `CombatResolver`
+  port has no slot for `CombatState` — the integration test's adapter has to *close
+  over* it precisely because of that. Move Preview already does this correctly,
+  snapshotting **both** board and state.
+  Not a violation today because Story 004 (undo/redo) does not exist. But that story is
+  documented as building on this exact seam, and if it does, **undoing a `damage`
+  action will restore position and not HP** — a hero keeps the damage after the action
+  is undone. That is the "the game lied to me" failure ADR-0007 exists to prevent, and
+  it is the general case of ADR-0007's own 2026-07-28 amendment: "a battle-scoped
+  charge must live in snapshotted state, not in a side table the snapshot does not
+  cover." **`CombatState` is that side table.**
+  *Closes when:* the seam is widened to snapshot a combined `{board, state}` pair, as
+  `MovePreviewDeps` already models. **Resolve before Story 004 begins** — changing a
+  port after three systems depend on it is materially more expensive.
+  *Tracked from:* code review, `src/core/turn/turn-phase-manager.ts`
+
+- **2026-07-28** (Combat Resolution): **`applyHazard` has no per-type dispatch point.**
+  Beyond the already-logged Fire-only behaviour, the *shape* is the issue: the formula
+  is inlined in `applyHazardPrimitive`'s body, so adding Mine or Smoke means editing
+  that function and threading new config ad hoc. `HazardType` is already an open
+  `string`, so nothing structural blocks it.
+  *Proposed fix:* replace the single `fireDamagePerTick` value with a
+  `Record<HazardType, HazardFormula>` lookup, defaulting to today's Fire behaviour.
+  "Add Mine" then becomes one map entry instead of a body edit.
+  *Do before* Encounter Generator's first Mine/Smoke content story.
+
+- **2026-07-28** (Board & Grid): **`reachableTiles` has no benchmark**, though
+  ADR-0009's own Validation Criteria requires `< 0.5 ms/call` in headless benchmarks
+  and `snapshot()` has one. It allocates a `Set<string>`, per-layer frontier arrays, and
+  fresh `{col,row}` objects per neighbour — fine at ≤144 tiles, but unmeasured, and it
+  runs on hover during Move Preview. If it ever measures close to budget, `tileKey()`
+  can switch from a template literal to `Set<number>` on the existing `row*W+col`
+  index, removing string allocation entirely.
+
+- **2026-07-28** (Turn & Phase Manager): **stale doc comment recommends a cross-layer
+  import.** `turn-phase-contracts.ts:26-27` says to prefer importing Combat's real
+  `EffectPrimitive` union "once that module exists". It now exists — but doing so would
+  create a Foundation → Core dependency, contradicting the same file's own header about
+  keeping the graph acyclic. The comment is wrong and should not be followed.
