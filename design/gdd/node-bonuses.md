@@ -42,9 +42,15 @@ ahead and choosing the path that builds the run you want).
 The intended experience at a branch point: the player is looking at three nodes and
 weighing *two* things at once — the immediate content (a battle? a rest? a reward?)
 and the permanent bonus the claim grants. A Rest node when nobody is hurt is normally
-a wasted row; with node bonuses it is still a real choice, because its claim bonus
-compounds. That tension — "I don't need this node's content, but I want its claim" —
-is the whole system.
+a wasted row; with Field Hospital it is still a real choice, because the claim pays out
+at every *later* combat node rather than at the Rest itself. That tension — "I don't
+need this node's content, but I want its claim" — is the whole system.
+
+*(This paragraph previously cited Rest healing compounding at the Rest itself. The
+`systems-designer` gate found that bonus was mechanically dead at default tuning —
+`rest_heal_percent = 1.00` makes F5's clamp always win, so additive healing did
+nothing. The flagship example of the Player Fantasy was describing an effect that
+could not occur. Field Hospital was redesigned; see the Bonus Catalog.)*
 
 This serves **Pillar 3 (Variety Lives in the Draft, Not the Dice)** at the map scale:
 two runs on the same seed diverge because the player routed differently, with zero
@@ -80,8 +86,8 @@ not weaker in combat.
    only. This is the lane boundary that keeps Node Bonuses disjoint from every other
    progression system (Rule 5).
 
-5. **Lane restrictions.** A node bonus **may** modify: draft offer counts, Rest node
-   efficacy, map information visibility, and encounter setup parameters. A node bonus
+5. **Lane restrictions.** A node bonus **may** modify: draft offer counts, post-combat
+   HP recovery, map information visibility, and encounter setup parameters. A node bonus
    **may not** modify: any `AbilityDefinition` field (→ **Ability Upgrades**), any
    chassis field `maxHP`/`moveRange`/`hazardImmunities` (→ **Passive Modules**), any
    mech-attached action-slot or deployment effect (→ **Pilots**), or any Combat
@@ -96,10 +102,25 @@ not weaker in combat.
    > wording belong to Pilots if a mech must be deployed for them to apply, and to
    > this document otherwise.
 
-6. **Bonuses of the same type stack additively, up to a per-type cap.** A route that
+6. **Bonuses of the same type stack additively, up to a per-bonus cap.** A route that
    claims three Battle nodes gets the Battle bonus three times, subject to
-   `node_bonus_stack_cap` (Formula F3). Stacking is what makes a committed route
+   `stackCap(bonusId)` (Formula F2). Stacking is what makes a committed route
    ("I took every Battle node I could") a real strategy rather than a coin-flip.
+
+   **Caps are per-bonus, not one global number** *(changed 2026-07-28,
+   `systems-designer` gate).* A single shared cap does very different jobs depending on
+   how *available* a node type is. Against `run-structure-node-map.md` Rule 8's band
+   weights, the expected number of rows (of 6) offering each type is roughly:
+
+   | Type | Expected rows offering it | A cap of 3 … |
+   |---|---|---|
+   | Battle | ≈ 4.95 | binds meaningfully — roughly halves an uncapped route |
+   | Reward | ≈ 2.52 | **barely binds** — it trims lucky seeds, not the median route |
+   | Rest | ≈ 1.82 | essentially never binds |
+
+   So a global `3` was near-dead configuration for the one bonus that most needed
+   damping. `stackCap(requisition)` is therefore **2**; everything else defaults to
+   `node_bonus_stack_cap` (3).
 
 7. **The Boss claim bonus is inert.** The Boss node is the terminal node of every run
    (`run-structure-node-map.md` Rule 9). Its claim grants a bonus for symmetry and for
@@ -107,11 +128,15 @@ not weaker in combat.
    has a bonus" holds without exception, which keeps the data model total.
 
 8. **Bonuses apply at claim time, before the node's own content resolves where the
-   ordering is observable.** For a Rest node, the Rest-efficacy bonus must be in
-   effect for that same Rest (Edge Cases). For a Reward node, the offer-count bonus
-   must be in effect for that same draft. Claiming and benefiting are the same beat —
-   a bonus that only helped *future* nodes of its own type would make the last row's
-   claims worthless.
+   ordering is observable.** For a Reward node, the offer-count bonus must be in effect
+   for that same draft. Claiming and benefiting are the same beat — a bonus that only
+   helped *future* nodes of its own type would make the last row's claims worthless.
+
+   **Field Hospital is the deliberate exception** and is future-facing by construction:
+   it grants post-combat recovery at *subsequent* combat nodes, because the Rest node
+   that grants it already heals fully (`draft-and-loadout-meta.md` F5 with
+   `rest_heal_percent = 1.00`). A Rest claim in the final row is therefore genuinely
+   worth less than an early one — which is honest, not a defect.
 
 9. **Bonuses are deterministic and contain no randomness.** Per Pillar 1, a claim
    bonus is a fixed value from authored content. Node *type* placement is already
@@ -127,6 +152,14 @@ not weaker in combat.
     the choice `run-structure-node-map.md` already gives them. This document adds
     **zero** new player decisions, which is the primary defence of Pillar 5.
 
+    > **This rule was false as written until 2026-07-28** (`systems-designer` gate).
+    > Contingency was specified as "one Reward draft may be re-rolled once," which is a
+    > spend decision *and* needs a UI trigger — contradicting this rule and its own
+    > Acceptance Criterion three sections later, inside the same approved document.
+    > Contingency is now **automatic** (Bonus Catalog): it fires on the first Reward
+    > draft whose offers are all structurally unacceptable, without asking. Rule 11 is
+    > now true, and every bonus in the catalog is checkable against it.
+
 12. **The bonus set is run-scoped.** `RunState.nodeBonuses` is created empty at run
     start and discarded at run end. Nothing carries into the next run; cross-run
     persistence belongs to `meta-progression-and-unlocks.md` (Open Questions).
@@ -140,8 +173,8 @@ Six bonuses, one per node type. Values are the defaults from Tuning Knobs.
 | **Battle** | Supply Line | +1 to the offer count of the next Reward-node draft (stacking) | Rewards fighting through rather than routing around. Converts risk taken into choice gained |
 | **Elite** | Forward Intel | Reveal the `type` of every node two rows ahead instead of one | Elite is the highest-risk regular node; paying that risk buys *foresight*, which is the commander fantasy's own currency |
 | **Reward** | Requisition | +1 offer count on every subsequent Reward-node draft (stacking) | The compounding route. Stacking Reward claims is the clearest "I committed to a strategy" play |
-| **Event** | Contingency | +1 to `starting_offer_count`-style re-draws — specifically, one Reward draft this run may be re-rolled once | Events are the least predictable node; their bonus buys insurance against an unlucky offer set |
-| **Rest** | Field Hospital | Rest-node healing is increased by `rest_bonus_hp` (stacking) | Makes a Rest claim worthwhile even at full HP, because it improves every *later* Rest too |
+| **Event** | Contingency | **Automatic**: the first Reward draft this run whose every offer is structurally unacceptable (no eligible target for any of them) is re-drawn once, without asking | Events are the least predictable node; their bonus is insurance against a dead offer set. Automatic by design — see Rule 11 |
+| **Rest** | Field Hospital | At the end of every subsequent **combat** node, each deployed mech restores `field_hospital_hp` HP (stacking, clamped at `maxHP`) | Attrition mitigation *between* Rests. Makes a Rest claim worthwhile at full HP because the benefit is future-facing, and it operates entirely outside the Rest-heal formula |
 | **Boss** | Campaign Honours | No mechanical effect. Recorded for the end-of-run summary | Rule 7 — keeps the type→bonus mapping total |
 
 > **Content note:** this catalog is deliberately small and information-flavoured rather
@@ -157,9 +190,21 @@ This document defines **no new state machine.** It observes one that already exi
 `run-structure-node-map.md`. The `Unvisited → Claimed` edge is this document's sole
 trigger.
 
-**Bonus accumulator** (per run): `RunState.nodeBonuses` is a multiset of
-`NodeBonusId`. It only ever grows — Rule 3 guarantees no removal edge exists. Its
-lifecycle is `Empty → Accumulating → (discarded at run end)`.
+**Bonus accumulator** (per run). *Reshaped 2026-07-28 (`systems-designer` gate) — see
+the correction under Formula F2.* `RunState.nodeBonuses` is a **record**, not a bare
+multiset:
+
+```
+nodeBonuses {
+  claims:   NodeBonusId[]              // append-only; Rule 3 guarantees no removal
+  consumed: { [NodeBonusId]: int }     // one-shot charges already spent; only grows
+}
+```
+
+`claims` only ever grows, so the end-of-run summary stays accurate. `consumed` tracks
+how many one-shot charges of each bonus have been spent, which is what makes
+Supply Line and Contingency actually one-shot. Lifecycle:
+`Empty → Accumulating → (discarded at run end)`.
 
 ### Interactions with Other Systems
 
@@ -207,7 +252,23 @@ fails to produce a value.
 
 ### F2 — Effective bonus magnitude
 
-`magnitude(bonusId) = base(bonusId) × min(count(bonusId, B), node_bonus_stack_cap)`
+**Persistent** bonuses (Requisition, Forward Intel, Field Hospital):
+
+`magnitude(bonusId) = base(bonusId) × min(count(bonusId, B.claims), stackCap(bonusId))`
+
+**One-shot** bonuses (Supply Line, Contingency) — the *unspent* charges only:
+
+`pending(bonusId) = base(bonusId) × ( min(count(bonusId, B.claims), stackCap(bonusId)) − B.consumed[bonusId] )`
+
+> **🔴 Corrected 2026-07-28 (`systems-designer` gate).** This formula previously had a
+> single generic form derived from an **append-only** multiset — and Rule 3 guarantees
+> that multiset never shrinks. It therefore **could not express one-shot semantics at
+> all**, while F3 instructed implementers to reuse it for `pendingSupplyLine`. Walk the
+> document's own worked route (Battle → Reward → Battle → Rest → Elite → Reward → Boss):
+> Supply Line is consumed at Reward #1, a second Battle claim is added, and at Reward #2
+> the old formula returns `1 × min(2, 3) = 2` — silently restoring the spent charge and
+> making a "one-shot" bonus permanent. The `consumed` map added to the accumulator is
+> what closes this.
 
 **Variables:**
 
@@ -228,8 +289,21 @@ is not wasted — it still resolves its node's content — but its bonus is capp
 
 The single value Draft / Loadout Meta must consume.
 
-`effectiveOfferCount(node) = offerCount + magnitude(requisition) + pendingSupplyLine`
-`where pendingSupplyLine = magnitude(supply_line)  if node.type = Reward and unconsumed, else 0`
+`effectiveOfferCount(node) = min( offerCount + magnitude(requisition) + pending(supply_line),  max_effective_offer_count )`
+
+> **🔴 Corrected 2026-07-28 (`systems-designer` gate).** This formula previously had no
+> ceiling, while `draft-and-loadout-meta.md` Formula F4's own variable table declares
+> `offerCount` as **`1–4`**. At *default* tuning — `reward_offer_count = 3`,
+> `requisition_offers = 1`, Requisition stacked to its cap of 3 — the old formula
+> produced **6**, fifty percent past the range the sibling document says it owns, with
+> no exotic values involved. The theoretical maximum was 9, more than double.
+>
+> Worse, that state is exactly the failure the Tuning Knobs table already warns about
+> for `requisition_offers` ("every draft contains what you want, deleting Pillar 3's
+> scarcity") — written as if it were an edge of the safe range when the arithmetic put
+> it *inside* the defaults. `max_effective_offer_count` (default **5**) is the clamp.
+> `draft-and-loadout-meta.md` F4's range note now reads "1–4 base; up to
+> `max_effective_offer_count` after Node Bonuses' delta."
 
 **Variables:**
 
@@ -357,10 +431,12 @@ landing changeset.
 
 | Knob | Default | Safe range | Affects | Too high | Too low |
 |---|---|---|---|---|---|
-| `node_bonus_stack_cap` | 3 | 1–7 | Route commitment payoff | A single-type route dominates; branching stops being a choice because one strategy is always correct | At 1, bonuses become binary and route *commitment* stops mattering — you want breadth, never depth |
+| `node_bonus_stack_cap` | 3 | 1–7 | Default per-bonus cap (Battle, Rest, Event) | A single-type route dominates; branching stops being a choice because one strategy is always correct | At 1, bonuses become binary and route *commitment* stops mattering — you want breadth, never depth |
+| `stackCap(requisition)` | **2** | 1–4 | Requisition damping specifically | Requisition is the only *compounding* bonus (bigger drafts → better claims → bigger drafts) with no in-system dampener besides this. At 3 the cap barely binds, since only ≈2.5 rows offer Reward | At 1 the compounding loop is cut entirely and Reward-stacking stops being a strategy |
+| `max_effective_offer_count` | **5** | 4–7 | Ceiling on Formula F3 | Approaches "every draft contains what you want", deleting Pillar 3's scarcity — the failure the `requisition_offers` row warns about | At 4 the delta can never exceed the base range and Requisition/Supply Line stop mattering at all |
 | `supply_line_offers` | 1 | 0–3 | Battle-node value | Battles become mandatory routing; risk-averse play is punished too hard | At 0, Battle claims grant nothing and Battle nodes are pure downside versus Rest/Event |
 | `requisition_offers` | 1 | 0–3 | Reward-node value | Reward-stacking trivialises the draft — with enough offers every draft contains what you want, deleting Pillar 3's scarcity | At 0, Reward nodes offer only their content, and the claim layer loses its clearest strategy |
-| `rest_bonus_hp` | 1 | 0–4 | Rest-node value | Attrition stops mattering; Rule 3's non-lethal HP floor plus generous healing removes all pressure | At 0, Rest claims are worthless when the squad is healthy |
+| `field_hospital_hp` | 1 | 0–3 | Post-combat attrition recovery | Attrition stops mattering; Rule 3's non-lethal HP floor plus generous healing removes all pressure | At 0, Rest claims are worthless when the squad is healthy |
 | `forward_intel_depth` | +1 row | +1 only | Information | Revealing 3+ rows collapses the routing decision into a solved lookahead (F4's non-stacking rationale) | At 0, Elite nodes carry the highest risk with no compensating claim |
 
 **Interaction:** `supply_line_offers`, `requisition_offers`, and
@@ -516,6 +592,25 @@ bonuses — shape/icon redundancy per `design/ux/accessibility-requirements.md` 
 
 ## Review Status
 
+> **`systems-designer` gate: ✅ RUN 2026-07-28.** Returned 1 CRITICAL, 3 HIGH and
+> several MEDIUM findings, **all applied**:
+> **Field Hospital was mechanically dead** — `draft-and-loadout-meta.md` F5's
+> `min(maxHP, currentHP + ceil(maxHP × rest_heal_percent))` with `rest_heal_percent`
+> defaulting to **1.00** means the clamp always wins, so additive Rest healing did
+> literally nothing at the reference configuration. It was the flagship example in this
+> document's own Player Fantasy. Redesigned to grant post-combat recovery instead,
+> operating entirely outside F5.
+> **Formula F2 could not express one-shot semantics** off an append-only multiset;
+> split into persistent/one-shot forms with a `consumed` map.
+> **Formula F3 overflowed** the sibling doc's declared `offerCount` range `1–4`,
+> reaching **6 at default tuning**; now clamped by `max_effective_offer_count`, and
+> that range widened at the source.
+> **Core Rule 11's "zero new decisions" was false** — contradicted by Contingency in
+> the same file; Contingency is now automatic.
+> **Stack caps are now per-bonus** — a global 3 barely bound Requisition (≈2.5 expected
+> Reward rows), the one bonus that most needed damping.
+> **The attachment boundary was one-sided** and is now mirrored into `pilots.md` Rule 5.
+>
 > **Design Review**: **run 2026-07-28** by the user in an independent terminal
 > session — **but no verdict, findings, or document changes were recorded.** The
 > working tree was unchanged afterward. This is indistinguishable from a clean pass:

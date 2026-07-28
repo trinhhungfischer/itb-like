@@ -84,11 +84,20 @@ condition is that no player ever has to think about this system at all.
    ≥ 3:1, measured by Formula F1 (WCAG 2.1 relative-luminance ratio). These are floors,
    not targets.
 
-5. **UI scale must reach 150% without loss.** Every screen must remain fully usable at
-   `uiScale = 1.5` with no clipping, overlap, or truncation of game-relevant text.
-   `map-run-ui.md` already fixes `uiScale ∈ [1.0, ui_scale_max]` with a hard floor of
-   1.0 — scaling only ever grows. This document requires the *upper* range to be
-   honoured; it does not redefine the knob.
+5. **UI scale must reach 150% without loss — including the board.** Every screen must
+   remain fully usable at `uiScale = 1.5` with no clipping, overlap, or truncation of
+   game-relevant text. `map-run-ui.md` already fixes `uiScale ∈ [1.0, ui_scale_max]`
+   with a hard floor of 1.0 — scaling only ever grows. This document requires the
+   *upper* range to be honoured; it does not redefine the knob.
+
+   **`uiScale` must also scale the battle board's tile hit-targets (A14).**
+   `map-run-ui.md` Formula F5 demonstrates the knob against `baseFontSizePx` and
+   `cardMinWidthPx` — menu chrome only — and nothing in that document or this one
+   previously said whether the 8×8 grid scales with it. It must. A game whose sole
+   interaction verb is "click a tile" does not become more usable by enlarging its HUD
+   text while leaving the click targets unchanged (WCAG 2.1 SC 2.5.8, Target Size
+   Minimum). If board scaling proves infeasible within the viewport, a **separate
+   board-zoom control** satisfies A14 instead — but one of the two must exist.
 
 6. **Every binding must be remappable.** All keyboard bindings enumerated in
    `design/ux/interaction-patterns.md` must be user-reassignable. No binding may be
@@ -127,6 +136,20 @@ condition is that no player ever has to think about this system at all.
     animation; it does not change resolution. This keeps accessibility orthogonal to
     difficulty and means no player is ever choosing between comfort and challenge.
 
+    > **Why there is no reduced-cognitive-load difficulty mode** *(stated explicitly
+    > 2026-07-28 — it was previously a silent gap).* Standard cognitive-accessibility
+    > guidance calls for difficulty options that lower cognitive load (fewer enemies,
+    > longer timers). `difficulty-tiers.md` scales only *upward*, and this rule
+    > forbids an easier baseline. That is defensible **in this game specifically**,
+    > and the reasons are structural rather than convenient: there are **no timers
+    > anywhere in core play** (turn-based, no reaction-time input), every threat is
+    > **fully telegraphed** a turn ahead (Pillar 1), and **Move Preview is always
+    > available** and free (A11). Most of what an "easy mode" would add — more time,
+    > more information, fewer surprises — this game already gives every player by
+    > default. What remains is the puzzle itself, and making that easier is a
+    > difficulty decision, not an accommodation. **A15 (declutter)** covers the one
+    > cognitive-load lever that is genuinely presentational.
+
 14. **The game's own design already removes several barrier classes — these must not
     be reintroduced.** Battles are turn-based with no reaction-time input, all
     information is telegraphed, and Move Preview is always available. No future system
@@ -145,7 +168,7 @@ respect every threshold.
 | # | Accommodation | Requirement | Owner of the value | Verified by |
 |---|---|---|---|---|
 | A1 | Shape/icon redundancy | Every verb, telegraph, hazard, team, and unit state identifiable without hue | `art-bible.md`, per-system art | F3 greyscale |
-| A2 | Colorblind palette | 8-way palette distinguishable under deuteranopia, protanopia, tritanopia; mode variants selectable | `art-bible.md` palette | F4 separation |
+| A2 | Colorblind palette | Verb-families distinguishable **primarily via shape/icon (A1)**; palette separation is **best-effort**, verified by F4 as advisory. Colorblind mode variants selectable | `art-bible.md` palette | F4 (**advisory**) |
 | A3 | UI scale | `uiScale` adjustable across `[1.0, 1.5]` minimum, no clipping | `map-run-ui.md` (`uiScale`, `ui_scale_max`) | F2 + 150% pass |
 | A4 | Text contrast | Body ≥ 4.5:1, large/UI ≥ 3:1 | `art-bible.md` palette | F1 |
 | A5 | Full key remapping | Every binding in `interaction-patterns.md` reassignable | `input-and-selection.md` | Remap pass |
@@ -155,6 +178,39 @@ respect every threshold.
 | A9 | Muted play | No information conveyed by audio alone | `audio-system.md` Rule 12 | Muted pass |
 | A10 | Flash limit | Nothing above 3 Hz; no toggle, simply not authored | per-system VFX | VFX review |
 | A11 | Cognitive load | Move Preview and Inspect always available; onboarding teaches one verb at a time | `move-preview.md`, `onboarding-tutorial.md` | Manual |
+| A12 | **Captions for all authored audio** | **If it is voiced, it is captioned.** Every piece of authored VO ships with an on-screen text equivalent — not only gameplay-information audio (A9), but flavour content too | per-system content | Caption pass |
+| A13 | **Adjustable input timing** | `click_tolerance_px` and the keyboard repeat delay/rate must be **player-adjustable**, not designer-only knobs | `input-and-selection.md` | Manual |
+| A14 | **Board target size** | `uiScale` must scale **board tile hit-targets**, not only HUD chrome — or a separate board-zoom control must exist | `board-rendering-and-juice.md`, `map-run-ui.md` | F2 + manual |
+| A15 | **Declutter option** | An option to reduce simultaneous non-essential on-screen information, distinct from A8's motion reduction | `battle-hud.md`, `board-rendering-and-juice.md` | Manual |
+
+### Why A12–A15 exist (added 2026-07-28, accessibility-specialist gate)
+
+These four were missed in the original authoring and are **not** generic checklist
+padding — each names a concrete, citable failure in *this* game:
+
+- **A12** — `pilots.md` makes a pilot **death line** "required, not optional," calling
+  it the single highest-leverage attachment element in that system. A9 only requires
+  that *telegraphs, threats, and outcomes* survive a muted playthrough. A VO-only
+  death line is therefore **compliant with the letter of A9 while excluding deaf and
+  hard-of-hearing players from the game's most emotionally load-bearing beat.**
+  WCAG 2.1 SC 1.2.2 (Captions, Prerecorded) was not referenced anywhere in this
+  document before now.
+- **A13** — `input-and-selection.md` defines `click_tolerance_px` (2–15px),
+  `max_click_hold_ms` (400–800ms), `keyboard_repeat_delay_ms`, and
+  `keyboard_repeat_rate_ms` as **designer** knobs. A6's `require_confirm_click` helps
+  a player who *misclicks*; it does nothing for a player with tremor who fails the
+  tolerance window itself, or a keyboard-only player whose repeat rate does not suit
+  them. In a game whose only interaction verb is "click a tile," that is a specific
+  omission, not a generic one.
+- **A14** — `map-run-ui.md` Formula F5 demonstrates `uiScale` against
+  `baseFontSizePx` and `cardMinWidthPx` — **menu chrome**. Nothing states whether it
+  scales the battle board's tiles. If it does not, A3 does not make the board more
+  clickable for the low-vision or motor-impaired player, which is the surface they
+  most need. This is WCAG 2.1 SC 2.5.8 (Target Size Minimum) and it was unaddressed
+  by any formula.
+- **A15** — A10 covers photosensitivity (strobing). A dense board of simultaneous
+  telegraphs is a *different* risk: too many glyphs competing for attention. Pillar 5
+  pushes toward density; this is the counterweight.
 
 **Note on A6 and A11:** both are already satisfied by existing designs — this document
 does not request new features, it forbids their removal. `require_confirm_click` exists
@@ -337,10 +393,16 @@ F4's failure is logged as a palette improvement task, not a release blocker.
   action needs a second reachable path, and the reserved key is documented as
   unavailable rather than silently failing to remap.
 
-- **If `prefers-reduced-motion` is unavailable** (browser doesn't support the query):
-  default `reduced_motion` to `false` and rely on the explicit setting. Rule 11 is a
-  best-effort default, not a hard requirement, because it depends on a platform
-  capability.
+- **If `prefers-reduced-motion` is unavailable** (browser doesn't support the query,
+  or an in-app webview silently reports "no preference"): default `reduced_motion` to
+  `false` and rely on the explicit setting. Rule 11 is a best-effort default, not a
+  hard requirement, because it depends on a platform capability.
+  **Mitigation (added 2026-07-28):** this failure is *silent* — a player whose OS
+  preference did not propagate gets full motion and has no way to know the query was
+  never consulted, which is a real motion-sickness risk. The first-run experience must
+  therefore surface `reduced_motion` prominently **regardless of whether
+  platform detection succeeded**, so the setting is never reachable only by a player
+  who already knows to go looking for it.
 
 - **If reduced motion would hide information**: the animation was carrying information,
   which violates `art-bible.md` §1 principle 2 (telegraphs are icons, not animation).
@@ -429,12 +491,14 @@ condition (Rule 15).
 |---|---|---|---|
 | V1 | **Greyscale pass** | Render the screen with hue stripped (F3); confirm every game-relevant distinction survives | **BLOCKING** |
 | V2 | **Contrast pass** | Measure every text/background pair with F1 against the 4.5 / 3.0 floors | **BLOCKING** |
-| V3 | **Scale pass** | Render at `uiScale = ui_scale_verified_max` (1.5); confirm no clipping, overlap, or truncation — **per locale** | **BLOCKING** |
+| V3 | **Scale pass** | Render at `uiScale = ui_scale_verified_max` (1.5); confirm no clipping, overlap, or truncation — **for every locale in the supported-locale list** owned by Localization. **Until that list exists, the checklist is `["en"]`** — an unbounded "per locale" gate is not executable | **BLOCKING** |
 | V4 | **Keyboard-only pass** | Complete the screen's full interaction set using only Tab / Enter / Esc / arrows | **BLOCKING** |
 | V5 | **Muted pass** | Complete a full battle with audio disabled; confirm no information was missed | **BLOCKING** |
 | V6 | **Reduced-motion pass** | Enable `reduced_motion`; confirm every informational overlay is intact and only decoration was removed | **BLOCKING** |
 | V7 | **Remap pass** | Reassign every binding; confirm none is hardcoded and none conflicts silently | **BLOCKING** |
-| V8 | **Flash audit** | Review all VFX and transitions for content exceeding 3 Hz | **BLOCKING** |
+| V8 | **Flash audit** | Review every entry in the **VFX/animation registry** for content exceeding 3 Hz. **That registry does not exist yet** — until `board-rendering-and-juice.md` or the asset pipeline publishes one, this gate has no closed checklist and cannot be signed off. Creating it is a prerequisite, not part of the audit | **BLOCKING** |
+| V10 | **Caption pass** (A12) | Enumerate every authored VO cue; confirm each has an on-screen text equivalent | **BLOCKING** |
+| V11 | **Board target pass** (A14) | At `uiScale = 1.5`, confirm board tile hit-targets scaled with the UI, or that a board-zoom control exists | **BLOCKING** |
 | V9 | **Colorblind separation** | Run F4 across the palette under all three simulated deficiencies | **ADVISORY** — see F4's fallback |
 
 V9 is the only advisory item, for the reason given in F4: shape redundancy is the
@@ -541,12 +605,25 @@ What this document requires *of* that UI:
 
 ## Open Questions
 
-1. **Screen-reader support.** Not required by this document. VANGUARD is a spatial
-   grid game whose core information is a board layout; meaningful screen-reader support
-   would require a full textual board representation, which is a substantial system in
-   its own right rather than a setting. Explicitly out of v1 scope, and recorded here so
-   the omission is a decision rather than an oversight. *Owner:* a future dedicated
-   design pass.
+1. **Screen-reader support — split into two asks (revised 2026-07-28).** The original
+   wording deferred "screen-reader support" wholesale. The accessibility-specialist
+   gate found that this collapsed two **very differently sized** pieces of work, and
+   risked the small one being silently deferred alongside the large one:
+
+   - **(a) Board narration — OUT of v1 scope.** VANGUARD is a spatial grid game whose
+     core information is an 8×8 board with simultaneous multi-unit telegraphs.
+     Meaningful narration would require a full textual board representation — a second
+     UI, not a toggle. Deferring this is a legitimate scope decision.
+   - **(b) Screen-reader labeling of non-board UI — NOT yet scoped, and should be.**
+     Name/role/value labeling for settings controls, menu buttons, and HUD text is a
+     far smaller ask than (a), and nothing about the grid makes it hard. It was never
+     separately considered.
+
+   **WCAG criteria consequently not met** (recorded so the scope decision is traceable
+   against the standard this document otherwise targets, rather than merely asserted):
+   **SC 4.1.2** (Name, Role, Value) and **SC 1.3.1** (Info and Relationships) for
+   non-text board content. *Owner:* (a) a future dedicated design pass; (b) resolve
+   with `/ux-design` alongside Settings / Options.
 
 2. **Is `ui_scale_max = 2.0` reachable in practice?** `map-run-ui.md` permits it, but
    only 1.5 is gated (`ui_scale_verified_max`). Whether every screen survives 2.0 is
@@ -573,8 +650,21 @@ What this document requires *of* that UI:
 > verdict here. For contrast, `pilots.md`'s review returned MAJOR REVISION NEEDED and
 > wrote its fixes into the document — a silent run is not evidence of quality.
 >
-> **Specialist gates not consulted** (Lean review mode; subagent dispatch unavailable):
-> `accessibility-specialist` and `ux-designer` — the two most relevant to this document
-> — plus `qa-lead` (Verification Procedures) and `art-director` (F4 palette).
-> **This document in particular should not go to production without an
-> `accessibility-specialist` pass.**
+> **`accessibility-specialist` gate: ✅ RUN 2026-07-28.** Returned 2 BLOCKING,
+> 4 HIGH, 4 MEDIUM findings. **All applied**, adding **A12** (captions for all
+> authored audio), **A13** (adjustable input timing), **A14** (board target size),
+> **A15** (declutter); rewording **A2** to stop overclaiming what advisory F4
+> guarantees; bounding **V3**/**V8**'s previously open-ended scope and adding
+> **V10**/**V11**; stating explicitly why no reduced-cognitive-load difficulty mode
+> exists (Rule 13); splitting Open Question #1 into board narration vs. non-board
+> labeling with the unmet WCAG criteria named; and closing the silent
+> `prefers-reduced-motion` detection failure.
+>
+> The specialist independently verified **F1, F2, and F3 as correct as stated** —
+> F1 recomputed to ≈9.0 against the document's 8.9 worked example (rounding), and
+> thresholds confirmed against WCAG 2.1 SC 1.4.3 / 1.4.11. F3 confirmed as a
+> legitimate operationalization of SC 1.4.1.
+>
+> **Still not consulted:** `qa-lead` (Verification Procedures) and `art-director`
+> (F4 palette — see Open Question #4, which may require shrinking the palette rather
+> than lowering the threshold).

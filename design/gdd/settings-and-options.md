@@ -89,6 +89,21 @@ player to hunt for an Apply button to find out whether their change worked.
    UI Requirements state a player must be able to evaluate an accommodation against the
    thing it affects.
 
+   **Exception — destructive bulk actions confirm first** *(added 2026-07-28,
+   `ux-designer` gate).* Rule 6 governs **changing a value**. It does **not** govern
+   **discarding a set of values**. A reset (Rule 14) is irreversible, is not covered by
+   any undo, and can destroy a keybinding layout a motor-accessibility player spent real
+   effort building — precisely the population this document exists to serve. Every reset
+   control therefore requires an explicit confirm step. Reading "no Apply button" as
+   "no confirm dialog" would make a single misclick permanently destructive.
+
+   **`ui_scale` applies visually on drag, and re-lays-out on release.** An immediate
+   full layout recomputation on every mouse-move tick of a slider drag costs a text and
+   layout pass across every visible element, against a 60 FPS / <200 draw-call budget.
+   A cheap visual transform during the drag satisfies "immediate" in spirit; the
+   committed re-layout fires on release. This also avoids a Fitts's Law hazard — HUD
+   controls shifting under the cursor at the instant the player closes settings.
+
 7. **Changes persist on commit, debounced.** A committed change writes the whole
    `SettingsState` to storage, debounced by `settings_write_debounce_ms` so that
    dragging a slider does not issue a write per frame. The in-memory value is always
@@ -124,16 +139,55 @@ player to hunt for an Apply button to find out whether their change worked.
     already bound elsewhere shows the conflict and requires the player to resolve it.
     A silent steal is a defect (Accessibility V7).
 
-14. **A reset-to-defaults action exists, scoped per section.** The player can reset
-    Audio, Input, or Accessibility independently, plus a global reset. Per-section
-    reset matters because a player who has spent time on key bindings should not have
-    to lose them to fix an audio mistake.
+    **Resolution options (specified 2026-07-28, `ux-designer` gate — previously the
+    document mandated "resolve it" without ever saying how).** On conflict the player
+    is offered exactly two choices:
+    - **Cancel** — abandon the new assignment; both bindings keep their current keys.
+      Returns to `Idle`.
+    - **Swap** — the new action takes the key, and the action that previously held it
+      becomes **Unbound**, shown as an explicit warning state rather than silently
+      dropped. An unbound action is legal but flagged, because Accessibility A7
+      requires every action stay reachable.
+
+    The state machine is therefore
+    `Idle → Listening → {Assigned | Conflict → (Cancel → Idle | Swap → Assigned)}`.
+
+14. **A reset-to-defaults action exists at three scopes.** Per **binding**, per
+    **section** (all four — Audio, Accessibility, Input, General), and **global**.
+    Every reset confirms first (Rule 6's exception).
+
+    Per-binding reset was added 2026-07-28 (`ux-designer` gate, resolving the former
+    Open Question #5). The argument is cost asymmetry: making a player discard an
+    entire section's customisation to undo one mis-bound key discourages exactly the
+    experimentation that remapping exists to enable — most of all for the
+    motor-accessibility players A5 is written for. Each binding row already owns UI
+    real estate, so the cost is low.
 
 15. **The settings screen is reachable from everywhere, including mid-battle.** From
     the main menu, the map screen, and an in-battle pause. Mid-battle access is
     required: a player who discovers they need reduced motion or a remap during a
     battle must not have to abandon it. Opening settings mid-battle never advances a
     turn, never consumes an action, and never affects the undo stack.
+
+    > **🔴 BLOCKED — the mid-battle entry point does not exist** *(found 2026-07-28 by
+    > the `ux-designer` gate; this rule previously stated the requirement as settled).*
+    > Three upstream facts:
+    > - `turn-and-phase-manager.md`'s battle state machine (`Setup → InTurn → Ended`)
+    >   has **no `Paused` state at all**.
+    > - `input-and-selection.md` line 286 is the only pause hook anywhere, and that
+    >   document says of it: *"Still a reserved hook in v1's MVP scope."* Its Open
+    >   Question #5 repeats that it is not implemented.
+    > - `battle-hud.md`'s six persistent zones contain **no Settings or Pause
+    >   affordance** — no icon, no button, no zone.
+    >
+    > Net effect: **mouse-only players — the stated primary input for this game — have
+    > no path into settings mid-battle**, and keyboard users depend on a deferred hook.
+    > This rule is a requirement *on* Turn & Phase Manager, Input & Selection, and
+    > Battle HUD, not a description of existing behaviour. Resolving it needs a
+    > `Paused` state and a HUD affordance. *Owner:* Open Question #6.
+    >
+    > **The `main menu` entry point has the same status** — no `main-menu` GDD exists.
+    > Forward dependency, not a resolved path.
 
 ### Settings Catalog
 
@@ -150,7 +204,13 @@ Every row is declared by another system; this document surfaces them.
 | `volume_ambience` | int | 100 | 0–100 | `audio-system.md` Rule 7 |
 | `muted` | bool | `false` | — | this document |
 
-**Display / Accessibility** — every row maps to an Accessibility Required Accommodation.
+**Accessibility** — every row maps to an Accessibility Required Accommodation.
+
+*Renamed from "Display / Accessibility" 2026-07-28 (`ux-designer` gate): the section
+contains no non-accessibility item, so "Display" was misleading. See the cross-cutting
+view note under UI Requirements — `require_confirm_click` (A6) and `keybindings`
+(A5/A7) live under **Input**, where players expect them, so this section alone is not
+the whole accessibility surface.*
 
 | Key | Type | Default | Range | Declared by | Accommodation |
 |---|---|---|---|---|---|
@@ -481,10 +541,24 @@ redefine them.
   accommodations it configures are available.
 - **Audio sliders give immediate audible feedback.** Dragging a bus slider plays a
   short representative cue on that bus, so the player hears what they are setting
-  rather than guessing from a number.
-- **Live preview for visual settings.** `ui_scale` and `colorblind_mode` re-render the
-  screen immediately (Rule 6). A small board sample on the settings screen lets the
-  player evaluate `colorblind_mode` against actual verb colors rather than swatches.
+  rather than guessing from a number. **The cue is throttled** — unlike the storage
+  write, nothing previously bounded its retrigger rate, so a fast drag across the full
+  range would stack the cue into a machine-gun artifact, the opposite of the legibility
+  this is for. One cue per `audio_preview_throttle_ms`, and never overlapping itself.
+- **The settings overlay is translucent, not opaque — at least for Accessibility.**
+  *(Changed 2026-07-28, `ux-designer` gate.)* Accessibility requires a setting be
+  evaluable against **the thing it affects**. For `colorblind_mode` and
+  `reduced_motion` opened mid-battle, that thing is the **real board** — its actual
+  telegraphs, hazard colours, and HP states in the fight currently in progress. A
+  full-screen modal replacing the board with a generic sample evaluates against a
+  stand-in instead, and the fact that a sample was felt necessary at all is evidence of
+  the tension. The fix is presentation, not scope: keep the full catalog everywhere
+  (a player who needs an accommodation mid-battle must not be handed a crippled
+  screen), but dim rather than replace, so the live board stays visible behind the
+  Accessibility section.
+- **The board sample remains for non-battle contexts** — opened from the map screen or
+  main menu there is no live board to evaluate against, so a representative sample is
+  still the best available reference.
 - **Keybinding capture state is unmistakable.** The `Listening` state must be visually
   distinct and cancellable with Esc, and Esc must not itself be capturable as a binding.
 - **Conflict presentation names both sides.** "W is already bound to Move Up" — not a
@@ -503,8 +577,27 @@ redefine them.
 > `/ux-design` for the settings screen **before** writing stories.
 
 **Screen structure** — four sections matching the Settings Catalog: **Audio**,
-**Display / Accessibility**, **Input**, **General**. Each section has its own
-reset-to-defaults control (Rule 14), plus a global reset.
+**Accessibility**, **Input**, **General**. Each section has its own reset-to-defaults
+control, each binding row has its own, and there is a global reset (Rule 14). All
+confirm first (Rule 6 exception).
+
+**Cross-cutting accessibility view (required).** Five accommodations are split across
+two sections by design — `ui_scale`/`reduced_motion`/`colorblind_mode` under
+Accessibility, `require_confirm_click`/`keybindings` under Input, because "volume lives
+under Audio, keys live under Input" matches player mental models and should not be
+broken. But a player who came here *specifically* looking for accommodations should not
+have to know that split. A cross-cutting view surfaces all A-tagged rows in one place
+regardless of home section. This follows from `accessibility.md`'s own framing —
+accessibility is a correctness requirement, not a courtesy — and the IA should say so.
+
+**General is deliberately a one-item section** (`locale`). It is a future-proofing
+bucket, not an accidental thin category.
+
+**Modality and focus.** The settings screen is **modal**, matching
+`map-run-ui.md` Rule 12's precedent for resolution screens. Tab is **trapped inside
+it**; Esc closes it (except while `Listening`, where Esc cancels the capture instead —
+and Esc itself is never capturable as a binding). Clicking outside does **not** close
+it, so a stray click cannot discard a keybinding capture in progress.
 
 **Entry points** (Rule 15): main menu, map screen, and in-battle pause. All three reach
 the same screen; there is no reduced "in-battle settings" variant, because a player who
@@ -520,7 +613,38 @@ needs an accommodation mid-battle needs the full set.
 - A persistent, non-blocking notice when the domain is `Unavailable` — settings work
   this session but will not persist (Rule 8).
 - Full keyboard navigation and 150% scale compliance, like every other screen
-  (Accessibility A3, A7).
+  (Accessibility A3, A7) — **specified by the `tabOrder` below, not merely asserted.**
+
+### `tabOrder(SettingsScreen, state)` — Formula F5
+
+Added 2026-07-28 (`ux-designer` gate). `draft-loadout-ui.md` sets this project's bar
+by publishing an explicit `tabOrder(screen, state)`; this document claimed A7
+compliance without it, which is the exact hand-waving the design-doc rules forbid —
+and it did so on the one screen carrying the accessibility **bootstrap** requirement.
+
+```
+tabOrder(SettingsScreen, state):
+  switch state:
+    Browsing:   SectionTab[Audio, Accessibility, Input, General]
+                 ++ ControlRow[0..n-1] of the focused section, in catalog order
+                 ++ (per-row Reset for each binding row, inline after its row)
+                 ++ ["SectionReset", "GlobalReset", "CloseButton"]
+
+    Listening:  TRAPPED — Tab is inert while capturing a key, so a Tab press is
+                 recorded as the binding rather than moving focus. Esc cancels and
+                 returns to Browsing with focus on the originating row.
+
+    Conflict:   ["CancelButton", "SwapButton"] only — trapped until resolved (Rule 13)
+
+    Confirm:    ["ConfirmButton", "CancelButton"] only — trapped (Rule 6 exception)
+```
+
+**Section tabs come first**, so a keyboard user reaches any section in at most four
+presses rather than tabbing through every control of every preceding section.
+
+**`Listening` traps Tab deliberately.** Tab is a legal, bindable key; if it moved focus
+during capture, it could never be bound, and Accessibility A5 requires *every* binding
+be reassignable.
 
 ---
 
@@ -640,7 +764,24 @@ needs an accommodation mid-battle needs the full set.
 > ADR-0003 was amended rather than this document changed — the decision here was
 > sound, the ADR's arity was a miscount.
 >
-> **Specialist gates not consulted** (Lean review mode; subagent dispatch unavailable):
-> `ux-designer` (this document is almost entirely UI — the most significant omission),
-> `systems-designer` (Formulas), `qa-lead` (Acceptance Criteria), `accessibility-specialist`
-> (the bootstrap requirement).
+> **`ux-designer` gate: ✅ RUN 2026-07-28.** Returned 2 CRITICAL, 5 HIGH, 4 MEDIUM,
+> 2 LOW findings. **All applied.** The two criticals were:
+> **(C1)** Rule 15's mid-battle entry point depends on infrastructure that does not
+> exist — Turn & Phase Manager has no `Paused` state, `input-and-selection.md` calls its
+> pause hook "a reserved hook, not implemented", and Battle HUD has no Settings
+> affordance at all — so **mouse-only players, this game's primary input, had no path
+> into settings mid-battle.** Rule 15 now states this as a blocked requirement on three
+> upstream systems rather than as settled behaviour.
+> **(C2)** Reset was destructive, irreversible, and — under Rule 6's "no Apply button
+> anywhere" — apparently unconfirmed, so one misclick could permanently destroy a
+> keybinding layout a motor-accessibility player had built. Rule 6 now carves out
+> destructive bulk actions.
+> Also applied: conflict-resolution options specified (**H3**), `tabOrder` Formula F5
+> added (**H2**), section renamed to Accessibility with a cross-cutting view (**H4**),
+> translucent rather than opaque overlay so accommodations evaluate against the real
+> board (**H5**), per-binding reset (Open Question #5 resolved), `ui_scale` layout-thrash
+> mitigation (**M1**), modality/focus-trap stated (**M2**), audio preview throttled
+> (**M3**).
+>
+> **Still not consulted:** `systems-designer` (Formulas), `qa-lead` (Acceptance
+> Criteria), `accessibility-specialist` (the bootstrap requirement).

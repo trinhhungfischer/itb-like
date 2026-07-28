@@ -103,7 +103,25 @@ not about power.
    `heroes-and-abilities.md` Rule 4), **deployment** (tile placement during battle
    Setup), or **run-level** state (currency, draft offers, XP).
 
-5. **Pilot skills are forbidden from two lanes.** A pilot skill may **not** modify
+5. **Pilot skills are forbidden from two lanes — and bounded by a third test.**
+
+   > **Boundary against 4X-lite Node Bonuses (#26) — the attachment test.** *(Mirrored
+   > here 2026-07-28 by the `systems-designer` gate, which found this rule stated only
+   > in `node-bonuses.md` Rule 5 — invisible to whoever authors the pilot-skill catalog,
+   > and unenforced by any Acceptance Criterion in this document.)*
+   > Rule 4 permits **run-level** pilot skills, and Node Bonuses also operates at run
+   > level, so the two lanes touch. They are separated by **attachment**: a pilot
+   > skill's effect must be **attached to one mech and conditional on that mech's
+   > participation** — it stops applying when the mech is benched or its pilot dies. A
+   > node bonus is unattached and unconditional.
+   >
+   > **The trap:** a capstone worded as a one-time *trigger* producing a *permanent,
+   > unconditional* effect ("at level 3, permanently grant +1 reward offer") fails the
+   > test — it keeps working after the pilot dies — and belongs to Node Bonuses' lane.
+   > **If an effect survives its pilot, it is not a pilot skill.** No catalog content
+   > exists yet, so this boundary is currently untested against real authored skills.
+
+   A pilot skill may **not** modify
    `maxHP`, `moveRange`, or `hazardImmunities` (owned by **Passive Modules** —
    T1 Pathfinder, S2 Hazard Walker, S3 Acid Walker, S4 Last Stand), and may **not**
    modify any `AbilityDefinition` field: `range`, `areaRadius`, `shape`,
@@ -762,6 +780,10 @@ and `writer`:
 - **Name** (already in schema) and a **portrait brief** for the asset pass.
 - **A death line** — one short piece of text or VO shown at the death beat. This is the
   single highest-leverage attachment element and is **required, not optional**.
+  **If it is voiced, it must also be captioned** (`accessibility.md` **A12**, WCAG 2.1
+  SC 1.2.2). A VO-only death line would satisfy the letter of A9 — which covers only
+  telegraphs, threats and outcomes — while excluding deaf and hard-of-hearing players
+  from the beat this document itself calls the system's highest-leverage moment.
 - **Optional deployment barks** — 1–2 short lines surfaced on deploy/level-up, if the
   content budget allows. Advisory.
 

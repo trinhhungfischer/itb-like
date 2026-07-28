@@ -558,7 +558,7 @@ generateOffers(pool, offerCount, categoryOverride = null):
 | Variable | Symbol | Type | Range | Description |
 |---|---|---|---|---|
 | candidate pool | `pool` | `{NewHero[], AbilityUpgrade[], PassiveModule[], Gadget[], Pilot[]}` | Formula F3 output | Deep-copied so draws consume a local working set |
-| offer count | `offerCount` | int | `1–4` (Tuning Knobs, context-dependent) | How many non-Skip offers to draw |
+| offer count | `offerCount` | int | `1–4` **base** (Tuning Knobs, context-dependent); up to `max_effective_offer_count` (default **5**) after 4X-lite Node Bonuses' delta — see `node-bonuses.md` Formula F3 | How many non-Skip offers to draw. **Range widened 2026-07-28**: Node Bonuses adds a Requisition/Supply Line delta that could exceed this table's stated `1–4` at *default* tuning; that document now clamps, and this range records the joint ceiling rather than the base one |
 | category weights | `w_new`, `w_upg`, `w_mod`, `w_gad`, `w_pilot` | float | default `0.30 / 0.30 / 0.20 / 0.10 / 0.10`, `offer_category_weights` knob | Zero-weight categories are excluded and the remainder renormalized to sum `1.00` — the same structural-fallback shape as `run-structure-node-map.md` Rule 8's `Battle` fallback, generalized across five categories. A category is zero-weighted when its remaining pool is empty; **`Pilot` additionally requires `pilotOfferEligible(roster)`** (`pilots.md` Formula F5 — at least one `RosterMember` with `pilotId == null`), so an offered pilot always has an empty cockpit to occupy |
 | category override | `categoryOverride` | enum \| null | `null` or `AbilityUpgrade` | Forces every slot to one category (Rest-node Train, Rule 11) |
 
