@@ -64,7 +64,7 @@ Implement `snapshot()` by performing a fast copy (e.g., using `.slice()` on the 
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/board-grid/board-snapshot_test.ts` — must exist and pass
+**Required evidence**: `tests/unit/board-and-grid/board-snapshot_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

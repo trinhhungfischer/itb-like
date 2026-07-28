@@ -72,7 +72,7 @@ Implement `index(c, r) = r * W + c` and use it exclusively for all backing array
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/board-grid/board-state-queries_test.ts` — must exist and pass
+**Required evidence**: `tests/unit/board-and-grid/board-state-queries_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

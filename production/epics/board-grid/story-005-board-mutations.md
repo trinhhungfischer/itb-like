@@ -66,7 +66,7 @@ Implement `place`, `clear`, `setTerrain`, `setHazard`, and `setFlag`. These are 
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/board-grid/board-mutations_test.ts` — must exist and pass
+**Required evidence**: `tests/unit/board-and-grid/board-mutations_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

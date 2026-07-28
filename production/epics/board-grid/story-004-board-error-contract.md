@@ -61,7 +61,7 @@ Implement a value-typed `Result` (e.g., `{ success: true } | { success: false, r
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/board-grid/board-error-contract_test.ts` — must exist and pass
+**Required evidence**: `tests/unit/board-and-grid/board-error-contract_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

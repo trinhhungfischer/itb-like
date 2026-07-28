@@ -62,7 +62,7 @@ Implement `reachableTiles(origin, range, board)` as a standalone function or met
 ## Test Evidence
 
 **Story Type**: Logic
-**Required evidence**: `tests/unit/board-grid/board-reachable-tiles-bfs_test.ts` — must exist and pass
+**Required evidence**: `tests/unit/board-and-grid/board-reachable-tiles-bfs_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

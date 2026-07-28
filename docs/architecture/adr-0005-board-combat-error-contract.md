@@ -164,7 +164,7 @@ determinism.
 |-----------|--------------------|----------------|-------------|
 | `Board.place(tile, unit)` | tile already `Occupied` | `Rejected(Occupied)`, occupant unchanged | — (Combat authors the event) |
 | `Board.setTerrain(tile, t)` | tile occupied and target is `Blocked`/`Lethal` | `Rejected(WouldStrandOccupant)` | `set_terrain_rejected` |
-| `Board.destroy(tile)` (`= setTerrain(tile, Normal)`) | tile is non-destructible `Blocked` or a `Chasm` | `Rejected(NotDestructible)` / no-op | — |
+| `setTerrain(tile, Normal)` on a `Blocked`/`Chasm` tile — the "destroy" semantics; **not a separate method** | tile is non-destructible `Blocked` or a `Chasm` | `Rejected(NotDestructible)` / no-op | — |
 | `Combat.spawnUnit(tile, spec)` | `classify(tile) ∈ {Occupied, Blocked, Lethal, OutOfBounds}` | `Rejected(TileNotClear)`, no unit created | `spawn_unit_rejected` |
 | `Combat.swap(a, b)` | either unit already removed | `Rejected(UnitNotOnBoard)`, no partial swap | `swap_failed` |
 | `Board.clear(emptyTile)` | tile already empty | `Ok` (idempotent no-op) | — |

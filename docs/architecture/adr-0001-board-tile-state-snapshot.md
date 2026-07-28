@@ -157,19 +157,35 @@ no per-element object allocation). This is the entire cost of a snapshot.
 Public signatures are unchanged from `cross-system-contracts.md` §2 / `architecture.md`
 §6 — only the internal layout is specified here.
 
+> **⚠️ Amended 2026-07-28 during implementation — `occupancy` cannot be an
+> `Int32Array`.** This block originally specified `occupancy: UnitId as a positive
+> int; EMPTY = -1 sentinel (Int32)`. **ADR-0008, accepted later, ratifies
+> `type UnitId = string`** (its line 221). A string cannot be stored in an
+> `Int32Array`, so the two Accepted ADRs directly contradicted each other and the
+> conflict was only discovered when Board & Grid was actually built.
+>
+> **Resolution:** `terrain` and `flags` stay `Uint8Array` — they are Board-owned
+> closed enums, exactly as illustrated. `occupancy` and `hazard` are plain
+> `(string | null)[]`. Everything this ADR actually decides is preserved: still flat
+> parallel arrays, still one shared `idx(c,r) = r*W + c`, still a cheap `.slice()`
+> snapshot (measured well under the 1 ms budget at ≤144 cells), still no per-tile
+> objects. This ADR's own §6 sanctions it — internal layout may change behind the
+> fixed public interface. The snippet below is corrected to match what shipped.
+
 ```typescript
-// Field enumerations stored as small integers (deterministic, compact):
+// Field enumerations stored as small integers where the domain is a closed
+// Board-owned enum (deterministic, compact):
 //   terrain  : 0 Normal | 1 Blocked | 2 Chasm(Lethal) | 3 Water(Lethal) ... (Uint8)
-//   occupancy: UnitId as a positive int; EMPTY = -1 sentinel                (Int32)
-//   hazard   : 0 None | 1 Fire | 2 Smoke | 3 Acid ...                       (Uint8)
+//   hazard   : HazardType | null                              (plain array — see below)
+//   occupancy: UnitId (string) | null                         (plain array — ADR-0008)
 //   flags    : bitfield  0b001 spawn-point | 0b010 objective | 0b100 deploy-zone (Uint8)
 
 class BoardImpl implements Board {
   readonly W: number;
   readonly H: number;
-  private terrain:   Uint8Array;   // length W*H
-  private occupancy: Int32Array;   // length W*H, -1 = empty
-  private hazard:    Uint8Array;   // length W*H, 0 = none
+  private terrain:   Uint8Array;          // length W*H
+  private occupancy: (UnitId | null)[];   // length W*H, null = empty (ADR-0008: UnitId is a string)
+  private hazard:    (HazardType | null)[]; // length W*H, null = none
   private flags:     Uint8Array;   // length W*H, bitfield
 
   private idx(c: number, r: number): number { return r * this.W + c; }   // the ONE index fn
