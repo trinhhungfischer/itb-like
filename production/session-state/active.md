@@ -1,6 +1,6 @@
 # Active Session State
 
-**Last Updated:** 2026-07-28T11:58:00+07:00
+**Last Updated:** 2026-07-28 (all 28 GDDs authored; Alpha reviews run, verdicts uncaptured)
 **Stage:** Pre-Production (PASS since 2026-07-28)
 **Sprint:** Sprint 1 planned (not started), Sprint 2 planned
 
@@ -13,10 +13,10 @@
 | Game Concept | ✅ Complete | `design/gdd/game-concept.md` |
 | Systems Index | ✅ 28 systems (10 MVP, 14 VS, 4 Alpha) | `design/gdd/systems-index.md` |
 | GDDs | ✅ **28/28 Designed** (MVP 10/10, VS 14/14, Alpha 4/4) | `design/gdd/*.md` |
-| Alpha #25 Pilots | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/pilots.md` |
-| Alpha #26 Node Bonuses | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/node-bonuses.md` |
-| Alpha #27 Accessibility | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/accessibility.md` |
-| Alpha #28 Settings | ✅ Designed 2026-07-28 — ⏳ pending review | `design/gdd/settings-and-options.md` |
+| Alpha #25 Pilots | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/pilots.md` |
+| Alpha #26 Node Bonuses | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/node-bonuses.md` |
+| Alpha #27 Accessibility | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/accessibility.md` |
+| Alpha #28 Settings | ✅ Designed — ⚠️ review run, **verdict uncaptured** | `design/gdd/settings-and-options.md` |
 | Game Fiction | ✅ Mecha declared 2026-07-28 | `design/gdd/game-concept.md` § Fiction and Terminology |
 | Art Bible | ✅ §1-4 Complete | `design/art/art-bible.md` |
 | Architecture | ✅ PASS | `docs/architecture/architecture.md` |
@@ -83,19 +83,38 @@ HeroRunState {
 
 ## Resume Pointer
 
-**All design + planning work is complete.** Next steps are implementation:
+**All 28 GDDs are authored.** Design work is complete in volume; what remains is
+reconciliation, then implementation.
 
-1. **Implement Sprint 1** — Foundation + Core layers (18 stories, 61 pts, 2 weeks)
+**0. Capture the 4 Alpha review verdicts** ← *do this first, it is cheap and it
+unblocks the systems-index status column.* See "Review debt" below.
+
+**1. Run `/consistency-check`** — the Alpha tier added 4 GDDs and amended 11 more in
+one day. Cross-doc values should be verified mechanically before Sprint 1 starts.
+Specifically worth checking: the three-way lane boundary (Ability Upgrades →
+`AbilityDefinition` fields; Passive Modules → chassis fields; Pilots → action economy),
+since the original Pilots contract was found stale precisely because nobody
+re-checked it after Passive Modules was authored.
+
+**2. Re-run `/architecture-review`** — architecture was signed off covering 21 GDDs.
+It now covers 28. None of the 4 Alpha systems touches the simulation core, so no
+change is expected — but "no change expected" is a claim worth verifying rather than
+assuming, especially the `vanguard.settings.v{N}` peer-domain decision.
+
+**3. Implement Sprint 1** — Foundation + Core layers (18 stories, 61 pts, 2 weeks)
    - Board & Grid, Turn & Phase Manager, Event Bus (Foundation)
    - Combat Resolution, Input & Selection, Move Preview (Core)
-   - Production code at `src/` (not prototypes/)
-   
-2. **After Sprint 1** → Implement Sprint 2 — Feature layer + Content systems (21 stories, 106 pts)
+   - Production code at `src/` (not `prototypes/`)
+
+**4. After Sprint 1** → Sprint 2 — Feature layer + Content systems (21 stories, 106 pts)
    - Heroes & Abilities, Enemy AI, Objectives (P0)
    - Run Persistence, Passive Modules, Gadgets, Enemy Roster (P1)
 
-3. **Remaining design gaps** (non-blocking):
-   - **All 28 GDDs authored.** The 4 Alpha docs are unreviewed — see below.
+**Note:** the 4 Alpha systems are **not** in either sprint plan. Both sprints were
+planned on 2026-07-28 before those GDDs existed. They are Alpha-tier, so this is
+correct for now — but Sprint 3+ planning must account for them.
+
+**Remaining design gaps** (non-blocking):
    - AI Formula F2 attackRange=0 edge case
    - Wraith two-target input UX flow
    - *(Resolved: `design/accessibility-requirements.md` is NOT a duplicate — it is a
@@ -148,22 +167,34 @@ the other's domain.
 Accessibility "#24"; `input-and-selection.md` called Settings "#25" (which is Pilots)
 in three places.
 
-### ⚠️ Review debt — 4 GDDs unreviewed
+### ⚠️ Review debt — verdicts not captured
 
-None of the Alpha docs has had an independent `/design-review`, and **no specialist
-gate ran on any of them** (subagent dispatch was unavailable). Run each in a **fresh
-session** — the reviewing agent must not inherit the authoring context:
+All four `/design-review` runs were **executed by the user in a terminal on
+2026-07-28**, independently of the authoring session (correct procedure — the
+reviewing agent must not inherit the authoring context).
 
-```
-/design-review design/gdd/pilots.md
-/design-review design/gdd/node-bonuses.md
-/design-review design/gdd/accessibility.md
-/design-review design/gdd/settings-and-options.md
-```
+**However, no verdict or finding landed in the repo.** The working tree was clean
+afterward and no review artifact exists. The reviews' output stayed in those
+terminal sessions.
 
-`accessibility.md` in particular should not reach production without an
+**This is the top open item.** Until the verdicts are captured, the four GDDs sit in
+an indeterminate state, and two downstream steps are blocked:
+
+1. `systems-index.md` cannot advance them from `Designed` to `Approved` (or back to
+   `In Review` if revisions were requested). Its Progress Tracker currently reads
+   "Design docs reviewed: 24" — understating reality, because 4 reviews did happen.
+2. Each GDD's Status header should record its verdict, per the project convention
+   already used for `CD-GDD-ALIGN`:
+   `> **Design Review**: APPROVED [date] / NEEDS REVISION [date]`
+
+**To resolve:** paste the four verdicts (and any findings) into a session, or re-run
+the reviews with output redirected to `production/qa/` so they persist.
+
+**Separate, still outstanding:** no specialist gate ran during authoring — subagent
+dispatch was unavailable. `accessibility.md` should not reach production without an
 `accessibility-specialist` pass; `settings-and-options.md` is almost entirely UI and
-never saw a `ux-designer`.
+never saw a `ux-designer`. An independent `/design-review` does not substitute for
+either.
 
 ### Key Architecture Reminders
 - **Deterministic**: No RNG in battle. PRNG = mulberry32, seeded once per encounter.
