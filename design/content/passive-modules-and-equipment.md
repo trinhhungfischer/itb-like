@@ -16,7 +16,7 @@
 | Reactor Core upgrades (numeric: +1 damage, +1 range) | **Ability Upgrades** (already designed — 4 categories) |
 | Passive equipment (Force Amp, Networked Shield, etc.) | **Passive Modules** — equippable passives that modify game rules |
 | Secondary weapon slot (equip found/bought weapons) | Designed separately (Document C) |
-| 2 equipment slots per mech | **1 Passive Module slot** per hero (v1 — simpler to read) |
+| 2 equipment slots per mech | **2 Equipment slots** per hero — each holds a Passive Module OR a Gadget (hybrid) |
 
 ### The Problem Passives Solve
 
@@ -49,13 +49,16 @@ PassiveModuleDefinition {
 
 ### Equip Rules
 
-1. Each hero has **1 Passive Module slot** (in addition to their 1 Ability slot)
-2. Modules are found via **Draft / Loadout Meta** (Reward nodes, shop purchases)
-3. A module is equipped to a **specific hero** — not squad-wide
-4. Modules with `scope: Squad` affect all heroes but still occupy one hero's slot
-5. Two heroes cannot equip the same module ID simultaneously
-6. Modules persist for the entire run once equipped (no unequip)
-7. Module effects are **deterministic** — no RNG triggers
+1. Each hero has **2 Equipment slots** (in addition to their 1 Ability slot)
+2. Each Equipment slot can hold **either** a Passive Module **or** a Gadget (see [secondary-weapons-and-gadgets.md](secondary-weapons-and-gadgets.md))
+3. Valid slot configurations: 2 Passives, 1 Passive + 1 Gadget, 2 Gadgets, or any slot empty
+4. Equipment is found via **Draft / Loadout Meta** (Reward nodes, shop purchases)
+5. Equipment is equipped to a **specific hero** — not squad-wide
+6. Modules with `scope: Squad` affect all heroes but still occupy one hero's slot
+7. Two heroes cannot equip the same module/gadget ID simultaneously
+8. Equipment persists for the entire run once equipped (no unequip)
+9. Module effects are **deterministic** — no RNG triggers
+10. **A hero may equip at most 1 Gadget** across their 2 slots (Gadgets replace Move — having 2 would be meaningless since there's only 1 Move action per turn)
 
 ---
 
@@ -164,18 +167,14 @@ PassiveModuleDefinition {
 
 ---
 
-#### T4. Tactician's Eye *(Common)*
+#### ~~T4. Tactician's Eye~~ — RESOLVED: Now a free base feature
 
-| Field | Value |
-|-------|-------|
-| **Scope** | Squad |
-| **Trigger** | Always |
-| **Effect** | All hero telegraphs (ability previews) also show the **second-order consequences** — e.g., if your push would cause a collision, the preview shows collision damage AND where the collided unit would go if it's also pushed |
-| **Incompatible** | — |
-
-**Design intent**: Quality-of-life as a passive. In base game, preview shows direct effects only. With Tactician's Eye, you see the full chain reaction. Makes complex combos more plannable. **Squad scope** means equipping it on any hero benefits the whole team's preview.
-
-**Readability**: Enhanced preview tiles have a subtle "chain" icon and secondary effect indicators.
+> **Decision**: Chain-reaction preview (showing second-order consequences like collision damage, push destinations, and chain effects) is now a **base game feature available to all players for free**, not a passive module. It was moved out of the passive pool because:
+> - Information that helps readability should never cost a slot (Pillar #5)
+> - It felt bad to "waste" a slot on QoL that should be standard
+> - It directly supports Pillar #1 (Perfect Information)
+>
+> **Implementation**: Move Preview system always renders full chain-reaction consequences. No slot required.
 
 ---
 
@@ -278,9 +277,11 @@ Modules appear in the Draft / Loadout Meta system:
 
 | Rarity | Pool Size | Drop Weight |
 |--------|-----------|-------------|
-| Common | 5 modules (T1, T4, S1, U1, U2) | 50% |
+| Common | 4 modules (T1, S1, U1, U2) | 50% |
 | Uncommon | 5 modules (C1, C2, T2, S2, S3) | 35% |
 | Rare | 4 modules (C3, C4, T3, S4) | 15% |
+
+> **Note**: T4 (Tactician's Eye) removed from pool — now a free base feature.
 
 ---
 
@@ -307,19 +308,19 @@ Some passives are significantly stronger on certain heroes:
 
 | System | Change | Scope |
 |--------|--------|-------|
-| **Heroes & Abilities** | Add `passiveModuleSlot: PassiveModuleInstance \| null` to `HeroDefinition` runtime | Small — 1 new field |
+| **Heroes & Abilities** | Add `equipmentSlots: [EquipmentSlot, EquipmentSlot]` to `HeroDefinition` runtime. Each slot holds `PassiveModule \| Gadget \| null` | Medium — unified slot system |
 | **Combat Resolution** | `resolve()` must emit `OnAction`, `OnHit`, `OnKill` events (many already exist via event bus) | Small — events already planned |
-| **Draft / Loadout Meta** | Add Module to the draftable content pool alongside heroes and upgrades | Medium — new content type in draft |
-| **Battle HUD** | Show equipped passive icon + active/cooldown state per hero | Small — UI addition |
-| **Move Preview** | Passives that modify previews (Aftershock, Chain Reaction) need preview integration | Medium — preview must call passive modifiers |
+| **Draft / Loadout Meta** | Add Module + Gadget to the draftable content pool alongside heroes and upgrades | Medium — new content types in draft |
+| **Battle HUD** | Show 2 equipment slots per hero with passive/gadget icons + cooldown state | Small — UI addition |
+| **Move Preview** | Chain-reaction preview is now a **base feature** (former Tactician's Eye). Passives that modify effects (Aftershock, Chain Reaction) need preview integration | Medium — preview must call passive modifiers |
 
 ### New ADR Recommended
 > **ADR-0012: Passive Module resolution timing** — Passives with `OnAction`/`OnKill` triggers resolve as **follow-up `resolve()` calls** (same pattern as Enemy on-death effects, Rule 13 of enemy GDD), not injected mid-chain. This preserves Combat Resolution's single-chain contract.
 
 ---
 
-## Open Questions
+## Resolved Design Decisions
 
-1. **Slot count**: 1 passive per hero feels clean. Should we allow 2 slots (like ITB's 2 equipment slots) for more build depth, or is 1 enough for v1?
-2. **Tactician's Eye scope**: Showing chain reactions in preview is powerful QoL — should this be a **default feature** unlocked for free, not a passive? It might feel bad to "waste" a slot on information that should be available to all players.
-3. **Passive Module vs Ability Upgrades**: These are two separate equip systems. Should they share the same slot (choose either an upgrade OR a passive for each slot), or remain independent (1 passive slot + 2 upgrade slots)?
+1. ✅ **Slot count**: **2 hybrid Equipment slots** per hero. Each slot accepts either a Passive Module or a Gadget. Max 1 Gadget per hero (only 1 Move action to replace).
+2. ✅ **Tactician's Eye**: Removed from passive pool. Chain-reaction preview is now a **free base feature** for all players.
+3. ✅ **Passive Module vs Ability Upgrades**: Independent systems. 2 Equipment slots (Passive/Gadget) + 2 Ability Upgrade slots = 4 total customization slots per hero.

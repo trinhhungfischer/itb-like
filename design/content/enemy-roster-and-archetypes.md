@@ -346,8 +346,19 @@ All enemies use **Red (#FF4444)** as their base silhouette color (vs Blue #4488F
 
 ---
 
-## Open Questions
+## Resolved Design Decisions
 
-1. **Mine hazard type**: The GDD's 10 primitives include `spawnHazard` — should Mine be a new HazardType alongside Fire and Acid, or should it be implemented as a `Fire` variant with `duration=∞`?
-2. **Overseer aura implementation**: The aura is a passive stat modifier — should it use the Ability Upgrades' `additive-delta` system (same code path) or be its own system?
-3. **Boss multi-ability**: Bosses are the only enemies with 2 abilities and an alternating pattern. The current `AbilityDefinition` schema supports `abilities[]` (Rule 2 of GDD) — should the AI pattern be authored as a state machine or a simple turn-parity check?
+1. ✅ **Mine hazard type**: **New HazardType**. `Mine` is a distinct hazard alongside `Fire`, `Acid`, and the new `Smoke`. Mine properties: `{ damage: 3, duration: ∞, triggerOn: "step" }` — detonates when any unit enters the tile (via Move or forced displacement), then is consumed. Not a Fire variant because: different trigger model (on-step vs per-tick), infinite duration, single-detonation.
+2. ✅ **Smoke hazard type**: **New HazardType**. `Smoke` blocks enemy AI targeting (`Formula F1` skips units on Smoke tiles as candidates). Properties: `{ damage: 0, duration: 1, effect: "blocks_targeting" }`. Does NOT block movement or LoS for player abilities — only enemy AI target selection.
+3. **Overseer aura implementation**: Deferred to implementation. Recommend: auras as runtime stat modifiers applied at `chooseIntents()` time, removed on Overseer death — simpler than reusing Ability Upgrades' additive-delta (which is hero-only and run-persistent).
+4. **Boss multi-ability**: Deferred to implementation. Recommend: simple turn-parity check (`turn % 2 == 0 ? ability1 : ability2`) — a state machine is overkill for v1's alternating pattern.
+
+### New Hazard Types Summary
+
+| Hazard | Damage | Duration | Trigger | Source |
+|--------|--------|----------|---------|--------|
+| **Fire** (existing) | `fire_damage_per_tick` | N turns | Per-tick (Environment Phase) | Ember heroes, Aftershock passive |
+| **Acid** (existing) | `acid_damage_per_tick` | N turns | Per-tick (Environment Phase) | Lobber T3 |
+| **Mine** (new) | 3 | ∞ (until triggered) | On-step (any unit enters tile) | Sentinel enemy |
+| **Smoke** (new) | 0 | 1 turn | Passive (blocks targeting) | Smoke Bomb gadget |
+

@@ -50,22 +50,25 @@ GadgetDefinition {
   verbFamily: push | pull | swap | damage | spawnHazard | setTerrain | spawnUnit
   compatible: HeroId[] | "any"       // which heroes can equip
   ability: AbilityDefinition         // same schema as hero abilities
-  cooldownTurns: int                 // turns between uses (0 = every turn)
+  cooldownTurns: int                 // turns between uses (0 = no cooldown)
+  usesPerBattle: int | null          // max uses per battle (null = unlimited)
   rarity: Common | Uncommon | Rare
 }
 ```
 
+> **Availability model**: Gadgets support **both** cooldown AND limited uses. A Gadget is available when: `cooldownRemaining == 0 AND (usesPerBattle == null OR usesRemaining > 0)`. Some gadgets are cooldown-only (unlimited uses), some are uses-only (no cooldown), and powerful gadgets use both constraints.
+
 ### Equip & Use Rules
 
-1. Each hero has **1 Gadget slot** (in addition to their 1 Ability + 1 Passive Module)
-2. A Gadget is an `AbilityDefinition` — same schema, same `compileEffects()`, same resolution through Combat Resolution
-3. **Using a Gadget consumes the Move slot**, not the Ability slot:
+1. Gadgets occupy an **Equipment slot** (shared with Passive Modules — see [passive-modules-and-equipment.md](passive-modules-and-equipment.md))
+2. Each hero has **2 Equipment slots** total — a Gadget takes 1 slot, and a hero may equip **at most 1 Gadget** (the other slot can be a Passive or empty)
+3. A Gadget is an `AbilityDefinition` — same schema, same `compileEffects()`, same resolution through Combat Resolution
+4. **Using a Gadget consumes the Move slot**, not the Ability slot:
    - The hero chooses: **Move** (normal walk) OR **Gadget** (activate secondary weapon)
    - Then: **Ability** (signature verb) as normal
    - Total actions per turn: still 2
-4. The Gadget has its own independent `cooldownTurns` — if on cooldown, the hero must Move normally
-5. Gadgets are found via Draft and bound to a specific hero
-6. A hero cannot equip more than 1 Gadget
+5. The Gadget has `cooldownTurns` and/or `usesPerBattle` — if on cooldown or out of uses, the hero must Move normally
+6. Gadgets are found via Draft and bound to a specific hero
 
 ### Why "Replace Move" and Not a 3rd Action?
 
@@ -93,6 +96,7 @@ GadgetDefinition {
 | **Shape** | Area (radius 1) |
 | **Range** | 3 |
 | **Cooldown** | 1 turn |
+| **Uses/Battle** | Unlimited |
 | **Effect** | `damage(each unit in area, 1)` |
 
 **Design intent**: Simple AoE chip damage. Useful on heroes that lack direct damage (Vanguard, Twinblade, Warden). 1 damage is low but hits everything in radius 1 (up to 5 tiles). **Cooldown 1** means it's every other turn — not spammable.
@@ -268,9 +272,8 @@ HeroRunState {
   signatureAbility: AbilityDefinition  // Shove, Piercing Round, etc.
 
   // Draft-acquired (found during run, permanent once equipped)
-  abilityUpgrades: [UpgradeSlot, UpgradeSlot]  // 2 slots (from ability-upgrades.md)
-  passiveModule: PassiveModule | null           // 1 slot (from Document B)
-  gadget: Gadget | null                         // 1 slot (from this document)
+  abilityUpgrades: [UpgradeSlot, UpgradeSlot]        // 2 numeric upgrade slots
+  equipmentSlots: [EquipmentSlot, EquipmentSlot]      // 2 hybrid slots (Passive | Gadget)
 
   // Battle state (reset each battle)
   currentHP: int
@@ -278,7 +281,11 @@ HeroRunState {
   moveSlotUsed: boolean
   abilitySlotUsed: boolean
   gadgetCooldown: int             // 0 = ready
+  gadgetUsesRemaining: int | null // null = unlimited
 }
+
+EquipmentSlot = PassiveModule | Gadget | null
+// Constraint: at most 1 Gadget across both slots
 ```
 
 ### Action Economy per Turn
@@ -343,9 +350,9 @@ Hero Turn Options:
 
 ---
 
-## Open Questions
+## Resolved Design Decisions
 
-1. **Gadget cooldown vs uses-per-battle**: Should Gadgets have cooldowns (use every N turns) or limited uses (3 uses total per battle, like ITB's limited-use weapons)?
-2. **Grapple Hook and hazards**: Should grappling across Fire/Acid tiles trigger hazard damage? If no (current design), it's very powerful. If yes, it's a weaker movement option.
-3. **Decoy Drone and objectives**: If a Decoy is on a defend-objective tile, does it count as "defended"? This could be very powerful or exploitable.
-4. **Gadget compatibility restrictions**: Currently some Gadgets are class-restricted. Should ALL Gadgets be "any" for maximum draft flexibility, or keep restrictions for balance?
+1. ✅ **Gadget cooldown vs uses**: **Both systems**. Each Gadget defines `cooldownTurns` (0 = no cooldown) AND `usesPerBattle` (null = unlimited). Some gadgets are cooldown-only, some are uses-only, powerful ones have both constraints.
+2. ✅ **Decoy + objectives**: **Yes**, a Decoy Drone on an objective tile counts as "defended." It is a `Unit` with `team: Hero`, which satisfies Objective / Win-Lose's occupation check. This is intentionally powerful — using a Move action + 3-turn CD to deploy a defender is a meaningful tactical investment.
+3. ✅ **Hybrid Equipment slots**: Gadgets share the 2 Equipment slots with Passive Modules (see Document B). Max 1 Gadget per hero.
+4. **Grapple Hook and hazards**: Deferred to implementation — start with "no hazard triggers during grapple" and tune if too strong.
