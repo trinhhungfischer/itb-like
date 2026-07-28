@@ -1,0 +1,23 @@
+{
+  "name": "vanguard",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "VANGUARD — deterministic tactical roguelike (TypeScript + PixiJS + Vite)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pixi.js": "^8.6.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.1"
+  }
+}
