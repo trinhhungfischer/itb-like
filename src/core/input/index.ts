@@ -4,11 +4,20 @@
  * Implements: design/gdd/input-and-selection.md
  * Governing ADR: docs/architecture/adr-0009-reachable-tiles-coordinate-transform.md
  *
- * Story 001 (Coordinate Transform Math) is the only Input & Selection surface
- * implemented so far. The selection state machine (Story 002), Locked-state
- * buffering (Story 003), and keyboard operability (Story 004) are not yet
- * built and are intentionally not re-exported here.
+ * Built: Story 001 (coordinate transform) and Story 002 (selection state
+ * machine). Story 003 (Locked-state buffering) and Story 004 (keyboard
+ * operability) are not yet implemented and are intentionally absent.
  */
 
+// ── Story 001: coordinate transform ──────────────────────────────────────────
 export type { ViewTransform, ScreenPoint } from './coordinate-transform.js';
 export { screenToTile, tileToScreenCenter } from './coordinate-transform.js';
+
+// ── Story 002: selection state machine ───────────────────────────────────────
+export * from './selection-types.js';
+export * from './selection-events.js';
+export * from './selection-result.js';
+export * from './selection-config.js';
+export * from './selection-ports.js';
+export * from './selection-state-machine.js';
+export * from './click-precision.js';

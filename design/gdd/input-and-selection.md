@@ -161,6 +161,14 @@ current state (no RNG, no simulated network latency). Examples assume a
 64px tile size and a board screen-origin of `(32, 32)` (arbitrary HUD-margin
 values supplied by Rendering) on the default **8×8** board.
 
+> **Gap found during implementation, 2026-07-28 — `Inspect` is missing from the
+> States and Transitions table.** It appears only in Edge Cases and the Battle HUD
+> dependency row, yet AC-3's own edge case says a click "enters **Inspect**, not
+> `UnitSelected`" — which is a real status change, not a display nicety. It was
+> implemented as a genuine fifth top-level state with a `returnTo` pointer, reachable
+> only from `Idle`/`UnitSelected` and never from `Targeting` (where an invalid click is
+> simply rejected per Core Rule 9). The transitions table should be amended to list it.
+
 ### 1. Screen-to-Tile Mapping
 `screenToTile(px, py) = (⌊(px − originX) / tileSize⌋, ⌊(py − originY) / tileSize⌋)`,
 valid only if the result satisfies Board's `inBounds` (board-and-grid.md
