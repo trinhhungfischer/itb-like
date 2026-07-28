@@ -1,13 +1,12 @@
 # Story 001: Implement Deterministic Event Bus
 
 > **Epic**: Event Bus
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
-
+> **Last Updated**: 2026-07-28
 ## Context
 
 **GDD**: N/A
@@ -82,7 +81,7 @@ Keep the event objects plain data. No live object references that could vary bet
 **Required evidence**:
 - Logic: `tests/unit/event-bus/event_bus_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -90,3 +89,12 @@ Keep the event objects plain data. No live object references that could vary bet
 
 - Depends on: None
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/event-bus/event_bus_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/event-bus/event_bus_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

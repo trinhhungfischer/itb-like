@@ -312,3 +312,42 @@ it. Noted in `production/epics/turn-phase-manager/story-001-core-phase-loop.md`.
 
 **Nothing else blocks.** Remaining work (palette, #26–#28 review verdicts, Settings
 bootstrap check) is Presentation/Alpha tier; Sprint 1 is a headless engine.
+
+## Session Extract — /story-done 2026-07-28 (Sprint 1 close)
+
+- **Verdict: COMPLETE WITH NOTES** — 18/18 stories closed
+- Suite: **285 passing**, 21 files, tsc exit 0
+- Coverage: **98.9% stmt / 94.0% branch** (project bar 80%)
+- Deviation checks all clean: 0 `Math.random()`, 0 `: any`, 0 DOM, 0 PixiJS in `src/`
+- Manifest version matches (2026-07-28) — no staleness
+- Tech debt logged: **6 items** → `docs/tech-debt-register.md`
+- **Code Review: PENDING** — lean mode skips LP-CODE-REVIEW; user chose to run
+  `/code-review` before sprint close-out. ~2,500 lines of agent-written production
+  code have had no human or reviewer pass.
+
+### Correction recorded
+
+Sprint 1 was reported complete at 61/61 when it was **56/61**. Move Preview's two
+stories (5 pts) were never dispatched — Combat's story-006 is named "move preview
+integration" and was mistaken for the whole module, but it is only Combat's side of
+the seam. Found during pre-close verification, implemented, now genuinely 61/61.
+
+### Sprint 1 modules
+
+| Module | Tests | Layer |
+|---|---|---|
+| Board & Grid | 70 | Foundation |
+| Selection state machine | 58 | Core |
+| Combat Resolution | 42 | Core |
+| Turn & Phase Manager | 34 | Foundation |
+| Move Preview | 34 | Core |
+| Coordinate transform | 24 | Core |
+| Event Bus | 17 | Foundation |
+| Sprint-1 acceptance (integration) | 6 | — |
+
+### Next: sprint close-out sequence
+`/code-review` → `/smoke-check sprint` → `/team-qa sprint` → `/retrospective` → `/sprint-plan new`
+
+**Retrospective must cover:** six story-path mismatches (process defect), five of six
+implementation agents stopping mid-edit, and eight spec defects that survived
+design-review + consistency-check + architecture-review but were caught by code.

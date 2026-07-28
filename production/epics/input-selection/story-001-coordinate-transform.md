@@ -1,13 +1,12 @@
 # Story 001: Coordinate Transform Math
 
 > **Epic**: Input & Selection
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
-
+> **Last Updated**: 2026-07-28
 ## Context
 
 **GDD**: `design/gdd/input-and-selection.md`
@@ -83,7 +82,7 @@ Rounding is defined once, here: `screenToTile` uses `Math.floor` on the offset-a
 **Required evidence**:
 - Logic: `tests/unit/input-selection/input_selection_coordinate_transform_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -91,3 +90,12 @@ Rounding is defined once, here: `screenToTile` uses `Math.floor` on the offset-a
 
 - Depends on: None
 - Unlocks: Story 002
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/input-selection/input_selection_coordinate_transform_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/input-selection/input_selection_coordinate_transform_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

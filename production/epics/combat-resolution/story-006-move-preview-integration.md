@@ -1,13 +1,12 @@
 # Story 006: Move Preview Integration
 
 > **Epic**: combat-resolution
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**:
 > **Manifest Version**: 2026-07-28
-> **Last Updated**:
-
+> **Last Updated**: 2026-07-28
 ## Context
 
 **GDD**: `design/gdd/combat-resolution.md`
@@ -66,7 +65,7 @@
 **Required evidence**:
 - Integration: `tests/integration/combat-resolution/move-preview-integration_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -74,3 +73,12 @@
 
 - Depends on: Story 001, Story 002, Story 003, Story 004, Story 005
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/integration/combat-resolution/move-preview-integration_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/integration/combat-resolution/move-preview-integration_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

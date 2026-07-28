@@ -1,13 +1,12 @@
 # Story 001: Core Phase Loop
 
 > **Epic**: Turn & Phase Manager
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
-
+> **Last Updated**: 2026-07-28
 ## Context
 
 **GDD**: `design/gdd/turn-and-phase-manager.md`
@@ -93,7 +92,7 @@ Implement an orchestrator that calls interface methods for each phase. Ensure it
 **Required evidence**:
 - Logic: `tests/unit/turn-phase-manager/core-phase-loop_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -101,3 +100,12 @@ Implement an orchestrator that calls interface methods for each phase. Ensure it
 
 - Depends on: None
 - Unlocks: Story 002
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/turn-phase-manager/core-phase-loop_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/turn-phase-manager/core-phase-loop_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

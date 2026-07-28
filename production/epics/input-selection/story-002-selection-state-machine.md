@@ -1,13 +1,12 @@
 # Story 002: Core Selection State Machine
 
 > **Epic**: Input & Selection
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Integration
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
-
+> **Last Updated**: 2026-07-28
 ## Context
 
 **GDD**: `design/gdd/input-and-selection.md`
@@ -109,7 +108,7 @@ Queries Heroes' `legalMoveTiles`/`legalTargets` for highlight sets. Does not com
 **Required evidence**:
 - Integration: `tests/unit/input-selection/input_selection_selection_state_machine_test.ts` OR playtest doc
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -117,3 +116,12 @@ Queries Heroes' `legalMoveTiles`/`legalTargets` for highlight sets. Does not com
 
 - Depends on: Story 001
 - Unlocks: Story 003, Story 004
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/input-selection/input_selection_selection_state_machine_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/input-selection/input_selection_selection_state_machine_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

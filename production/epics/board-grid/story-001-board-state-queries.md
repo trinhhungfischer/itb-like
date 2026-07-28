@@ -1,12 +1,12 @@
 # Story 001: Board State & Pure Queries
 
 > **Epic**: Board & Grid
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 4h
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 2026-07-28
+P26-07-28
 
 ## Context
 
@@ -74,7 +74,7 @@ Implement `index(c, r) = r * W + c` and use it exclusively for all backing array
 **Story Type**: Logic
 **Required evidence**: `tests/unit/board-and-grid/board-state-queries_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -82,3 +82,12 @@ Implement `index(c, r) = r * W + c` and use it exclusively for all backing array
 
 - Depends on: None
 - Unlocks: Story 002, Story 003, Story 004, Story 005
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/board-and-grid/board-state-queries_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/board-and-grid/board-state-queries_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out

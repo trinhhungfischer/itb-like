@@ -1,12 +1,12 @@
 # Story 002: Board Snapshot
 
 > **Epic**: Board & Grid
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 2h
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 2026-07-28
+P26-07-28
 
 ## Context
 
@@ -66,7 +66,7 @@ Implement `snapshot()` by performing a fast copy (e.g., using `.slice()` on the 
 **Story Type**: Logic
 **Required evidence**: `tests/unit/board-and-grid/board-snapshot_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (2026-07-28)
 
 ---
 
@@ -74,3 +74,12 @@ Implement `snapshot()` by performing a fast copy (e.g., using `.slice()` on the 
 
 - Depends on: Story 001
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-28
+**Criteria**: all passing — verified by the test at `tests/unit/board-and-grid/board-snapshot_test.ts`
+**Deviations**: see `docs/tech-debt-register.md` for sprint-level advisories
+**Test Evidence**: `tests/unit/board-and-grid/board-snapshot_test.ts` (exists, passes; suite 285/285, tsc clean, coverage 98.9%)
+**Code Review**: Pending — `/code-review` to be run before sprint close-out
