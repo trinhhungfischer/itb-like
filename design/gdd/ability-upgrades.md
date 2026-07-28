@@ -209,7 +209,7 @@ compiler reads before it compiles.
 | **Battle HUD** | Equipped upgrade icons per hero, effective vs. base numeric values (e.g., "Push 2 → 4"), Upgrade Slot Empty/Filled state | — | Read-only consumer |
 | **Board Rendering & Juice** | Ability-icon overlay indicating an upgraded verb (Visual/Audio Requirements) | — | Read-only consumer |
 | **Meta-progression / Unlocks** ✅ | — | May gate which `AbilityUpgradeDefinition`s exist in the catalog at all (soft — this document does not require it) | Meta-progression owns catalog unlock state, if any; Ability Upgrades' catalog is authored content this document's schema can express regardless of unlock status |
-| **Pilots / Hero Modifiers** (undesigned) | — | — | No overlap in v1: Pilots modify `HeroDefinition` chassis fields (`maxHP`, `moveRange`); Ability Upgrades modifies `AbilityDefinition`/`effectTemplate` fields exclusively. Flag for `/consistency-check` once both exist, in case a future field is claimed by both |
+| **Pilots** ✅ | — | — | **No overlap, and the boundary is now firmer than originally stated.** The earlier note claimed Pilots owns chassis fields (`maxHP`, `moveRange`) — that lane actually belongs to **Passive Modules** (T1 Pathfinder, S2/S3 Walkers, S4 Last Stand). `pilots.md` Core Rule 5 restricts Pilots to action-slot economy, deployment, and run-level effects, and explicitly forbids it from touching any `AbilityDefinition` field. The two systems are disjoint by construction, not by coincidence |
 
 **Bidirectional-consistency note:** `heroes-and-abilities.md` already lists
 Ability Upgrades as a **Hard** downstream dependent (interface: "Reads/
@@ -709,9 +709,11 @@ implementation):**
    aside from ordinary Empty/Filled slot transitions Draft / Loadout Meta
    might expose. *Owner:* Draft / Loadout Meta, if such a mechanic is
    wanted.
-9. **Pilots / Hero Modifiers field-overlap consistency check.** Both that
-   undesigned system and this one modify a hero's effective capabilities,
-   but currently target disjoint field sets (chassis vs. ability fields).
-   Flag for `/consistency-check` once Pilots / Hero Modifiers is authored,
-   in case a future field (e.g., a chassis-level "bonus move range on
-   ability use") is claimed by both.
+9. **Pilots field-overlap consistency check — RESOLVED 2026-07-28.**
+   `pilots.md` is now Designed. Its Core Rule 5 forbids Pilots from
+   modifying any `AbilityDefinition` field, so the two systems cannot
+   collide. The original framing of this note ("chassis vs. ability fields")
+   was wrong in one respect: the chassis lane belongs to **Passive
+   Modules**, not Pilots. The three-way boundary is now: Ability Upgrades →
+   `AbilityDefinition` fields; Passive Modules → chassis fields and rules of
+   engagement; Pilots → action-slot economy, deployment, run-level.

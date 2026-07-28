@@ -48,6 +48,37 @@ What you can do here that you can't elsewhere: experience Into the Breach's
 
 ---
 
+## Fiction and Terminology
+
+*Added 2026-07-28, when `pilots.md` forced the question. Prior to this the game's
+fiction was undeclared: `heroes-and-abilities.md` used the term `chassis`,
+`hero-roster-and-squads.md` described armor plates and shoulder-mounted mortar
+tubes and called its units "the ITB Combat Mech analog", and `art-bible.md` §2
+specified "blueprint" and "laboratory" lighting — but nothing stated outright what
+a unit* is.
+
+**The units are mechs — piloted machines.** The player is the **commander** who
+directs them, which is exactly the identity the Core Fantasy above already claims
+("I am a cunning commander"). **Pilots** are the human beings inside the mechs, and
+they are the only thing in the entire design that can be permanently lost within a
+run (see `pilots.md`).
+
+This resolves a latent incoherence rather than introducing a new theme: the art
+direction and hero roster already read as machines, and the schema already called
+its units chassis. Only the word "hero" implied people.
+
+### Terminology split (deliberate)
+
+| Layer | Term | Rationale |
+|---|---|---|
+| Schema / code | `HeroDefinition`, `RosterMember`, `Unit`, `hero` | Retained unchanged. No production code exists yet, so renaming would be free in code — but renaming across 24 reviewed GDDs immediately before Sprint 1 is pure risk for zero gameplay value |
+| Player-facing text | "mech", "pilot", "commander" | What the player reads in UI, tutorial, and flavor |
+
+This split is intentional and permanent for v1. Do not "fix" it by renaming schema
+identifiers; do not leak `hero` into player-facing strings.
+
+---
+
 ## Unique Hook
 
 **It's like Into the Breach, AND ALSO every hero is a distinct board-manipulating

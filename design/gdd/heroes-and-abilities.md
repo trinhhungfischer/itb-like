@@ -73,8 +73,10 @@ tension the game concept already names between these two pillars.
    *stronger* than an existing one, cut it — it must bring a new verb"): a
    one-ability roster makes every hero's identity legible and impossible to
    pad with incremental stat bonuses. Passive traits, multi-ability kits,
-   and hero-level modifiers are explicitly deferred to **Pilots / Hero
-   Modifiers** (`Not Started`, Alpha tier per `systems-index.md`) and
+   and hero-level modifiers are explicitly deferred to **Passive Modules**
+   (`passive-modules-and-equipment.md`, which owns all chassis-field
+   modification), **Pilots** (`pilots.md`, `Designed`, Alpha tier — action
+   economy, deployment, and run-level effects only) and
    **Ability Upgrades** (`Designed`, Vertical Slice tier) — this document
    defines only the base v1 kit shape.
 4. **Action economy.** During Player Phase, each *living* hero has exactly
@@ -292,7 +294,8 @@ Unit {
 A hero's `Unit` record is instantiated at battle Setup from its
 `HeroDefinition`: `maxHP` is copied, `abilities` is populated from the
 chassis' single `ability`, `currentHP = maxHP`, and `hazardImmunities = []`
-unless a future Pilots / Hero Modifiers override sets one. `HeroDefinition`
+unless a **Passive Module** supplies one (S2 Hazard Walker → `Fire`,
+S3 Acid Walker → `Acid`). `HeroDefinition`
 (authored, chassis-level data) and `Unit` (runtime, per-battle instance
 data) are deliberately distinct: `HeroDefinition` has no `currentHP`/
 `position`, and `Unit` has no `class`/flavor fields. This is the record Rule
@@ -354,15 +357,18 @@ Combat Resolution executes; it never mutates the board directly.
 | **Encounter Generator** | `squad_size`, full `HeroDefinition` list (for deployment planning / difficulty balancing) | — (Heroes & Abilities does not read Encounter Generator) | Encounter Generator authors deployment tiles; Heroes & Abilities only defines chassis/ability data it can read |
 | **Draft / Loadout Meta** | Full `HeroDefinition` roster to offer as draftable content | Writes/selects the active `Loadout` for a run | Draft owns *which* heroes are available and chosen; Heroes & Abilities owns what a hero *is* |
 | **Ability Upgrades** | `AbilityDefinition` fields it may modify (range, distance/amount parameters, `cooldownTurns`) | — | Ability Upgrades extends/overrides fields defined here; it does not redefine the schema |
-| **Pilots / Hero Modifiers** (Not Started) | `HeroDefinition` fields it may modify (maxHP, moveRange) | — | Same relationship as Ability Upgrades, at the chassis level |
+| **Pilots** ✅ | Nothing. `HeroDefinition.id`/`name`/`class` are read for display only | — | **Superseded contract (2026-07-28):** Pilots does **not** modify any `HeroDefinition` field. The chassis lane (`maxHP`, `moveRange`, `hazardImmunities`) is owned by **Passive Modules**; Pilots owns action-slot economy, deployment, and run-level effects. See `pilots.md` Core Rule 5 |
 
 > **Status note:** Enemy, Abilities & Telegraph, Move Preview, Battle HUD,
 > Board Rendering & Juice, Encounter Generator, Draft / Loadout Meta, and
 > Ability Upgrades are now **Designed** (see `systems-index.md`) — the
 > interfaces above should already match their published GDDs; any drift
-> should be raised via `/consistency-check`. **Pilots / Hero Modifiers**
-> remains **Not Started** — the interface row above is still this GDD's
-> proposed contract until that document exists.
+> should be raised via `/consistency-check`. **Pilots** is now **Designed**
+> (`pilots.md`, 2026-07-28) and its interface row above has been corrected:
+> the earlier "Pilots overrides `maxHP`/`moveRange`" contract was written
+> before `passive-modules-and-equipment.md` claimed the chassis lane
+> (T1 Pathfinder → `moveRange`, S2/S3 Walkers → `hazardImmunities`,
+> S4 Last Stand → HP survival) and is **superseded**.
 
 **Illustrative reference kits.** The following four hero definitions are
 worked examples used throughout Formulas, Edge Cases, and Acceptance
@@ -676,9 +682,9 @@ telegraph before commit.
 | **Turn & Phase Manager** ✅ | Player Phase as the window in which hero actions are legal; `Board.snapshot()`/undo mechanism, which this document's action-slot bookkeeping rides alongside | **Hard** |
 
 **Downstream (systems that depend on Heroes & Abilities):** all are now
-**Designed** (see `systems-index.md`) except **Pilots / Hero Modifiers**
-(**Not Started**); interfaces below are reconciled against each dependent's
-published GDD where one exists.
+**Designed** (see `systems-index.md`), including **Pilots** (`pilots.md`,
+2026-07-28); interfaces below are reconciled against each dependent's
+published GDD.
 
 | Dependent System | Interface (what it uses) | Hard / Soft |
 |-------------------|---------------------------|--------------|
@@ -690,7 +696,7 @@ published GDD where one exists.
 | **Encounter Generator** | `squad_size`, full `HeroDefinition` roster (for deployment-zone sizing / difficulty balancing) | **Soft** |
 | **Draft / Loadout Meta** | Full `HeroDefinition` roster (draftable content); writes the selected `Loadout` this document validates | **Hard** |
 | **Ability Upgrades** | Reads/overrides `AbilityDefinition` fields (range, per-ability `distance`/`amount` parameters, `cooldownTurns`) | **Hard** |
-| **Pilots / Hero Modifiers** | Reads/overrides `HeroDefinition` fields (`maxHP`, `moveRange`) | **Hard** |
+| **Pilots** | Reads `HeroDefinition.id`/`name`/`class` for display, and the `Unit` record's terminal `Removed(Defeated \| Fell)` state as its pilot-death trigger. Overrides **no** `HeroDefinition` field | **Hard** |
 
 **Bidirectional-consistency note:** `board-and-grid.md` already lists Heroes
 & Abilities as a **Hard** dependent (`tilesInRange`, `neighbors`, `distance`,
@@ -983,9 +989,9 @@ implementation):**
 9. **Draft / Loadout Meta's persistence and drafting mechanics** (how a
    Loadout is chosen and changes across a run) are entirely out of this
    document's scope — only the *shape* of a valid Loadout is defined here.
-10. **Ability Upgrades' and Pilots / Hero Modifiers' exact override
+10. **Ability Upgrades' exact override
     mechanics** (e.g., does an upgrade replace a field or add a delta?) are
-    deferred to those systems' own GDDs; this document only guarantees the
-    fields they will need to read/override (`AbilityDefinition`'s range/
+    deferred to that system's own GDD; this document only guarantees the
+    fields it will need to read/override (`AbilityDefinition`'s range/
     distance/amount/cooldown, `HeroDefinition`'s maxHP/moveRange) are
     clearly named and typed.

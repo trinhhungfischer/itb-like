@@ -51,7 +51,7 @@ solvable, interesting battles). The target build is pure web (TypeScript + PixiJ
 | 22 | Passive Modules | Progression | Vertical Slice | Designed | design/content/passive-modules-and-equipment.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
 | 23 | Gadgets / Secondary Weapons | Progression | Vertical Slice | Designed | design/content/secondary-weapons-and-gadgets.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
 | 24 | Enemy Roster Content | Content | Vertical Slice | Designed | design/content/enemy-roster-and-archetypes.md | Enemy, Abilities & Telegraph, Encounter Generator |
-| 25 | Pilots / Hero Modifiers | Progression | Alpha | Not Started | — | Heroes & Abilities |
+| 25 | Pilots | Progression | Alpha | Designed | design/gdd/pilots.md | Draft / Loadout Meta, Heroes & Abilities, Turn & Phase Manager, Run Persistence |
 | 26 | 4X-lite Node Bonuses | Gameplay | Alpha | Not Started | — | Run Structure / Node Map |
 | 27 | Accessibility (inferred) | Meta | Alpha | Not Started | — | Battle HUD, Board Rendering & Juice |
 | 28 | Settings / Options (inferred) | Meta | Alpha | Not Started | — | Audio System, Input & Selection, Accessibility |
@@ -64,7 +64,7 @@ solvable, interesting battles). The target build is pure web (TypeScript + PixiJ
 |----------|-------------|----------------------|
 | **Core** | Foundation systems everything depends on | Board & Grid, Turn & Phase Manager, Input & Selection |
 | **Gameplay** | The systems that make the game fun | Combat Resolution, Heroes & Abilities, Enemy, Abilities & Telegraph, Move Preview, Objective / Win-Lose, Encounter Generator, Run Structure / Node Map, Difficulty Tiers, 4X-lite Node Bonuses |
-| **Progression** | How the player grows over time | Ability Upgrades, Pilots / Hero Modifiers, Draft / Loadout Meta, Meta-progression / Unlocks |
+| **Progression** | How the player grows over time | Ability Upgrades, Pilots, Draft / Loadout Meta, Meta-progression / Unlocks |
 | **Persistence** | Save state and continuity | Run Persistence |
 | **UI** | Player-facing information displays | Board Rendering & Juice, Battle HUD, Map/Run UI, Draft/Loadout UI |
 | **Audio** | Sound and music systems | Audio System |
@@ -106,7 +106,10 @@ and only light narrative framing.)*
 3. **Move Preview** — depends on: Combat Resolution. Simulates resolution without applying it.
 4. **Objective / Win-Lose** — depends on: Turn & Phase Manager, Combat Resolution.
 5. **Ability Upgrades** — depends on: Heroes & Abilities.
-6. **Pilots / Hero Modifiers** — depends on: Heroes & Abilities.
+6. **Pilots** — depends on: Draft / Loadout Meta (owns `RosterMember.pilotId` and the
+   `PilotOffer` pipeline), Heroes & Abilities (reads the `Unit` terminal state as its
+   death trigger; modifies **no** `HeroDefinition` field), Turn & Phase Manager
+   (action-slot economy), Run Persistence. Touches no Foundation or Core module.
 7. **Encounter Generator** — depends on: Enemy, Abilities & Telegraph, Board & Grid, Combat Resolution.
 8. **Difficulty Tiers** — depends on: Encounter Generator, Enemy, Abilities & Telegraph.
 9. **Run Structure / Node Map** — depends on: Encounter Generator, Objective / Win-Lose.
@@ -155,7 +158,7 @@ and only light narrative framing.)*
 | 19 | Draft/Loadout UI | Vertical Slice | Presentation | game-designer, ux-designer | M |
 | 20 | Audio System | Vertical Slice | Presentation | game-designer, audio-director | S |
 | 21 | Onboarding / Tutorial | Vertical Slice | Polish | game-designer, ux-designer | M |
-| 22 | Pilots / Hero Modifiers | Alpha | Feature | game-designer, systems-designer | M |
+| 22 | Pilots ✅ | Alpha | Feature | game-designer, systems-designer | M |
 | 23 | 4X-lite Node Bonuses | Alpha | Feature | game-designer, systems-designer | M |
 | 24 | Accessibility | Alpha | Polish | accessibility-specialist, ux-designer | M |
 | 25 | Settings / Options | Alpha | Polish | game-designer, ux-designer | S |
@@ -202,14 +205,23 @@ decisions, not single-system fixes — they belong in the architecture phase.
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 28 |
-| Design docs started | 24 |
+| Design docs started | 25 |
 | Design docs reviewed | 24 |
 | Design docs approved | 24 |
 | MVP systems designed | 10/10 |
 | Vertical Slice systems designed | 14/14 |
+| Alpha systems designed | 1/4 |
 
 *(All 24 MVP+VS GDDs independently design-reviewed 2026-07-28, then reconciled against
-`design/architecture/cross-system-contracts.md`. Alpha #25–#28 remain Not Started.)*
+`design/architecture/cross-system-contracts.md`.)*
+
+*(**#25 Pilots** authored 2026-07-28 — see `design/gdd/pilots.md` and
+`docs/superpowers/specs/2026-07-28-pilots-design.md`. It supersedes the original
+"Pilots / Hero Modifiers" chassis-modifier concept, which was found to duplicate
+Passive Modules' lane; the game's mecha fiction was declared in `game-concept.md` at
+the same time. **Not yet independently design-reviewed** — run
+`/design-review design/gdd/pilots.md` in a fresh session. Alpha #26–#28 remain Not
+Started.)*
 
 ---
 

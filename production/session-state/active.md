@@ -11,8 +11,10 @@
 | Area | Status | Artifact |
 |------|--------|----------|
 | Game Concept | ✅ Complete | `design/gdd/game-concept.md` |
-| Systems Index | ✅ 28 systems (10 MVP, 11 VS, 4 Alpha, 3 Content) | `design/gdd/systems-index.md` |
-| GDDs | ✅ 21/25 Designed (MVP 10/10, VS 11/11) | `design/gdd/*.md` |
+| Systems Index | ✅ 28 systems (10 MVP, 14 VS, 4 Alpha) | `design/gdd/systems-index.md` |
+| GDDs | ✅ **25/28 Designed** (MVP 10/10, VS 14/14, Alpha 1/4) | `design/gdd/*.md` |
+| Pilots (#25) | ✅ Designed 2026-07-28 — pending independent review | `design/gdd/pilots.md` |
+| Game Fiction | ✅ Mecha declared 2026-07-28 | `design/gdd/game-concept.md` § Fiction and Terminology |
 | Art Bible | ✅ §1-4 Complete | `design/art/art-bible.md` |
 | Architecture | ✅ PASS | `docs/architecture/architecture.md` |
 | ADRs | ✅ 11 Accepted (adr-0001..0011) | `docs/architecture/adr-*.md` |
@@ -90,9 +92,32 @@ HeroRunState {
    - Run Persistence, Passive Modules, Gadgets, Enemy Roster (P1)
 
 3. **Remaining design gaps** (non-blocking):
-   - Alpha systems #22-25 (Pilots, 4X-lite Bonuses, Accessibility, Settings) — Not Started
+   - Alpha #26 4X-lite Node Bonuses, #27 Accessibility, #28 Settings — Not Started
    - AI Formula F2 attackRange=0 edge case
    - Wraith two-target input UX flow
+   - `design/accessibility-requirements.md` and `design/ux/accessibility-requirements.md`
+     are duplicates — dedupe before designing #27
+
+### Pilots (#25) — completed 2026-07-28
+
+The original "Pilots / Hero Modifiers" concept was **superseded**, not implemented as
+reserved. Two problems were found: the game had no declared fiction (units were named
+characters, so a pilot on top gave one board piece two identities), and the reserved
+chassis lane (`maxHP`/`moveRange`/`hazardImmunities`) had already been claimed by
+Passive Modules (T1 Pathfinder, S2/S3 Walkers, S4 Last Stand).
+
+Resolution: declared the mecha fiction (near-free — the art bible and hero roster
+already read as machines) and moved Pilots to the unoccupied **action economy ·
+deployment · run-level** lane. Pilots gain XP, level to 3, and **die permanently**
+when their mech is Removed — the sole permanent loss in the whole design.
+`draft-and-loadout-meta.md` Rule 3 was **scoped to mechs** (new Rule 3a), not broken.
+Simulation core: **zero changes**.
+
+- Spec: `docs/superpowers/specs/2026-07-28-pilots-design.md`
+- GDD: `design/gdd/pilots.md` — **not yet independently design-reviewed**
+- ⚠️ Known risk: mechs now carry **5 customization axes** vs Into the Breach's 2.
+  Mitigations are Core Rule 5's lane ban and portrait-not-icon presentation. If
+  playtest shows legibility suffering, first lever is `equipmentSlots` 2 → 1.
 
 ### Key Architecture Reminders
 - **Deterministic**: No RNG in battle. PRNG = mulberry32, seeded once per encounter.

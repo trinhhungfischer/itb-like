@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: "2026-07-27"
+last_updated: "2026-07-28"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -72,8 +72,27 @@ entities:
       - design/gdd/objective-and-win-lose.md
       - design/gdd/ability-upgrades.md
       - design/gdd/draft-and-loadout-meta.md
+      - design/gdd/pilots.md
     note: "Canonical per-battle Unit record (owner: Heroes & Abilities): { id, team, archetype, maxHP, currentHP, position(tile), size(=1 v1), abilities[], hazardImmunities[], statusFlags[] }. Referenced (not re-shaped) by Enemy, Objective, Ability Upgrades, Draft/Loadout Meta. hazardImmunities threaded through Combat's hazard call sites. Defined in design/architecture/cross-system-contracts.md #6; heroes-and-abilities.md must publish the authoritative schema."
     added: 2026-07-27
+    revised: ""
+  - name: pilot_instance
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+      - design/gdd/draft-and-loadout-meta.md
+      - design/gdd/run-persistence.md
+      - design/gdd/draft-loadout-ui.md
+    note: "Per-run pilot record (owner: Pilots): { id, pilotDefinitionId, level(1..pilot_max_level),
+      xp, skills[](length == level), status(Active|Dead) }. Lives in RunState.pilots; assignment is
+      held by RosterMember.pilotId (null = AI Core, not an entity). Pilots die PERMANENTLY when their
+      mech's Unit ends a battle Removed(Defeated|Fell) — the single exception to
+      draft-and-loadout-meta.md Rule 3's non-lethal model, which is scoped to mechs (Rule 3a).
+      Pilot skills are restricted to action-slot economy, deployment, and run-level effects; they are
+      FORBIDDEN from maxHP/moveRange/hazardImmunities (owned by Passive Modules) and from every
+      AbilityDefinition field (owned by Ability Upgrades). Touches no sim-core module."
+    added: 2026-07-28
     revised: ""
 
 # Example (remove when first real entry is added):
@@ -155,6 +174,7 @@ formulas:
       - design/gdd/encounter-generator.md
       - design/gdd/run-structure-node-map.md
       - design/gdd/draft-and-loadout-meta.md
+      - design/gdd/pilots.md
     variables:
       - seed
     output_range: [0, 1]
@@ -277,6 +297,66 @@ constants:
     value: 1
     unit: hp
     added: 2026-07-27
+    revised: ""
+  - name: pilot_xp_per_battle
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: 1
+    unit: xp
+    note: "Awarded at battle_ended to the pilot of each deployed mech whose Unit did NOT end
+      Removed. Flat per battle, never per kill (kill-based XP would contradict Pillar 2).
+      Awarded regardless of win/loss. Benched pilots earn nothing."
+    added: 2026-07-28
+    revised: ""
+  - name: pilot_level2_xp
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: 2
+    unit: xp
+    note: "Cumulative XP threshold for level 2. INVARIANT: pilot_level2_xp < pilot_level3_xp,
+      validated at config load — a violation makes level 2 unreachable."
+    added: 2026-07-28
+    revised: ""
+  - name: pilot_level3_xp
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: 4
+    unit: xp
+    note: "Cumulative XP threshold for level 3. Tuned against run length: run-structure-node-map.md
+      map_depth=6 + Boss yields ~4-5 combat nodes, so a starting pilot peaks as the run reaches its
+      Boss. Retune together with pilot_xp_per_battle if map_depth changes."
+    added: 2026-07-28
+    revised: ""
+  - name: pilot_max_level
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: 3
+    unit: levels
+    note: "Ceiling on PilotInstance.level and therefore on len(skills) — 1 innate + 2 learned.
+      Raising it compounds the five-axis legibility risk (pilots.md Open Question #2) and
+      requires a larger skill catalog per Formula F3."
+    added: 2026-07-28
+    revised: ""
+  - name: pilot_skill_offer_count
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+      - design/gdd/draft-loadout-ui.md
+    value: 3
+    unit: offers
+    note: "Skills offered on level-up, drawn seeded via mulberry32 salted with pilot id + level.
+      Player must pick exactly 1 — no skip path, unlike a DraftOffer (a level-up is pure gain).
+      Catalog must hold at least pilot_skill_offer_count + pilot_max_level entries."
+    added: 2026-07-28
     revised: ""
 
 # Example:

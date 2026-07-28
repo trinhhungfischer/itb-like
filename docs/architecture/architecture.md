@@ -18,7 +18,7 @@
 | **Status** | Accepted (TD sign-off 2026-07-28) |
 | **Stack** | TypeScript + PixiJS (2D WebGL) + Vite — pure web, no native engine |
 | **GDDs covered** | 21 (10 MVP + 11 Vertical Slice), all Designed & reconciled 2026-07-28 |
-| **Alpha systems noted (not covered)** | 4 (Pilots/Hero Modifiers, 4X-lite Node Bonuses, Accessibility, Settings/Options) — Not Started |
+| **Alpha systems noted (not covered)** | 3 (4X-lite Node Bonuses, Accessibility, Settings/Options) — Not Started. **Pilots** became Designed 2026-07-28 (`design/gdd/pilots.md`) but is a run-layer system requiring **zero** simulation-core changes — see §7 |
 | **Canonical contract source** | `design/architecture/cross-system-contracts.md` |
 | **Registry source** | `design/registry/entities.yaml` |
 | **ADRs referenced** | None yet (`docs/architecture/` contains no `adr-*.md`) — see §7, §8 |
@@ -85,9 +85,10 @@ convention (all abilities depend on Combat's primitives, never the reverse) hold
 │                requestAnimationFrame · pointer/keyboard input                  │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-  ALPHA (Not Started, out of scope for v1 architecture):
-    Feature:   Pilots/Hero Modifiers · 4X-lite Node Bonuses
-    Presentation/Meta: Accessibility · Settings/Options
+  ALPHA:
+    Feature:   Pilots (Designed 2026-07-28 — run layer, zero sim-core impact)
+               4X-lite Node Bonuses (Not Started)
+    Presentation/Meta: Accessibility · Settings/Options (Not Started)
 ```
 
 **Layer assignment of every Designed system:**
@@ -99,7 +100,7 @@ convention (all abilities depend on Combat's primitives, never the reverse) hold
 | **Core** | Combat Resolution; Input & Selection; Move Preview | Combat is the single board-mutation path. Move Preview is a dry-run of Combat over a snapshot. |
 | **Feature** | Heroes & Abilities; Enemy Abilities & Telegraph; Objective/Win-Lose; Encounter Generator; Difficulty Tiers; Run Structure/Node Map; Draft/Loadout Meta; Ability Upgrades; Meta-progression/Unlocks | All gameplay + progression logic. Abilities compile to Combat primitives one-directionally. |
 | **Presentation** | Board Rendering & Juice; Battle HUD; Map/Run UI; Draft/Loadout UI; Audio System; Onboarding/Tutorial | Read-only consumers of sim state + events. **Never** call a Combat mutation. |
-| **Alpha (deferred)** | Pilots/Hero Modifiers, 4X-lite Node Bonuses (Feature); Accessibility, Settings/Options (Presentation/Meta) | Not Started; layered here for forward planning only. |
+| **Alpha** | **Pilots** (Feature, Designed 2026-07-28); 4X-lite Node Bonuses (Feature); Accessibility, Settings/Options (Presentation/Meta) | Pilots is a run-layer progression system: it consumes `battle_ended` and writes run state, and touches no Foundation or Core module. The rest remain Not Started. |
 
 ---
 

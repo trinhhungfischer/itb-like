@@ -88,7 +88,11 @@ and, with it, Pillar #3's entire promise).
    gap** — flagged for architecture confirmation (Open Questions), not a
    unilateral claim on the now-published `Unit` record's own schema, which
    this document only references (Rule 3) and never re-shapes.
-3. **Persistent, non-lethal HP model.** A `RosterMember.currentHP` persists
+3. **Persistent, non-lethal HP model — scoped to the mech.** *(Amended
+   2026-07-28 by `pilots.md`: this rule's non-lethal guarantee covers the
+   **mech** — the `RosterMember` — and is unchanged in substance. Its
+   **pilot** is a separate entity with its own lifecycle and* **does** *die
+   permanently; see Rule 3a below.)* A `RosterMember.currentHP` persists
    across the whole run, **never resets to full automatically between
    battles**, and **never falls below `1`**. At battle Setup, each deployed
    Loadout member's `currentHP` seeds that battle's fresh `Unit.currentHP`
@@ -109,6 +113,17 @@ and, with it, Pillar #3's entire promise).
    This guarantees, by construction, that Heroes & Abilities' hard
    requirement ("a Loadout is exactly `squad_size` distinct heroes") can
    always be satisfied for the rest of the run (Formula F6's proof).
+   3a. **Pilot lethality (added 2026-07-28, owned by `pilots.md`).** A
+   `RosterMember` gains the field `pilotId: PilotInstance.id | null`
+   (`null` = AI Core). Rule 3's non-lethal guarantee does **not** extend to
+   pilots: if a deployed member's `Unit` ends the battle
+   `Removed(Defeated | Fell)`, its assigned pilot's `status` becomes `Dead`
+   and `pilotId` is set to `null`, permanently for the remainder of the run.
+   This resolves at the same `battle_ended` point as Formula F6's `currentHP`
+   write-back. The mech itself is unaffected — it is still written back at
+   `currentHP = 1` and is still fully deployable. `pilots.md` owns the
+   `PilotInstance` schema, the XP/level model, and the death formula; this
+   document owns only the `pilotId` field and the `PilotOffer` pipeline.
 4. **Starting Roster Draft.** Before the player's first `enterNode()` call
    (i.e., before row 1 of the generated map is ever entered — `nodeId = -1`,
    reusing `MapEdge`'s virtual-Start sentinel convention from
@@ -125,8 +140,9 @@ and, with it, Pillar #3's entire promise).
 5. **Roster growth is capped and additive-only in v1.** A `RosterMember`,
    once recruited (Starting Draft or a `NewHeroOffer` pick, Rule 8), is
    **never removed** from the Roster for the rest of the run — there is no
-   bench-drop, sell, or permadeath mechanic in v1 (consistent with Rule 3's
-   non-lethal HP model). The Roster may grow up to `max_roster_size`
+   bench-drop, sell, or permadeath mechanic for *mechs* in v1 (consistent
+   with Rule 3's non-lethal HP model). *Pilots are the sole exception in the
+   whole design and are governed by Rule 3a, not this rule.* The Roster may grow up to `max_roster_size`
    (Tuning Knobs, default **7**) distinct `HeroDefinition`s; recruiting a
    `HeroDefinition` already present in the Roster is impossible by
    construction (Formula F1's candidate pool excludes already-recruited
@@ -168,10 +184,14 @@ and, with it, Pillar #3's entire promise).
    to every offer set — declining every generated offer is always legal
    (Rule 10), matching this project's established "the player may always
    decline" precedent (Heroes & Abilities' Extra-Use decline, Ability
-   Upgrades' Rest-choice framing). A third content category,
-   `PilotOffer`, is reserved in the schema (Data Contracts) but **not
-   implemented in v1** — Pilots / Hero Modifiers is an Alpha-tier system
-   and out of this document's scope (Open Questions).
+   Upgrades' Rest-choice framing). A further category, **`PilotOffer`**, is
+   **active as of 2026-07-28** (`pilots.md`): it offers one
+   `PilotDefinition` and is **generated only when at least one
+   `RosterMember` has `pilotId == null`** (`pilots.md` Formula F5) — so an
+   offered pilot always has an empty cockpit to occupy. When that predicate
+   is false, `PilotOffer` is excluded from the candidate pool and the slot is
+   filled by another offer type, exactly as other unavailable categories are
+   handled. `SkipOffer` still applies, so a `PilotOffer` remains declinable.
 9. **Offer generation is deterministic and seeded, per the project's
    established `mix()` + `mulberry32` convention.** For any Draft-triggering
    event (Starting Draft, Reward-node entry, Rest-node Train choice,
@@ -279,6 +299,7 @@ RosterMember {
   currentHP: int                      // [1, HeroDefinition.maxHP], persists across battles (Rule 3)
   upgradeSlots: AbilityUpgradeInstance[]  // shape/content owned by Ability Upgrades;
                                        // length == upgrade_slots_per_hero (that doc's knob)
+  pilotId: string | null              // -> PilotInstance.id; null = AI Core. Owned by pilots.md (Rule 3a)
   recruitedAt: nodeId | 'start'       // -1 sentinel ('start') for the Starting Roster Draft
 }
 
@@ -293,8 +314,8 @@ DraftOffer =
   | AbilityUpgradeOffer { rosterMemberId: string, upgradeDefinitionId: string }
   | PassiveModuleOffer  { rosterMemberId: string, moduleDefinitionId: string }
   | GadgetOffer         { rosterMemberId: string, gadgetDefinitionId: string }
+  | PilotOffer          { pilotDefinitionId: string }   // active 2026-07-28; gated by pilots.md F5 (Rule 8)
   | SkipOffer           {}            // never generated by RNG — always structurally appended (Rule 8)
-  // PilotOffer reserved, not implemented in v1 (Rule 8)
 
 RestChoice = Heal | Train
 ```
@@ -940,10 +961,12 @@ implementation):**
    scope — owned by a future, currently entirely-undesigned
    narrative/event-content system, per `run-structure-node-map.md` Rule
    12's own scope line.
-7. **`PilotOffer` / Pilots-Hero-Modifiers integration.** Reserved in the
-   `DraftOffer` schema (Rule 8) but not implemented — Pilots / Hero
-   Modifiers is an Alpha-tier system per `systems-index.md`; this document
-   will need a follow-up revision once that system is designed.
+7. **`PilotOffer` / Pilots integration — RESOLVED 2026-07-28.** `pilots.md`
+   is now Designed and `PilotOffer` is active in the `DraftOffer` union
+   (Rule 8), gated by that document's Formula F5. `RosterMember` carries
+   `pilotId` (Rule 3a). What remains open there, not here: whether a
+   `PilotOffer` needs any decline handling beyond the structural `SkipOffer`
+   (`pilots.md` Open Question #5) — verify with `/consistency-check`.
 8. **Respec / upgrade-removal-for-refund mechanics.** Deferred entirely to
    `ability-upgrades.md`'s own Open Question #8 — this document assumes
    upgrade assignment via `AbilityUpgradeOffer` is one-directional and

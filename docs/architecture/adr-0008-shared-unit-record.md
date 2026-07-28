@@ -259,8 +259,10 @@ function processRunEnd(outcome: { result: RunResult; nodeType?: NodeType }): voi
   rule should reject any second `interface *Unit` in the sim core.
 - Construct a hero `Unit` at battle Setup from its `HeroDefinition`: copy `maxHP`,
   set `currentHP = maxHP`, populate `abilities` from the chassis' single ability,
-  `hazardImmunities = []` (unless a future Pilots/Hero-Modifier override supplies
-  one), `size = 1`, `statusFlags = []`. Enemy `Unit`s construct analogously from
+  `hazardImmunities = []` (unless a **Passive Module** supplies one — S2 Hazard
+  Walker → `Fire`, S3 Acid Walker → `Acid`; corrected 2026-07-28, the original
+  text credited this to Pilots, which `pilots.md` Core Rule 5 now forbids from
+  touching chassis fields), `size = 1`, `statusFlags = []`. Enemy `Unit`s construct analogously from
   `EnemyDefinition`.
 - Keep `HeroDefinition`/`EnemyDefinition` (authored, no `currentHP`/`position`)
   strictly distinct from `Unit` (runtime instance). Do not add flavor/`class`

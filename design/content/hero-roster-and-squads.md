@@ -7,6 +7,26 @@
 
 ---
 
+## Fiction
+
+*Added 2026-07-28; see `design/gdd/game-concept.md` § Fiction and Terminology.*
+
+Every unit in this roster is a **mech** — a piloted machine. The visual directions
+below (shield plates, armor chevrons, shoulder-mounted mortar tubes) already assumed
+this; it is now stated outright. Each mech carries at most one **pilot**, a human
+being who accrues skills across a run and **dies permanently if the mech is
+destroyed** (`design/gdd/pilots.md`). A mech with no pilot runs on an AI Core and is
+fully functional.
+
+The nicknames below ("The Bulldozer", "The Launcher") name the **machine**, not its
+pilot. Pilots are drafted separately, are not part of this roster, and can be moved
+between mechs.
+
+**Terminology note:** schema identifiers remain `HeroDefinition` / `hero`; only
+player-facing text says "mech". This split is deliberate — see `game-concept.md`.
+
+---
+
 ## Design Philosophy
 
 ### ITB Reference → VANGUARD Adaptation
