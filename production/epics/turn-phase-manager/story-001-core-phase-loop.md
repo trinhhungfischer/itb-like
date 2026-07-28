@@ -42,6 +42,25 @@
 
 Implement an orchestrator that calls interface methods for each phase. Ensure it holds no direct imports to concrete game logic. Maintain strict separation of concerns where the manager acts purely as a clock and referee.
 
+> **⚠️ Design the state machine to accept a `Paused` state — added 2026-07-28 from the
+> `ux-designer` gate on `settings-and-options.md` (#28).**
+>
+> That document's Rule 15 requires the settings screen be reachable **mid-battle**, and
+> the gate found this is currently impossible: the battle state machine
+> (`Setup → InTurn → Ended`) has **no `Paused` state**, the pause hook in
+> `input-and-selection.md` is unimplemented, and Battle HUD has no affordance. Mouse-only
+> players — this game's **primary input** — therefore have no path into settings during a
+> battle, which also blocks a player who needs an accommodation mid-fight.
+>
+> **You are not asked to implement pause here** (Settings is Alpha-tier, and the HUD
+> affordance belongs to Battle HUD). You *are* asked not to foreclose it: leave a seam so
+> `Paused` can be added without reshaping the phase ring. Retrofitting a state into a
+> Foundation state machine after Combat Resolution, Objective, and Undo all depend on it
+> is far more expensive than accommodating it now.
+>
+> Constraint from Rule 15: pausing must never advance a turn, consume an action, or touch
+> the undo stack.
+
 ---
 
 ## Out of Scope

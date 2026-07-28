@@ -263,3 +263,52 @@ ce7fe48 Update GDDs with 3 new content designs
 **Sprint 1 unaffected** — all three sat in Feature/Alpha layers. GAP 3 is the one
 an implementer could have hit early (undo is a Sprint 1 story) and is now
 specified before any code was written against the ambiguity.
+
+## Session Extract — specialist gates + Sprint 1 readiness, 2026-07-28
+
+**All 5 specialist gates run and applied.** These were skipped during authoring; three
+silent `/design-review` runs on the same documents had found nothing.
+
+| Gate | Doc | Result |
+|---|---|---|
+| `accessibility-specialist` | accessibility.md | 2 BLOCKING, 4 HIGH, 4 MEDIUM — added A12–A15 |
+| `ux-designer` | settings-and-options.md | 2 CRITICAL, 5 HIGH, 4 MEDIUM |
+| `systems-designer` | node-bonuses.md | 1 CRITICAL, 3 HIGH — real math bugs |
+| `qa-lead` | all 4 Alpha GDDs | CRITICAL fixes had no acceptance criteria |
+| `art-director` | palette / F4 | 8-hue palette is infeasible; decision made |
+
+**Palette decision (resolves `accessibility.md` Open Question #4):** an 8-hue palette
+**cannot** reach `delta_e_min = 15` under all three CVD simulations — the realistic
+ceiling is **4–5 hues**, a property of the colour space. F4 stays **advisory** and the
+verb-family roster is **not** cut. Shape redundancy (Rule 2 / F3) is the correctness
+guarantee. Two live defects recorded as Open Questions #5/#6: the palette array is
+enumerated nowhere, and "one accent colour per verb-family" is already false as authored
+(Ember/Crucible Zone abilities render Fire's orange-red).
+
+---
+
+## SPRINT 1 READINESS — ✅ GO
+
+| Prerequisite | State |
+|---|---|
+| GDDs / ADRs / TRs | 28 · 12 · 147 |
+| Stories | 43 files, status **Ready** |
+| Sprint 1 ADR deps (0001–0011) | all **Accepted** |
+| `tests/`, `vitest.config.ts`, CI | present |
+| **`package.json` + lockfile** | **was MISSING — fixed `f1625be`** |
+| Test suite | **14/14 pass** |
+| `src/` | empty — correct, that is Sprint 1's job |
+
+**The one blocker found:** everything *looked* ready — test dirs, config, CI workflow,
+even a 14-case Board & Grid test already written — but there was no root
+`package.json`. CI runs `npm ci`, which needs it plus a lockfile. **CI would have gone
+red on the first Sprint 1 commit**, and the symptom would have read as a code failure
+rather than a missing scaffold. Fixed and verified.
+
+**The one gate finding that touches Sprint 1:** Turn & Phase Manager's phase loop is
+Sprint 1 story-001, and no story plans a `Paused` state — which Settings (#28) Rule 15
+now requires for mid-battle access. Not asked to implement pause; asked not to foreclose
+it. Noted in `production/epics/turn-phase-manager/story-001-core-phase-loop.md`.
+
+**Nothing else blocks.** Remaining work (palette, #26–#28 review verdicts, Settings
+bootstrap check) is Presentation/Alpha tier; Sprint 1 is a headless engine.
