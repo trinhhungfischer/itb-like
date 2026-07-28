@@ -142,3 +142,6 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
+
+# Coverage reports (generated)
+coverage/
