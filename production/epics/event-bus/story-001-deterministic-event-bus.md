@@ -80,7 +80,7 @@ Keep the event objects plain data. No live object references that could vary bet
 
 **Story Type**: Logic
 **Required evidence**:
-- Logic: `tests/unit/event-bus/event-bus_test.ts` — must exist and pass
+- Logic: `tests/unit/event-bus/event_bus_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

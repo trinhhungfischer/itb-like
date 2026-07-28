@@ -81,7 +81,7 @@ Rounding is defined once, here: `screenToTile` uses `Math.floor` on the offset-a
 
 **Story Type**: Logic
 **Required evidence**:
-- Logic: `tests/unit/input-selection/coordinate-transform_test.ts` — must exist and pass
+- Logic: `tests/unit/input-selection/input_selection_coordinate_transform_test.ts` — must exist and pass
 
 **Status**: [ ] Not yet created
 

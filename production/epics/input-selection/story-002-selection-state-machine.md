@@ -107,7 +107,7 @@ Queries Heroes' `legalMoveTiles`/`legalTargets` for highlight sets. Does not com
 
 **Story Type**: Integration
 **Required evidence**:
-- Integration: `tests/integration/input-selection/state-machine_test.ts` OR playtest doc
+- Integration: `tests/unit/input-selection/input_selection_selection_state_machine_test.ts` OR playtest doc
 
 **Status**: [ ] Not yet created
 
