@@ -1,0 +1,3 @@
+- [VANGUARD project](project_vanguard.md) — deterministic tactical roguelike, pure-web TS+PixiJS, 5 pillars, no in-battle RNG.
+- [GDD fan-out authoring pattern](feedback_gdd_fanout_authoring.md) — when invoked as "workflow (design-system fan-out)", write full GDD directly, no Q&A loop.
+- [GDD rigor/format conventions](project_gdd_conventions.md) — shared formulas, PROVISIONAL tagging, bidirectional-consistency notes, registry usage across VANGUARD GDDs.

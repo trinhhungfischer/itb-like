@@ -9,48 +9,1062 @@
 #   - Add new entries only at the END of each system's list.
 #   - When a GDD requirement is reworded (same intent): update `requirement`
 #     text and add a `revised` date. The ID stays the same.
-#   - When a requirement is removed from the GDD: set status: deprecated.
-#   - When a requirement is split or replaced: set status: superseded-by with
-#     the new TR-ID(s).
+#   - When a GDD requirement is removed: set status: deprecated.
+#   - When a requirement is split or replaced: set status: superseded-by.
 #
 # WRITTEN BY: /architecture-review (appends new entries, never overwrites)
-# READ BY:    /create-stories (embed IDs in stories)
-#             /story-done (look up current requirement text at review time)
-#             /story-readiness (validate TR-ID exists and is active)
+# READ BY:    /create-stories, /story-done, /story-readiness
 #
-# ID FORMAT: TR-[system-slug]-[NNN]
-#   system-slug = short slug matching the GDD system name
-#   NNN = three-digit zero-padded sequence per system, starting at 001
+# ID FORMAT: TR-<SYSTEM>-NNN   (SYSTEM = short uppercase slug; NNN zero-padded per system)
+# STATUS VALUES: active | deprecated | superseded-by: TR-<SYSTEM>-NNN
 #
-# STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
+# `adr` field: the ADR(s) that architecturally cover this requirement, or ""
+#   when the requirement is design-level / presentation-only (no ADR needed —
+#   see requirements-traceability.md for coverage rationale).
 
 version: 1
-last_updated: ""
+last_updated: "2026-07-28"
 
-requirements: []
+requirements:
 
-# --- EXAMPLE ENTRIES (remove when first real entries are added) ---
-#
-# - id: TR-combat-001
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Player takes damage from enemies based on attack power minus defence"
-#   created: 2026-03-10
-#   revised: ""
-#   status: active
-#
-# - id: TR-combat-002
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Combo window timing is 0.4 seconds between hits"
-#   created: 2026-03-10
-#   revised: "2026-04-01"
-#   status: active
-#
-# - id: TR-combat-003
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Old damage formula using raw stats"
-#   created: 2026-03-10
-#   revised: ""
-#   status: superseded-by: TR-combat-001
+  # ── Board & Grid (design/gdd/board-and-grid.md) ─────────────────────────────
+  - id: TR-BOARD-001
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Finite W×H grid (default 8×8), integer (col,row) coords, 4-directional adjacency, Manhattan distance; one-occupant-per-tile invariant; terrain/occupancy/hazard/flag state model exposed via a pure read-only query API (inBounds, getTile, isOccupied, getOccupant, isBlocked, getHazard, hasFlag, neighbors, distance, tilesInRange, step, classify, rayTiles, snapshot)."
+    adr: "ADR-0001"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-002
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Tile state stored as parallel flat typed arrays (index(c,r)=r*W+c) so snapshot() is a bulk memcpy < 1 ms/call on ≤12×12 (highest-risk op); O(1) queries avg < 0.01 ms/call; snapshot is a fully independent copy (no shared refs)."
+    adr: "ADR-0001"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-003
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Board owns the single canonical bounded flood-fill reachableTiles(origin,range,board) (Formula 9, resolves C3) over Clear tiles, excludes origin, deterministic, runs identically on live board or snapshot() — no second BFS anywhere."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-004
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Rejected-mutation error contract (Open Q1): expected gameplay rejections (place on occupied) return a Result; programmer errors (W<1 construction, OOB tilesInRange origin, R<0) assert/throw."
+    adr: "ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-005
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Board mutations (place, clear, setTerrain, setHazard, setFlag) are deterministic and invoked ONLY via Combat Resolution; the board holds no randomness and no time-dependence."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-006
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Runtime terrain mutation (hero-built walls): setTerrain(tile, Blocked/Normal) generalizes destroy(); classify() reads mutated terrain so every range/push/move check respects a hero wall with no query-model change."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-BOARD-007
+    system: Board & Grid
+    gdd: design/gdd/board-and-grid.md
+    requirement: "Determinism: identical mutation sequences on two identically-constructed boards reach byte-identical state (no hidden RNG/time); classify precedence OutOfBounds→BlockedTerrain→Lethal→Occupied→Clear."
+    adr: "ADR-0001"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Turn & Phase Manager (design/gdd/turn-and-phase-manager.md) ─────────────
+  - id: TR-TURN-001
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "Fixed per-turn phase order TurnStart→PlayerPhase→Environment→EnemyResolve→Spawn→Telegraph→EndCheck, identical every turn, no reordering; Environment resolves BEFORE EnemyResolve (deliberate tactical setup/disruption)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-002
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "In-phase undo/redo implemented by adopting a prior Board snapshot() as the live board (no board-owned restore()); snapshot captured at Player-Phase start and after each action's full consequence chain (incl. on-death spawnUnit); stack cleared on Commit, bounding memory to one phase (~74 KB on 8×8)."
+    adr: "ADR-0007, ADR-0001"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-003
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "Interface inversion: the manager drives Combat/Enemy/Objective via abstract contracts (resolve, resolveTelegraphed, emergeSpawns, chooseIntents, evaluate) rather than concrete implementations, keeping the dependency graph acyclic (Open Q1)."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-004
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "Deterministic and input-driven: only Player-Phase input is nondeterministic; every other phase is a pure function of board state (no timers, no wall-clock, no RNG in phase logic)."
+    adr: "ADR-0004, ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-005
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "Emits phase events (turn_started, player_phase_begun, action_applied, action_undone, environment_resolved, hazard_ticked, enemy_action_resolved, enemy_spawned, intents_telegraphed, battle_ended) on the synchronous event bus."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-006
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "battle_ended event carries nodeType (Battle/Elite/Boss) for terminal consumers; exactly one battle_ended fires per battle."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-007
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "At most 4 Objective.evaluate(battleState,turn,config) calls per turn (3 early lose-only checks + 1 terminal win/lose check); early checks act on Defeat only."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TURN-008
+    system: Turn & Phase Manager
+    gdd: design/gdd/turn-and-phase-manager.md
+    requirement: "Undo memory bounded to one Player Phase via full-board snapshots (delta/command undo not warranted at this scale, F3)."
+    adr: "ADR-0007, ADR-0001"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Combat Resolution (design/gdd/combat-resolution.md) ─────────────────────
+  - id: TR-COMBAT-001
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "resolve(board, effects[]) → events[] is the single, exclusive board-mutation path; pure w.r.t. inputs (no RNG, no wall-clock); determinism (not immutability) is the contract."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-002
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Closed 10-primitive vocabulary (damage, push, pull, swap, spawnHazard, applyHazard, removeUnit, setTerrain, spawnUnit + shared collision-resolution algorithm); no 11th primitive without amending combat-resolution.md, the registry, and the ADR."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-003
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Effects apply strictly sequentially (state after effect i is input to i+1); chain never aborts partway; a primitive targeting an already-removed unit is a logged no-op; target-locking by unit ID / tile, snapshotted once before the chain."
+    adr: "ADR-0006, ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-004
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Emits only the canonical event vocabulary (DamageApplied, DisplacementComplete, CollisionResolved, SwapComplete, HazardSpawned, HazardApplied, UnitRemoved, TerrainSet, UnitSpawned); no push_resolved/apply() entry point; events are the sole integration surface for Rendering/HUD/Audio/Preview, delivered over the synchronous bus."
+    adr: "ADR-0002, ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-005
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "spawnUnit is the single board-mutation path for adding a unit (emergence + on-death broods) and rejects a non-Clear tile as a no-op; removeUnit is the single exit point and is idempotent."
+    adr: "ADR-0006, ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-006
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "hazardImmunities is consulted at every hazard damage site (applyHazard primitive + hazard-on-entry after displacement/spawn); an immune unit takes no damage and emits no HazardApplied event."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-007
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Programmer-error assertions: damage with amount < 0 and pull with no explicit direction assert/throw (not silently clamped); gameplay rejections (spawnUnit/setTerrain/swap) return a Result and emit a debug event without aborting the chain."
+    adr: "ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-008
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Move Preview reuses the exact resolve() entry point over board.snapshot() (not a parallel reimplementation); the same effect list is used for preview and commit."
+    adr: "ADR-0007, ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-COMBAT-009
+    system: Combat Resolution
+    gdd: design/gdd/combat-resolution.md
+    requirement: "Event-log wire schema (field names, versioning) pinning (Open Q1) — the canonical event vocabulary is settled; field-level schema is not yet fully pinned."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Heroes & Abilities (design/gdd/heroes-and-abilities.md) ─────────────────
+  - id: TR-HERO-001
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "Owns and publishes the canonical per-battle Unit record (registry unit_record): {id, team, archetype, maxHP, currentHP, position, size=1, abilities[], hazardImmunities[], statusFlags[]} — team not faction, maxHP/currentHP not hp; referenced (never re-shaped) by Enemy/Objective/Upgrades/Draft."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-002
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "Owns the shared AbilityDefinition schema {shape, targetFilter, effectTemplate, compileEffects()} reused verbatim by Enemy; each effectTemplate step compiles into one of the 10 Combat primitives."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-003
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "legalMoveTiles(origin, moveRange, board) is a pass-through to Board.reachableTiles (F1, resolves C3) — no second BFS; targets recomputed from the hero's current (post-move) position at selection time."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-004
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "compileEffects(caster, ability, selectedTarget) is pure and deterministic and produces the exact EffectPrimitive[] that BOTH Move Preview's dry-run and the committed action run — no separate preview description."
+    adr: "ADR-0006, ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-005
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "hazardImmunities is a first-class Unit field (empty in v1 base kit) threaded through Combat's hazard call sites."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-006
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "push/pull-carrying abilities must supply a well-defined orthogonal direction at cast time (Combat never infers it) via target-then-direction (range-1 UnitTarget), direction-then-target (Line), or requiresOrthogonalAlignment."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-007
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "Action economy: squad_size=3 heroes, actions_per_hero_turn=2 (one Move slot + one Ability slot), registry constants consumed by Turn Manager F2; slot bookkeeping rolls back in lockstep with the undo snapshot."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HERO-008
+    system: Heroes & Abilities
+    gdd: design/gdd/heroes-and-abilities.md
+    requirement: "Presentation contract: silhouette-first hero identity, one accent color per verb-family, legal-move / legal-target highlight sets distinct from hazard/telegraph overlays, explicit direction choice for Line abilities."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Enemy, Abilities & Telegraph (design/gdd/enemy-abilities-and-telegraph.md) ─
+  - id: TR-ENEMY-001
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Reuses the shared AbilityDefinition schema verbatim and compiles enemy actions + on-death effects to the 10 Combat primitives (never mutates the board directly — keeps Enemy↔Combat acyclic); reads the shared Unit record for enemy units and living-hero targeting."
+    adr: "ADR-0006, ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-002
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Deterministic target-selection AI (Nearest-Threat, ties broken by lowest unitId, no fallback); zero in-battle RNG; resolution + telegraph processed in ascending unitId order (F4)."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-003
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Movement-to-range consumes Board.reachableTiles (F2, resolves C3); enemy destination-selection policy is layered on top of the shared reachable set — no second BFS."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-004
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Per-enemy Intent {telegraphedMoveDestination, telegraphedEffectTiles, abilityId} computed once at chooseIntents (Telegraph Phase), fixed for the following Player Phase; telegraphed actions resolve against the fixed tile set, not chasing the unit."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-005
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Owns the environmental telegraph query surface telegraphedEnvironmentTiles(turn) and telegraphedLethalThreatCount(turn) (Rule 17, resolves C4) — a thin pass-through over Board hazard state + a pure lethality tally over the shared Unit record; computed at Telegraph Phase, fixed for the turn."
+    adr: "ADR-0011"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-006
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Spawn emergence and on-death broods go through Combat's spawnUnit primitive on a Clear tile; forced-emergence eviction rules; first-turn inactivity (one-turn telegraph guarantee)."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-007
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "On-death cascade: onDeath follow-up resolve() calls execute after the triggering chain returns and fully resolve BEFORE Turn Manager captures the post-action undo snapshot (satisfies contracts §3)."
+    adr: "ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENEMY-008
+    system: Enemy, Abilities & Telegraph
+    gdd: design/gdd/enemy-abilities-and-telegraph.md
+    requirement: "Implements the three deterministic phase-contract methods the Turn Manager drives: chooseIntents(), resolveTelegraphed(), emergeSpawns()."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Move Preview (design/gdd/move-preview.md) ───────────────────────────────
+  - id: TR-PREVIEW-001
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Dry-runs the identical Combat resolve() entry point over board.snapshot(); Preview-Commit Parity Invariant holds unconditionally (deterministic sim, single-player, no async mutation) — never a parallel/approximate predictor."
+    adr: "ADR-0007, ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PREVIEW-002
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Silent and subscription-based: subscribes to Input & Selection's hover/select/cancel/confirm events; dry-run events NEVER reach the shared event stream Audio/Rendering/HUD consume (silence is the boundary — no committed tag needed)."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PREVIEW-003
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Snapshots the live board on every hover; t_preview = t_snapshot + t_resolve + t_diff ≤ 5 ms, with t_snapshot < 1 ms inherited from Board's cheap snapshot."
+    adr: "ADR-0001, ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PREVIEW-004
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Threat overlay unions telegraphedEnvironmentTiles(turn) with per-enemy Intent.telegraphedEffectTiles by the identical contract Battle HUD uses (F3, C4) — both read, never re-derive."
+    adr: "ADR-0011"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PREVIEW-005
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Gameplay rejections must be observable as values so a dry-run over a snapshot never throws for a merely-illegal move (preview overlay never crashed)."
+    adr: "ADR-0005"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PREVIEW-006
+    system: Move Preview
+    gdd: design/gdd/move-preview.md
+    requirement: "Preview never pushes to the undo stack; the disposable preview board is discarded after read; the live board is byte-identical before/after a preview compute."
+    adr: "ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Objective / Win-Lose (design/gdd/objective-and-win-lose.md) ─────────────
+  - id: TR-OBJECTIVE-001
+    system: Objective / Win-Lose
+    gdd: design/gdd/objective-and-win-lose.md
+    requirement: "evaluate(battleState, turn, config) → {ongoing, victory, defeat} is pure, side-effect-free, state-poll (no event subscription), idempotent, callable multiple times per turn."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-OBJECTIVE-002
+    system: Objective / Win-Lose
+    gdd: design/gdd/objective-and-win-lose.md
+    requirement: "battleState.units reads the canonical Unit record (team/maxHP/currentHP; a unit is alive iff it has a live record on the board) — corrects the earlier faction/hp/alive phrasing."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-OBJECTIVE-003
+    system: Objective / Win-Lose
+    gdd: design/gdd/objective-and-win-lose.md
+    requirement: "Defeat precedence over Victory enforced inside evaluate(); universal party-wipe lose predicate applies to every objective type; owns max_turns and the four types (Survive/Protect/Clear/Reach)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-OBJECTIVE-004
+    system: Objective / Win-Lose
+    gdd: design/gdd/objective-and-win-lose.md
+    requirement: "Deterministic, no RNG, no memory between calls; turn<1 and malformed config are programmer/authoring errors rejected upstream, not runtime branches."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-OBJECTIVE-005
+    system: Objective / Win-Lose
+    gdd: design/gdd/objective-and-win-lose.md
+    requirement: "EvaluationResult carries a non-authoritative reason code for HUD/telemetry; the terminal status is surfaced to Run Structure via Turn Manager's battle_ended event, not a direct call."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Input & Selection (design/gdd/input-and-selection.md) ───────────────────
+  - id: TR-INPUT-001
+    system: Input & Selection
+    gdd: design/gdd/input-and-selection.md
+    requirement: "screen↔tile coordinate transform (screenToTile / tileToScreenCenter) uses the single shared coordinate-transform module both Input and Board Rendering import (resolves the coordinate half of C3) — round-trip identity, rounding pinned once."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-INPUT-002
+    system: Input & Selection
+    gdd: design/gdd/input-and-selection.md
+    requirement: "Silent event emitter: emits hover/select/cancel/confirm events that Move Preview subscribes to; never calls a synchronous preview() and never reads a preview result back."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-INPUT-003
+    system: Input & Selection
+    gdd: design/gdd/input-and-selection.md
+    requirement: "Locked state gates on PlayerPhase AND Board Rendering's isAnimating() (polled direct boolean, contracts §7); input buffer depth 1 with legality re-check on unlock; every input does something visible or is visibly rejected."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-INPUT-004
+    system: Input & Selection
+    gdd: design/gdd/input-and-selection.md
+    requirement: "Queries Heroes' legalMoveTiles/legalTargets for highlight sets and reads slot state off the shared Unit record — never computes legality/reachability itself."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-INPUT-005
+    system: Input & Selection
+    gdd: design/gdd/input-and-selection.md
+    requirement: "Deterministic Tab-cycle order (board-index, position-derived); full keyboard-only operability; presentation cues non-color-reliant (accessibility)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Board Rendering & Juice (design/gdd/board-rendering-and-juice.md) ───────
+  - id: TR-RENDER-001
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Pure PixiJS view layer: read-only consumer of Board queries + Combat's canonical event log; never mutates Board/Combat/Turn state; the simulation core never depends on it (P3)."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RENDER-002
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Owns the pixel-geometry contract (tileSize, originX, originY via Formula F1) supplied as the view args to the shared coordinate-transform module both it and Input & Selection import (C3)."
+    adr: "ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RENDER-003
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Exposes isAnimating() as a direct polled boolean that Input & Selection's Locked state gates on (contracts §7); rendering never blocks game logic, it gates player input."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RENDER-004
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Drains Combat's event log one event at a time in strict log order (sequential default) so animated order matches resolution order; wall-clock juice timing is explicitly not a determinism violation (never feeds back into sim/save/event log)."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RENDER-005
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Distinct death animation per removal cause (Defeated vs Fell); telegraph icons rendered from the same intents_telegraphed data Enemy Resolve executes; hazard overlay polled from Board state (persists for duration=null hazards)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RENDER-006
+    system: Board Rendering & Juice
+    gdd: design/gdd/board-rendering-and-juice.md
+    requirement: "Event-log field-level schema/versioning (Open Q2) — event vocabulary settled by contracts §1; field-level schema not yet pinned."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Battle HUD (design/gdd/battle-hud.md) ───────────────────────────────────
+  - id: TR-HUD-001
+    system: Battle HUD
+    gdd: design/gdd/battle-hud.md
+    requirement: "Read-only aggregator with exactly two write paths (End Turn, Undo/Redo) into Turn Manager; invents no gameplay state; every displayed value traces to a real upstream value."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HUD-002
+    system: Battle HUD
+    gdd: design/gdd/battle-hud.md
+    requirement: "heroesInDanger (F4) End-Turn soft-confirm unions every living enemy's Intent.telegraphedEffectTiles with telegraphedEnvironmentTiles(turn) by the identical contract Move Preview uses (C4) — closes the environmental under-count."
+    adr: "ADR-0011"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HUD-003
+    system: Battle HUD
+    gdd: design/gdd/battle-hud.md
+    requirement: "Event-driven updates with a stateless pure-pull fallback (getHUDState) so a HUD mounted mid-battle renders correctly on its first frame; no HUD value lags its source by more than one frame."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HUD-004
+    system: Battle HUD
+    gdd: design/gdd/battle-hud.md
+    requirement: "Reads unit HP from the canonical Unit record; predicted-outcome overlay on HP bars sourced from Move Preview's Ready state (cleared when preview leaves Ready)."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-HUD-005
+    system: Battle HUD
+    gdd: design/gdd/battle-hud.md
+    requirement: "Presentation contract: HP dual-encoding (numeric + fill, non-color-reliant critical state), two-state Planning/Resolving phase collapse, four objective-tracker variants, Threat Ticker, WCAG AA contrast."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Run Persistence (design/gdd/run-persistence.md) ─────────────────────────
+  - id: TR-PERSIST-001
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "{schemaVersion, checksum, data} envelope in localStorage under two independent, independently-versioned domains (vanguard.meta.v{N}, vanguard.run.v{N}) so a failure in one can't take down the other."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-002
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Pinned deterministic order-sensitive uint32 checksum (F2 weighted sum, checksum(\"AB\")=197) computed over the serialized data string only; frozen (algorithm change requires a schema bump) (Open Q1)."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-003
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Build-then-swap atomic writes (single setItem of a fully-built string; never clear/truncate before the replacement is ready) so a failed/interrupted write leaves the previous good save byte-identical."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-004
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Four load outcomes per domain (Empty | Valid | Corrupted(quarantine) | Unsupported(newer, left untouched)); per-domain sequential migration (migrate_vN_to_vN+1, F3) with post-migration validation; a newer-than-code save is never overwritten by a lower-version write."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-005
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Stores only runSeed (immutable) + nodeId + reproducible map/roster state, never a generated encounter; resume re-derives the byte-identical encounter via generateEncounter(runSeed, nodeId, ...) (relies on mulberry32 determinism)."
+    adr: "ADR-0004, ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-006
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Result-vs-throw error contract (Open Q2): loadRun/saveRun model expected outcomes as returned result values (no throw for expected states); adopts the shared convention pinned by the Board/Combat error contract."
+    adr: "ADR-0005, ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-007
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "localStorage capability probe at boot → memory-only mode when disabled; QuotaExceeded retry-once-after-pruning-quarantine; run-end ordering merges unlocks into Meta before clearing Run Save; single run slot in v1."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-PERSIST-008
+    system: Run Persistence
+    gdd: design/gdd/run-persistence.md
+    requirement: "Save granularity is node-map level only; mid-battle state (turn #, hazards, HP, undo stack) lives only in memory — true mid-battle resume is out of v1 scope (would need a serializeBattleState/restoreBattleState contract)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Encounter Generator (design/gdd/encounter-generator.md) ─────────────────
+  - id: TR-ENCGEN-001
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "generateEncounter(runSeed, nodeId, difficultyConfig, rosterSnapshot) → EncounterDefinition is pure and reproducible (Rule 14): identical inputs → byte-identical output, no wall-clock, no non-seeded randomness."
+    adr: "ADR-0004, ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENCGEN-002
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "The solvability/interest solver drives a headless instance of the REAL Turn Manager / Combat.resolve() / Enemy AI / Heroes legalMoveTiles-legalTargets-compileEffects / Objective.evaluate against Board.snapshot() — never a parallel simulation; constructive existence-prover only."
+    adr: "ADR-0006, ADR-0007, ADR-0009"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENCGEN-003
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "Canonical source of the mulberry32_prng algorithm; encounterSeed(attemptIndex)=mix(runSeed, nodeId, templateId, attemptIndex); pinned reference test-vector table so re-implementations stay bit-exact (Open Q1)."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENCGEN-004
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "Difficulty Tiers is the sole direct caller of generateEncounter (interface inversion, C1); Encounter Generator never calls into Difficulty Tiers — keeps the Feature-layer call graph acyclic."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENCGEN-005
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "Authors initial hazards via Combat's spawnHazard and writes initial terrain / spawn-point / objective / deploy-zone flags to Board at battle setup (Board only stores/validates)."
+    adr: "ADR-0006"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-ENCGEN-006
+    system: Encounter Generator
+    gdd: design/gdd/encounter-generator.md
+    requirement: "Headless Turn & Phase Manager instantiation contract for the solver (Open Q2): how a simulated Player Phase submits actions programmatically and how search-branch state is torn down without leaking into the real manager instance — not yet pinned by an ADR."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Run Structure / Node Map (design/gdd/run-structure-node-map.md) ─────────
+  - id: TR-RUNMAP-001
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "generateRunMap(runSeed) is deterministic and reproducible (Rule 16); mapSeed = mix(runSeed, MAP_SEED_SALT) using the shared mulberry32 algorithm with its own fixed salt; constructive connectivity guarantee (no search)."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-002
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "Per Battle/Elite/Boss node, calls Difficulty Tiers' getEncounterForNode(runSeed, nodeId, nodeIndex, ascensionOffset, rosterSnapshot) — never assembles DifficultyConfig and never calls generateEncounter directly (C1)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-003
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "MapNode.tierIndex / Formula F6 demoted to a display-only, non-authoritative pre-battle estimate, overwritten by the authoritative tier the instant getEncounterForNode resolves (C1)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-004
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "Exposes processRunEnd(outcome: {result, nodeType?}) as the single terminal hook (nodeType sourced from battle_ended); it is the hook point Meta-progression's own processRunEnd is invoked from, exactly once per run."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-005
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "Encounter generation is lazy on node entry (rosterSnapshot always current), sidestepping stale-snapshot risk; whole map revealed at run start (no fog on topology/type/tier)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-006
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "Battle orchestration contract (Rule 14, PROVISIONAL): Run Structure instantiates a fresh Board & Grid + Turn & Phase Manager per battle node from the EncounterDefinition and awaits battle_ended — a new integration surface not yet pinned by an ADR."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-RUNMAP-007
+    system: Run Structure / Node Map
+    gdd: design/gdd/run-structure-node-map.md
+    requirement: "Persists map position + claimed nodes via Run Persistence (saveRun on node entry/resolution, clearRun on run end); resumes byte-identically via loadRun + lazy re-generation."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Draft / Loadout Meta (design/gdd/draft-and-loadout-meta.md) ─────────────
+  - id: TR-DRAFT-001
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Owns the persistent run-scoped RosterMember hero-instance identity (distinct from HeroDefinition and the battle-scoped Unit record, which it references not re-shapes); filled Ability Upgrade slots attach to RosterMember."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFT-002
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Persistent non-lethal HP: RosterMember.currentHP carries across battles, floored at 1; seeds the fresh Unit.currentHP at battle Setup and is written back from post-battle Unit.currentHP at battle_ended (needs a Heroes Deployed-seeding hook, flagged gap)."
+    adr: "ADR-0008, ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFT-003
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Deterministic seeded draft offers: draftSeed = mix(runSeed, nodeId, DRAFT_SEED_SALT) via the shared mulberry32 algorithm; fixed declared draw order; reproducible byte-identical offer sets for the same (runSeed, nodeId), including resume."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFT-004
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Loadout validity always satisfiable by construction (Starting Draft guarantees squad_size members, HP floored at 1, no removal) — Formula F6 no-deadlock proof."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFT-005
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Exposes a one-way read-only rosterSnapshot to Run Structure (forwarded to Difficulty Tiers → generateEncounter); the generator must not mutate it."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFT-006
+    system: Draft / Loadout Meta
+    gdd: design/gdd/draft-and-loadout-meta.md
+    requirement: "Persists Roster + Loadout + per-member upgrade-slot state via Run Persistence on every roster-affecting confirmation; assignment gated to no-InTurn (map screen only)."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Ability Upgrades (design/gdd/ability-upgrades.md) ───────────────────────
+  - id: TR-UPGRADE-001
+    system: Ability Upgrades
+    gdd: design/gdd/ability-upgrades.md
+    requirement: "effectiveAbility(hero) is pure and deterministic (additive delta + per-field clamp, Rule 10/F1) and is consulted inside Heroes' compileEffects() before binding — so Move Preview shows the true upgraded consequence with no separate preview math."
+    adr: "ADR-0006, ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-UPGRADE-002
+    system: Ability Upgrades
+    gdd: design/gdd/ability-upgrades.md
+    requirement: "hazardImmune upgrade requires per-unit hazardImmunities as a first-class Unit field that Combat checks generically at applyHazard + hazard-on-entry sites (Combat gains no knowledge of 'upgrades')."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-UPGRADE-003
+    system: Ability Upgrades
+    gdd: design/gdd/ability-upgrades.md
+    requirement: "Per-hero Upgrade Slot contents persist as run save data via Run Persistence."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-UPGRADE-004
+    system: Ability Upgrades
+    gdd: design/gdd/ability-upgrades.md
+    requirement: "Global uniform upgrade_slots_per_hero=2 (registry constant); assignment/removal legal only while no battle is InTurn; effectiveAbility resolved once at Setup and held fixed for the battle."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-UPGRADE-005
+    system: Ability Upgrades
+    gdd: design/gdd/ability-upgrades.md
+    requirement: "Extra Use grants multiple sequential casts within one Ability-slot activation (F2) without adding a second Ability slot — preserves the structurally-fixed actions_per_hero_turn=2."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Difficulty Tiers (design/gdd/difficulty-tiers.md) ───────────────────────
+  - id: TR-DIFF-001
+    system: Difficulty Tiers
+    gdd: design/gdd/difficulty-tiers.md
+    requirement: "getEncounterForNode(runSeed, nodeId, nodeIndex, ascensionOffset, rosterSnapshot) → {tier, encounter} is the sole tier authority and sole caller of generateEncounter; assembles DifficultyConfig (F2–F5) and calls the generator unmodified (C1)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DIFF-002
+    system: Difficulty Tiers
+    gdd: design/gdd/difficulty-tiers.md
+    requirement: "tier = clamp(1 + floor(nodeIndex/nodes_per_tier_step) + ascensionOffset, 1, max_tier); tier and DifficultyConfig are byte-identical pure functions of (nodeIndex, ascensionOffset) — no wall-clock, no unseeded RNG."
+    adr: "ADR-0010, ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DIFF-003
+    system: Difficulty Tiers
+    gdd: design/gdd/difficulty-tiers.md
+    requirement: "The returned tier is the single source of truth for both Map/Run UI display and the generator's difficulty curve (they are the same number by construction, C1)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DIFF-004
+    system: Difficulty Tiers
+    gdd: design/gdd/difficulty-tiers.md
+    requirement: "Offline complexity validation via a Difficulty-Tiers-owned ArchetypeUnlockEntry table (unlockTier/complexityRating) at catalog load, never a runtime DifficultyConfig field; where those fields physically live is an open architecture question (Open Q1)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DIFF-005
+    system: Difficulty Tiers
+    gdd: design/gdd/difficulty-tiers.md
+    requirement: "Persist only nodeIndex/ascensionOffset (never a materialized tier, DifficultyConfig, or Encounter); all three re-derived on resume so a balance patch reshapes resumed runs correctly."
+    adr: "ADR-0010, ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Meta-progression / Unlocks (design/gdd/meta-progression-and-unlocks.md) ─
+  - id: TR-META-001
+    system: Meta-progression / Unlocks
+    gdd: design/gdd/meta-progression-and-unlocks.md
+    requirement: "processRunEnd(runSummary, metaStats, catalog) is the single deterministic evaluation pass, invoked exactly once per terminal run from Run Structure's processRunEnd(outcome) hook, using battle_ended's nodeType via the RunSummary."
+    adr: "ADR-0008"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-META-002
+    system: Meta-progression / Unlocks
+    gdd: design/gdd/meta-progression-and-unlocks.md
+    requirement: "Owns the MetaStatistics schema (the single canonical Meta Save payload, incl. tutorialCompleted/tutorialSkipped written by Onboarding); cumulative monotonic record persisted via Run Persistence's Meta Save."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-META-003
+    system: Meta-progression / Unlocks
+    gdd: design/gdd/meta-progression-and-unlocks.md
+    requirement: "No PRNG anywhere in this system — every unlock is a deterministic threshold predicate over account/run state (the one VANGUARD system whose formulas consume no seed stream), consistent with battle/meta RNG partitioning."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-META-004
+    system: Meta-progression / Unlocks
+    gdd: design/gdd/meta-progression-and-unlocks.md
+    requirement: "Read-only query interfaces getUnlockedHeroIds(), getUnlockedAscensionOffset(), getStartingOfferCountBonus() consumed by Draft/Loadout Meta and Difficulty Tiers; unlocks widen options, never raise power."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Map/Run UI (design/gdd/map-run-ui.md) ───────────────────────────────────
+  - id: TR-MAPUI-001
+    system: Map/Run UI
+    gdd: design/gdd/map-run-ui.md
+    requirement: "Renders the entire RunMap with no omissions (Pillar #1, made literal): every node type/tier/state and every edge drawn simultaneously; vertical scroll when it exceeds the viewport, never zoom-to-fit; no game-rule authority of its own."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-MAPUI-002
+    system: Map/Run UI
+    gdd: design/gdd/map-run-ui.md
+    requirement: "For an entered node, displays the authoritative tier returned by getEncounterForNode (never the F6 pre-battle estimate) — the tier must be visible before the player commits to the node (C1)."
+    adr: "ADR-0010"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-MAPUI-003
+    system: Map/Run UI
+    gdd: design/gdd/map-run-ui.md
+    requirement: "Non-committing hover/focus detail; only an explicit confirm commits enterNode(); irreversible resource-spending choices always go through a deliberate confirm step."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-MAPUI-004
+    system: Map/Run UI
+    gdd: design/gdd/map-run-ui.md
+    requirement: "Five mutually-exclusive node visual states (Reachable/CurrentPosition/Claimed/Bypassed/FutureLocked), each with a non-color-reliant treatment; renders Draft/Loadout Meta offer/rest data and forwards picks back to its public API."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Draft/Loadout UI (design/gdd/draft-loadout-ui.md) ───────────────────────
+  - id: TR-DRAFTUI-001
+    system: Draft/Loadout UI
+    gdd: design/gdd/draft-loadout-ui.md
+    requirement: "Presentation and interaction only: never re-implements or caches a legality/value computation Draft/Loadout Meta owns (isValidLoadout/F6, generateOffers, effectiveAbility, Rest F5) — every value read live."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFTUI-002
+    system: Draft/Loadout UI
+    gdd: design/gdd/draft-loadout-ui.md
+    requirement: "Offer Screen auto-opens on Ungenerated→Generated and cannot be dismissed without a pick; stage-then-confirm pattern for offer cards; Rest Choice is direct-commit; Loadout Config live validity gate wrapping Meta F6."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-DRAFTUI-003
+    system: Draft/Loadout UI
+    gdd: design/gdd/draft-loadout-ui.md
+    requirement: "Compare/Inspect shows exact effective-vs-base before-and-after numbers before commit (Pillar #1); every irreversible choice has an unmistakable Confirm distinct from merely looking."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Audio System (design/gdd/audio-system.md) ──────────────────────────────
+  - id: TR-AUDIO-001
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Read-only, non-blocking consumer of the canonical Combat event vocabulary + Turn Manager phase events; never calls back, never mutates state, never gates/delays a resolve() call or phase transition."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-AUDIO-002
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Requires no committed tag / preview discriminator: Move Preview's dry-run events structurally never enter the shared stream Audio subscribes to (silence is the boundary, contracts §7)."
+    adr: "ADR-0002, ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-AUDIO-003
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Deterministic round-robin variant selection (no RNG, resets to 0 at battle Setup) — sonic variety comes from a deterministic, replayable per-cue play count, obeying the no-in-battle-RNG contract."
+    adr: "ADR-0004"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-AUDIO-004
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Adaptive-music tension score (F5) sources lethalThreats from Enemy's telegraphedLethalThreatCount(turn) (C4) — never re-tallies lethality itself."
+    adr: "ADR-0011"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-AUDIO-005
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Processes events in the exact order received from Combat/Turn's strictly-sequential resolution — never reorders/batches a cue in a way that plays a later event before an earlier one."
+    adr: "ADR-0002"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-AUDIO-006
+    system: Audio System
+    gdd: design/gdd/audio-system.md
+    requirement: "Stereo pan derived from grid_width column (F6); requires a stable sfx_cue_id per ability/verb on AbilityDefinition (a contract gap in Heroes/Enemy, not yet in their schema)."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+
+  # ── Onboarding / Tutorial (design/gdd/onboarding-tutorial.md) ───────────────
+  - id: TR-TUTORIAL-001
+    system: Onboarding / Tutorial
+    gdd: design/gdd/onboarding-tutorial.md
+    requirement: "Tutorial battles run through the exact same Board/Turn/Combat/Heroes/Enemy/Objective systems a real run uses — never a second simulation or a stripped-down practice mode (nothing learned is a lie to unlearn)."
+    adr: "ADR-0006, ADR-0007"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TUTORIAL-002
+    system: Onboarding / Tutorial
+    gdd: design/gdd/onboarding-tutorial.md
+    requirement: "Read-only coaching layer: Tutorial Beats' trigger/completion predicates are pure functions of already-public state (phase/turn, action-slot state, Combat event log, EvaluationResult); never disables a legal action, never blocks battle progression on coaching state."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TUTORIAL-003
+    system: Onboarding / Tutorial
+    gdd: design/gdd/onboarding-tutorial.md
+    requirement: "Writes tutorialCompleted/tutorialSkipped through the canonical MetaStatistics schema (owned by Meta-progression, persisted via Run Persistence's Meta Save) — never a separate/independent Meta Save extension."
+    adr: "ADR-0003"
+    created: 2026-07-28
+    revised: ""
+    status: active
+  - id: TR-TUTORIAL-004
+    system: Onboarding / Tutorial
+    gdd: design/gdd/onboarding-tutorial.md
+    requirement: "Three fixed hand-authored Tutorial Battle Templates with a legibility board-size ramp (5×5 → 6×6 → 8×8) using Board & Grid's per-battle board-size override; a one-time Skip offer."
+    adr: ""
+    created: 2026-07-28
+    revised: ""
+    status: active

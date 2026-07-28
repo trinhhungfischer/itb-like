@@ -1,0 +1,2 @@
+- [VANGUARD project overview](project_vanguard_overview.md) — pillars, board constants, GDD sibling-doc style to match
+- [Headless fan-out sessions](feedback_headless_fanout_sessions.md) — no interactive Q&A when author = "workflow (design-system fan-out)"

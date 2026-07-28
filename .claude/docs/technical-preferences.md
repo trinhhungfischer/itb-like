@@ -5,59 +5,77 @@
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Engine**: Pure Web (no game engine — PixiJS for rendering only)
+- **Language**: TypeScript (strict mode)
+- **Rendering**: PixiJS 8.x (2D WebGL, Canvas2D fallback)
+- **Physics**: None (deterministic grid, no physics engine)
 
 ## Input & Platform
 
 <!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
 <!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
 
-- **Target Platforms**: [TO BE CONFIGURED — e.g., PC, Console, Mobile, Web]
-- **Input Methods**: [TO BE CONFIGURED — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed]
-- **Primary Input**: [TO BE CONFIGURED — the dominant input for this game]
-- **Gamepad Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Touch Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Platform Notes**: [TO BE CONFIGURED — any platform-specific UX constraints]
+- **Target Platforms**: Web (PC desktop browsers — evergreen Chrome/Firefox/Edge/Safari)
+- **Input Methods**: Keyboard/Mouse (primary), Touch (future consideration)
+- **Primary Input**: Mouse (click to select unit, click to move/act)
+- **Gamepad Support**: None (v1)
+- **Touch Support**: Partial (layout responsive, not optimized)
+- **Platform Notes**: No mobile-first optimization; desktop browsers are primary target. localStorage for persistence.
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes**: PascalCase (`BoardGrid`, `CombatResolver`)
+- **Variables**: camelCase (`currentPhase`, `reachableTiles`)
+- **Signals/Events**: snake_case string literals (`turn_started`, `action_applied`, `battle_ended`)
+- **Files**: kebab-case (`board-grid.ts`, `combat-resolver.ts`)
+- **Scenes/Prefabs**: N/A (no scene files — pure code)
+- **Constants**: UPPER_SNAKE_CASE (`GRID_WIDTH`, `MAX_ACTIONS_PER_TURN`)
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
-- **Draw Calls**: [TO BE CONFIGURED]
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Target Framerate**: 60 FPS
+- **Frame Budget**: 16.67ms
+- **Draw Calls**: <200 per frame (PixiJS batched sprites)
+- **Memory Ceiling**: 256MB heap (browser tab)
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
-- **Minimum Coverage**: [TO BE CONFIGURED]
-- **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
+- **Framework**: Vitest (headless TS unit/integration tests)
+- **Minimum Coverage**: 80% for simulation core (Foundation + Core layers)
+- **Required Tests**: Balance formulas, combat resolution, deterministic replay, board state snapshots
 
 ## Forbidden Patterns
 
 <!-- Add patterns that should never appear in this project's codebase -->
-- [None configured yet — add as architectural decisions are made]
+- `any` type usage (use `unknown` + type guards)
+- Direct DOM manipulation in simulation code (sim is pure, Pixi is the only rendering path)
+- `Math.random()` anywhere (use mulberry32 seeded PRNG per ADR-0004)
+- Mutable global state (all state owned by explicit system modules)
+- Async in the event bus (synchronous only per ADR-0002)
+- Presentation layer importing/calling simulation mutation functions
 
 ## Allowed Libraries / Addons
 
 <!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+- **pixi.js** ^8.x — 2D WebGL rendering
+- **vite** ^6.x — build tool / dev server / HMR
+- **vitest** ^3.x — test runner
+- **@pixi/sound** — audio (optional, v1 advisory)
 
 ## Architecture Decisions Log
 
 <!-- Quick reference linking to full ADRs in docs/architecture/ -->
-- [No ADRs yet — use /architecture-decision to create one]
+- ADR-0001: Board Tile State Snapshot
+- ADR-0002: Deterministic Event Bus
+- ADR-0003: Run Persistence Save Schema
+- ADR-0004: Mulberry32 Seed Strategy
+- ADR-0005: Board Combat Error Contract
+- ADR-0006: Combat Resolve Single Mutation Path
+- ADR-0007: Snapshot Undo Preview
+- ADR-0008: Shared Unit Record
+- ADR-0009: Reachable Tiles Coordinate Transform
+- ADR-0010: Difficulty Tier Ownership
+- ADR-0011: Environmental Telegraph Query
 
 ## Engine Specialists
 
@@ -65,12 +83,12 @@
 <!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
 <!-- to know which specialist to spawn for engine-specific validation. -->
 
-- **Primary**: [TO BE CONFIGURED — run /setup-engine]
-- **Language/Code Specialist**: [TO BE CONFIGURED]
-- **Shader Specialist**: [TO BE CONFIGURED]
-- **UI Specialist**: [TO BE CONFIGURED]
-- **Additional Specialists**: [TO BE CONFIGURED]
-- **Routing Notes**: [TO BE CONFIGURED]
+- **Primary**: N/A (pure web — no engine-specific specialist)
+- **Language/Code Specialist**: TypeScript (strict mode)
+- **Shader Specialist**: N/A (no custom shaders in v1 — PixiJS built-in filters only)
+- **UI Specialist**: PixiJS UI / HTML overlay (TBD per implementation)
+- **Additional Specialists**: None
+- **Routing Notes**: All code review routes through a single TypeScript reviewer. No engine-specific agents apply.
 
 ### File Extension Routing
 
@@ -79,9 +97,9 @@
 
 | File Extension / Type | Specialist to Spawn |
 |-----------------------|---------------------|
-| Game code (primary language) | [TO BE CONFIGURED] |
-| Shader / material files | [TO BE CONFIGURED] |
-| UI / screen files | [TO BE CONFIGURED] |
-| Scene / prefab / level files | [TO BE CONFIGURED] |
-| Native extension / plugin files | [TO BE CONFIGURED] |
-| General architecture review | Primary |
+| Game code (`.ts`) | TypeScript reviewer |
+| Shader / material files | N/A (no custom shaders) |
+| UI / screen files (`.ts`) | TypeScript reviewer |
+| Scene / prefab / level files | N/A (no scene files) |
+| Native extension / plugin files | N/A |
+| General architecture review | Primary (TypeScript reviewer) |

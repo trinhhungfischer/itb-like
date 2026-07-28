@@ -37,7 +37,7 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: ""
+last_updated: "2026-07-27"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
@@ -48,7 +48,33 @@ last_updated: ""
 # Attribute fields: any key stats that could appear in another GDD
 #   (health, damage, drops, faction, etc.)
 
-entities: []
+entities:
+  - name: combat_primitives
+    status: active
+    source: design/gdd/combat-resolution.md
+    referenced_by:
+      - design/gdd/combat-resolution.md
+      - design/gdd/heroes-and-abilities.md
+      - design/gdd/enemy-abilities-and-telegraph.md
+      - design/gdd/move-preview.md
+      - design/gdd/ability-upgrades.md
+      - design/gdd/board-rendering-and-juice.md
+      - design/gdd/encounter-generator.md
+    note: "Closed vocabulary of 10 effect primitives ALL abilities compile into: damage, push, pull, swap, spawnHazard, applyHazard, removeUnit, setTerrain, spawnUnit, + a shared collision-resolution algorithm (push/pull). No system may assume an 11th without amending combat-resolution.md. 'wall' verb = setTerrain(tile, Blocked/Normal). Enemy emergence + on-death broods = spawnUnit(tile, unitSpec) on a Clear tile. Canonical events: DamageApplied, DisplacementComplete, CollisionResolved, SwapComplete, HazardSpawned, HazardApplied, UnitRemoved, TerrainSet, UnitSpawned. Entry point: resolve(board, effects[]) -> events[]. See design/architecture/cross-system-contracts.md."
+    added: 2026-07-27
+    revised: ""
+  - name: unit_record
+    status: pending
+    source: design/gdd/heroes-and-abilities.md
+    referenced_by:
+      - design/gdd/heroes-and-abilities.md
+      - design/gdd/enemy-abilities-and-telegraph.md
+      - design/gdd/objective-and-win-lose.md
+      - design/gdd/ability-upgrades.md
+      - design/gdd/draft-and-loadout-meta.md
+    note: "Canonical per-battle Unit record (owner: Heroes & Abilities): { id, team, archetype, maxHP, currentHP, position(tile), size(=1 v1), abilities[], hazardImmunities[], statusFlags[] }. Referenced (not re-shaped) by Enemy, Objective, Ability Upgrades, Draft/Loadout Meta. hazardImmunities threaded through Combat's hazard call sites. Defined in design/architecture/cross-system-contracts.md #6; heroes-and-abilities.md must publish the authoritative schema."
+    added: 2026-07-27
+    revised: ""
 
 # Example (remove when first real entry is added):
 #
@@ -106,7 +132,39 @@ items: []
 #   output_range[min, max], added
 # Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: manhattan_distance
+    status: active
+    source: design/gdd/board-and-grid.md
+    referenced_by:
+      - design/gdd/board-and-grid.md
+    variables:
+      - a
+      - b
+    output_range: [0, 14]
+    expression: "|a.col - b.col| + |a.row - b.row|"
+    notes: "Grid distance metric (4-directional / Manhattan). Max is W+H-2 (14 on
+      the default 8x8 board). Used by movement range, ability targeting, and all
+      range checks. Movement/push are orthogonal-only by design."
+    added: 2026-07-27
+    revised: ""
+  - name: mulberry32_prng
+    status: active
+    source: design/gdd/encounter-generator.md
+    referenced_by:
+      - design/gdd/encounter-generator.md
+      - design/gdd/run-structure-node-map.md
+      - design/gdd/draft-and-loadout-meta.md
+    variables:
+      - seed
+    output_range: [0, 1]
+    expression: "mulberry32(seed) PRNG stream + mix() 32-bit hash combiner"
+    notes: "Shared deterministic PRNG for PROCEDURAL GENERATION ONLY (map/encounter/draft),
+      NEVER for in-battle resolution (battles stay fully deterministic, no RNG). Each
+      consumer supplies its own salt constant as a parameter; the algorithm is identical
+      and must NOT be re-derived per document."
+    added: 2026-07-27
+    revised: ""
 
 # Example:
 #
@@ -139,7 +197,87 @@ formulas: []
 #
 # Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: grid_width
+    status: active
+    source: design/gdd/board-and-grid.md
+    referenced_by:
+      - design/gdd/board-and-grid.md
+      - design/gdd/turn-and-phase-manager.md
+    value: 8
+    unit: tiles
+    added: 2026-07-27
+    revised: ""
+  - name: grid_height
+    status: active
+    source: design/gdd/board-and-grid.md
+    referenced_by:
+      - design/gdd/board-and-grid.md
+      - design/gdd/turn-and-phase-manager.md
+    value: 8
+    unit: tiles
+    added: 2026-07-27
+    revised: ""
+  - name: squad_size
+    status: active
+    source: design/gdd/heroes-and-abilities.md
+    referenced_by:
+      - design/gdd/heroes-and-abilities.md
+      - design/gdd/turn-and-phase-manager.md
+      - design/gdd/draft-and-loadout-meta.md
+      - design/gdd/ability-upgrades.md
+      - design/gdd/meta-progression-and-unlocks.md
+      - design/gdd/map-run-ui.md
+      - design/gdd/draft-loadout-ui.md
+    value: 3
+    unit: heroes
+    added: 2026-07-27
+    revised: ""
+  - name: actions_per_hero_turn
+    status: active
+    source: design/gdd/heroes-and-abilities.md
+    referenced_by:
+      - design/gdd/heroes-and-abilities.md
+      - design/gdd/turn-and-phase-manager.md
+      - design/gdd/ability-upgrades.md
+      - design/gdd/encounter-generator.md
+    value: 2
+    unit: actions
+    added: 2026-07-27
+    revised: ""
+  - name: upgrade_slots_per_hero
+    status: active
+    source: design/gdd/ability-upgrades.md
+    referenced_by:
+      - design/gdd/ability-upgrades.md
+      - design/gdd/draft-and-loadout-meta.md
+      - design/gdd/meta-progression-and-unlocks.md
+    value: 2
+    unit: slots
+    added: 2026-07-27
+    revised: ""
+  - name: collision_damage
+    status: active
+    source: design/gdd/combat-resolution.md
+    referenced_by:
+      - design/gdd/combat-resolution.md
+      - design/gdd/heroes-and-abilities.md
+      - design/gdd/move-preview.md
+    value: 1
+    unit: hp
+    added: 2026-07-27
+    revised: ""
+  - name: fire_damage_per_tick
+    status: active
+    source: design/gdd/combat-resolution.md
+    referenced_by:
+      - design/gdd/combat-resolution.md
+      - design/gdd/enemy-abilities-and-telegraph.md
+      - design/gdd/encounter-generator.md
+    value: 1
+    unit: hp
+    added: 2026-07-27
+    revised: ""
 
 # Example:
 #

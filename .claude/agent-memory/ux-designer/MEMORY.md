@@ -1,0 +1,1 @@
+- [VANGUARD project context](project_vanguard.md) — deterministic tactical roguelike, pure-web TS/PixiJS, no in-battle RNG, GDD authoring via /design-system fan-out

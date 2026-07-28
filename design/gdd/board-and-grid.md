@@ -63,8 +63,9 @@ trust the whole game is built on.
    move or be pushed off the board. A push toward the edge **leaves the unit in place
    and reports an edge collision** to the caller.
 9. Certain tiles carry **flags**: `spawn-point` (enemies emerge here), `objective`
-   (must be protected/reached). Flags are set by the Encounter Generator / Objective
-   system; the board only stores and exposes them.
+   (must be protected/reached), and `deploy-zone` (where heroes may be placed at
+   battle start). Flags are set by the Encounter Generator / Objective system; the
+   board only stores and exposes them via `hasFlag`/`getTile`.
 10. The board exposes a **pure read-only query API** plus a small set of deterministic,
     synchronous **mutation operations** (set occupancy, terrain, hazard, flag). The
     board holds **no randomness** and no time-dependence.
@@ -101,20 +102,31 @@ request mutations through Combat Resolution.
 |--------|------------------|-----------------|-------|
 | **Combat Resolution** | occupancy, terrain, `isBlocked`, `inBounds`, `neighbors`, `distance` | occupancy (move/push/removal), terrain (destroy), hazard state | Board owns *queries*; Combat owns *when* to mutate |
 | **Heroes & Abilities** | `tilesInRange`, `neighbors`, `distance`, `isOccupied`, `getOccupant`, terrain | — (mutations requested via Combat) | Query-only consumer |
-| **Enemy & Telegraph** | same queries as abilities; `spawn-point` flags | — | Query-only consumer |
+| **Enemy, Abilities & Telegraph** | same queries as abilities; `spawn-point` flags | — | Query-only consumer |
 | **Move Preview** | ALL queries — run against a **cloned snapshot**, never the live board | — (operates on a copy) | Board must support cheap deep-copy/snapshot |
 | **Board Rendering & Juice** | full tile grid: terrain, hazard, occupancy, flags | — | Query-only consumer |
 | **Input & Selection** | screen↔tile coordinate mapping, `inBounds`, `getOccupant` | — | Rendering provides pixel geometry; Board provides logical coords |
-| **Encounter Generator** | `inBounds`, terrain templates | initial terrain layout, `spawn-point` & `objective` flags (at battle setup) | Generator writes initial state; Board validates invariants |
+| **Encounter Generator** | `inBounds`, terrain templates | initial terrain layout, `spawn-point`, `objective` & `deploy-zone` flags (at battle setup) | Generator writes initial state; Board validates invariants |
 | **Objective / Win-Lose** | `objective` flags, occupancy of objective tiles | `objective` flags | Reads board to evaluate win/lose |
+| **Turn & Phase Manager** | `snapshot()` — Player-Phase-start checkpoint and one per committed action | — (adopts a previously captured snapshot as the new live board on undo; there is no board-owned `restore()` mutation) | Board only provides `snapshot()`; Turn & Phase Manager owns the undo stack and the adoption logic |
 
-**Proposed query API** (contract): `inBounds(col,row)`, `getTile(col,row)`,
-`isOccupied(col,row)`, `getOccupant(col,row)`, `isBlocked(col,row)`,
-`neighbors(col,row)` (orthogonal, in-bounds), `distance(a,b)` (Manhattan),
-`tilesInRange(origin, R)`, `step(tile, dir)` (one orthogonal step — may return
-out-of-bounds), `classify(tile)` (push-destination descriptor: OutOfBounds /
-BlockedTerrain / Lethal / Occupied / Clear), `snapshot()` (deep copy for Move
-Preview). All are **pure reads** — `step`/`classify` never mutate.
+**Canonical API** (queries + mutations — supersedes any earlier partial list here;
+matches `design/architecture/cross-system-contracts.md` §2, the authoritative
+source):
+
+- **Queries (pure):** `inBounds(col,row)`, `getTile(col,row)`, `isOccupied(col,row)`,
+  `getOccupant(col,row)`, `isBlocked(col,row)`, `getHazard(col,row)`,
+  `hasFlag(col,row, flag)`, `neighbors(col,row)` (orthogonal, in-bounds),
+  `distance(a,b)` (Manhattan), `tilesInRange(origin, R)`, `step(tile, dir)` (one
+  orthogonal step — may return out-of-bounds), `classify(tile)` (push-destination
+  descriptor: OutOfBounds / BlockedTerrain / Lethal / Occupied / Clear),
+  `rayTiles(origin, dir, maxLen)` (line-of-tiles in a cardinal direction until
+  Blocked/edge/`maxLen` — Formula 8), `reachableTiles(origin, range, board)` (the
+  single canonical bounded flood-fill, resolving cross-system contract C3 — Formula
+  9), `snapshot()` (deep copy for Move Preview / undo). None of these mutate state.
+- **Mutations (deterministic, invoked only via Combat Resolution):** `place(tile,
+  unitId)`, `clear(tile)`, `setTerrain(tile, terrainType)`, `setHazard(tile, type)`,
+  `setFlag(tile, flag)`.
 
 **Critical constraint → becomes an ADR**: the board must support a **cheap immutable
 snapshot / deep-copy** so Move Preview can simulate a whole turn against a copy
@@ -122,10 +134,25 @@ without mutating live state. This is what makes Pillar #1 (Perfect Information v
 preview) implementable, and it constrains how tile state is represented. *(Record in
 `/architecture-decision` — state representation & snapshot strategy.)*
 
-> **Provisional (undesigned dependencies):** Combat Resolution, Move Preview, Heroes
-> & Abilities, Enemy & Telegraph, Encounter Generator, and Objective / Win-Lose do
-> not have GDDs yet. The interfaces above are the **contract this GDD proposes**;
-> when those systems are designed they must respect it or surface a conflict.
+**Runtime terrain mutation (hero-built walls):** tile terrain is not fixed for the
+battle — it can be changed at runtime through Combat Resolution's `setTerrain(tile,
+terrainType)` primitive, which delegates to the board's `setTerrain` mutation and
+**generalizes the board's internal `destroy()`** (destroy is just
+`setTerrain(tile, Normal)` on a destructible Blocked tile). Because `classify()`
+already ranks `Blocked` terrain as push-/movement-blocking (Formula 7), a hero verb
+that raises a wall via `setTerrain(tile, Blocked)` — and later tears it down via
+`setTerrain(tile, Normal)` — is fully supported with no change to the board's query
+model: every existing range, push, and move check reads the mutated terrain
+automatically. The board still enforces its invariants (e.g. it must not set an
+occupied tile to a terrain a unit cannot stand on); Combat Resolution owns *when* and
+*why* to mutate, the board owns the terrain state itself.
+
+> **Cross-system reconciliation note:** Combat Resolution, Move Preview, Heroes &
+> Abilities, Enemy, Abilities & Telegraph, Encounter Generator, and Objective /
+> Win-Lose are all **Designed** (see `design/gdd/systems-index.md`). The interfaces
+> above are reconciled against `design/architecture/cross-system-contracts.md`
+> (canonical) and each dependent's own GDD; where a dependent's Detailed Rules
+> diverge from `cross-system-contracts.md`, the contracts file wins.
 
 ## Formulas
 
@@ -199,12 +226,76 @@ else `Lethal` if terrain ∈ {Chasm, lethal Water}; else `Occupied(unitId)` if
 `isOccupied(t)`; else `Clear`. Pure descriptor — no mutation. **Example:** push target
 `(7,3)` is a Chasm → `classify = Lethal`; Combat Resolution then removes the unit.
 
-> **Not defined here (deferred — see Open Questions):** reachability/flood-fill for
-> legal movement (belongs to Combat Resolution / a future Movement system, which
-> consumes `isBlocked`/`isOccupied`/`neighbors`); "cardinal direction between two
-> arbitrary tiles" (ambiguous unless same row/col — an ability-design tie-break, not
-> geometry); `rayTiles` for straight-line abilities (pure geometry, add here **if**
-> line-shaped abilities are confirmed).
+### 8. Ray tiles (line-shaped abilities — resolves Open Q8)
+
+`rayTiles(origin, direction, maxLength, board)` walks one step at a time from
+`origin` in a cardinal direction, appending each tile in order, and stops **before**
+including a tile that is `OutOfBounds` or `BlockedTerrain` (per `classify`) or after
+`maxLength` steps — whichever comes first. `Occupied` and `Lethal` tiles **are**
+included (line-shaped abilities pass through units/hazards; only bounds and solid
+walls stop the ray).
+
+```
+rayTiles(origin, direction, maxLength, board):
+  result = []
+  current = origin
+  for i in 1..maxLength:
+    next = board.step(current, direction)
+    if not board.inBounds(next): break
+    if board.isBlocked(next): break
+    result.append(next)
+    current = next
+  return result   # ordered nearest-to-farthest
+```
+
+| Variable | Symbol | Type | Range | Description |
+|----------|--------|------|-------|-------------|
+| origin | `origin` | coord | valid tile | Ray's starting tile (not included in output) |
+| direction | `direction` | enum | `{N,S,E,W}` | Cardinal direction (reuses Formula 6's `V(d)`) |
+| max length | `maxLength` | int | ≥0 | Ability-defined ray length cap |
+
+**Output range:** an ordered list of `0` to `maxLength` tiles, nearest-first.
+**Example:** origin `(2,3)`, direction `E`, `maxLength=4`, no obstacles →
+`rayTiles = [(3,3),(4,3),(5,3),(6,3)]`. If `(5,3)` is Blocked →
+`rayTiles = [(3,3),(4,3)]` (the wall tile itself is excluded). Confirmed downstream
+by Heroes & Abilities' Line-shaped kits (e.g. Striker's Piercing Round).
+
+### 9. Reachable tiles (bounded flood-fill — resolves cross-system contract C3)
+
+Board & Grid **owns** the single canonical bounded flood-fill. Heroes & Abilities'
+`legalMoveTiles()` and Enemy movement-to-range both consume this function — no
+second hand-written BFS anywhere in the codebase.
+
+```
+reachableTiles(origin, range, board):
+  visited = { origin }
+  frontier = [origin]
+  for step in 1..range:
+    next = []
+    for tile in frontier:
+      for n in board.neighbors(tile):
+        if n not in visited and board.classify(n) == Clear:
+          visited.add(n)
+          next.append(n)
+    frontier = next
+  return visited − { origin }
+```
+
+| Variable | Symbol | Type | Range | Description |
+|----------|--------|------|-------|-------------|
+| origin | `origin` | coord | valid, `Clear` tile | Start of the flood-fill (unit's current tile) |
+| range | `range` | int | ≥0 | Maximum BFS depth (movement range) |
+| board | `board` | Board | live or `snapshot()` | Read via `neighbors`/`classify` only — no mutation |
+
+**Output range:** a subset of Formula 4's Manhattan disk minus the origin:
+`0 ≤ |reachableTiles| ≤ 2·range² + 2·range` (obstacles only shrink this set, since
+the BFS only expands through `Clear` tiles). **Example:** open 8×8 board,
+`origin=(3,3), range=3` → 24 tiles (the full radius-3 Manhattan disk minus origin).
+
+> **Not defined here (deferred to the owning system):** "cardinal direction between
+> two arbitrary tiles" is ambiguous unless the tiles share a row/col, so it is an
+> ability-design tie-break (Heroes & Abilities' `legalTargets` / Combat Resolution's
+> push-direction authoring), not board geometry.
 
 ## Edge Cases
 
@@ -242,7 +333,7 @@ occupied resolves as OutOfBounds.
   board's.
 - **If an enemy would spawn on an already-occupied `spawn-point` tile**: the board
   only reports `isOccupied`; the spawn consequence (damage the occupant, delay the
-  spawn, etc.) is the Enemy & Telegraph system's rule — flagged as a cross-system
+  spawn, etc.) is the Enemy, Abilities & Telegraph system's rule — flagged as a cross-system
   decision for that GDD.
 - **If the grid is constructed with `W < 1` or `H < 1`**: rejected at construction;
   the board enforces `W ≥ 1` and `H ≥ 1` (playable minimums are larger, but that is a
@@ -254,27 +345,29 @@ occupied resolves as OutOfBounds.
 system — it holds only spatial data and pure queries, with no dependency on any
 other system.
 
-**Downstream (systems that depend on Board & Grid):** All are currently **undesigned**
-(no GDD yet). The interfaces below are the contract this GDD proposes; each dependent
-GDD must, when written, list "depends on Board & Grid" and respect these interfaces.
+**Downstream (systems that depend on Board & Grid):** All are **Designed** (see
+`design/gdd/systems-index.md`). The interfaces below are reconciled against
+`design/architecture/cross-system-contracts.md` §2 (canonical) and each dependent's
+own GDD.
 
 | Dependent System | Interface (what it uses) | Hard / Soft |
 |------------------|--------------------------|-------------|
-| **Combat Resolution** | reads occupancy/terrain/`classify`/`step`/`neighbors`/`distance`; mutates occupancy, terrain (destroy), hazard state | **Hard** — cannot function without the board |
-| **Encounter Generator** | writes initial terrain layout, `spawn-point` & `objective` flags; reads `inBounds` | **Hard** |
-| **Heroes & Abilities** | `tilesInRange`, `neighbors`, `distance`, `isOccupied`, `getOccupant`, terrain — for legal moves & targeting | **Hard** |
-| **Enemy & Telegraph** | same spatial queries as abilities; reads `spawn-point` flags | **Hard** |
+| **Combat Resolution** | reads occupancy/terrain/`classify`/`step`/`neighbors`/`distance`/`getHazard`; mutates occupancy, terrain (destroy), hazard state via `place`/`clear`/`setTerrain`/`setHazard` | **Hard** — cannot function without the board |
+| **Encounter Generator** | writes initial terrain layout, `spawn-point`, `objective` & `deploy-zone` flags; reads `inBounds`, `snapshot()` | **Hard** |
+| **Heroes & Abilities** | `tilesInRange`, `neighbors`, `distance`, `isOccupied`, `getOccupant`, terrain, `rayTiles`, `reachableTiles` — for legal moves & targeting | **Hard** |
+| **Enemy, Abilities & Telegraph** | same spatial queries as abilities (incl. `reachableTiles` for movement-to-range); reads `spawn-point` flags | **Hard** |
 | **Move Preview** | `snapshot()` + all queries — simulates a turn against a copy | **Hard** — depends on the snapshot capability specifically |
 | **Input & Selection** | screen↔tile coordinate mapping, `inBounds`, `getOccupant` | **Hard** |
 | **Board Rendering & Juice** | full tile grid: terrain, hazard, occupancy, flags | **Hard** |
 | **Objective / Win-Lose** | reads `objective` flags & occupancy of objective tiles | **Hard** |
-| **Turn & Phase Manager** | reads board state indirectly (via Objective) for win/lose checks | **Soft** |
+| **Turn & Phase Manager** | `snapshot()` at Player-Phase start and after each committed action; adopts a previously captured snapshot as the new live board on undo (no board-owned `restore()`) | **Hard** — undo and phase-gating cannot function without `snapshot()` |
 | **Battle HUD** | occasional board reads (tile highlight state); mostly reads combat/unit state | **Soft** |
 
-**Bidirectional-consistency note:** because every dependent above is undesigned,
-none currently list Board & Grid as an upstream dependency. This is expected; the
-systems-index already records these edges. When each dependent GDD is authored, its
-Dependencies section must name Board & Grid, or a conflict should be surfaced.
+**Bidirectional-consistency note:** every downstream system above is now Designed
+and lists Board & Grid in its own Dependencies section (confirmed against
+`design/gdd/systems-index.md`'s Dependency Map, e.g. `heroes-and-abilities.md` and
+`turn-and-phase-manager.md` both mark Board & Grid ✅ Hard). No dangling
+one-directional edges remain.
 
 ## Tuning Knobs
 
@@ -300,11 +393,16 @@ would let a config change silently rewrite every range/targeting formula in the 
 
 ## Visual/Audio Requirements
 
-[To be designed]
+**N/A.** Board & Grid is a pure spatial-data model with no rendering or audio output
+of its own; all visual and audio presentation of tile, unit, terrain, and hazard
+state is owned by `design/gdd/board-rendering-and-juice.md`, which reads this
+system's query API.
 
 ## UI Requirements
 
-[To be designed]
+**N/A.** Board & Grid exposes no player-facing UI. Screen↔tile input mapping is
+owned by `design/gdd/input-and-selection.md`; on-screen board presentation is owned
+by `design/gdd/board-rendering-and-juice.md`.
 
 ## Acceptance Criteria
 
@@ -354,7 +452,7 @@ seeded RNG). Default board `8×8` unless stated.
 - **GIVEN** push onto Occupied, **WHEN** `classify`, **THEN** `Occupied(unitId)`, no auto-stack, state unchanged.
 
 **Flags (Rule 9)**
-- **GIVEN** any tile, **WHEN** `setFlag('spawn-point'|'objective')`, **THEN** `getTile().flags` includes it; `isOccupied` reports occupancy only (board doesn't resolve spawn/objective consequences).
+- **GIVEN** any tile, **WHEN** `setFlag('spawn-point'|'objective'|'deploy-zone')`, **THEN** `getTile().flags` includes it and `hasFlag(tile, flag)===true`; `isOccupied` reports occupancy only (board doesn't resolve spawn/objective/deploy consequences).
 
 **API purity (Rule 10)**
 - **GIVEN** state `S`, **WHEN** any query is called any number of times, **THEN** state after `=== S` (no query mutates).
@@ -375,6 +473,18 @@ seeded RNG). Default board `8×8` unless stated.
 **`classify` precedence (Formula 7)**
 - **GIVEN** one tile per rank, **WHEN** `classify`, **THEN** it returns the expected rank, confirming order **OutOfBounds → BlockedTerrain → Lethal → Occupied → Clear** (esp.: occupied Chasm → `Lethal`, not `Occupied`).
 
+**`rayTiles` (Formula 8)**
+- **GIVEN** origin `(2,3)`, direction `E`, `maxLength=4`, no obstacles, **THEN** `rayTiles = [(3,3),(4,3),(5,3),(6,3)]` (4 tiles, nearest-first).
+- **GIVEN** the same setup but `(5,3)` is Blocked, **WHEN** `rayTiles`, **THEN** it returns exactly the 2 tiles before the wall and excludes the wall tile itself.
+- **GIVEN** an Occupied or Lethal tile along the ray, **WHEN** `rayTiles`, **THEN** that tile IS included (only OutOfBounds/BlockedTerrain stop the walk).
+- **GIVEN** a caster on the last row/column facing off the board, **WHEN** `rayTiles`, **THEN** it returns `[]` immediately (first step is OutOfBounds).
+
+**`reachableTiles` (Formula 9)**
+- **GIVEN** an interior origin with `range=3` on an open 8×8 board, **WHEN** `reachableTiles`, **THEN** it returns exactly 24 tiles, none of which is the origin.
+- **GIVEN** `range=0`, **WHEN** `reachableTiles`, **THEN** it returns `∅` (origin itself is excluded from the result, per Heroes & Abilities' `legalMoveTiles` contract).
+- **GIVEN** an obstacle that fully encloses the origin, **WHEN** `reachableTiles`, **THEN** it returns `∅` even with `range > 0`.
+- **GIVEN** any valid `origin`/`range`, **THEN** every returned tile satisfies `distance(origin, t) ≤ range ∧ classify(t) === Clear`, confirming this is the same function both Heroes & Abilities' `legalMoveTiles()` and Enemy movement-to-range consume (no divergent BFS implementations).
+
 **`snapshot()` (Move Preview contract)**
 - **GIVEN** state `S`, **WHEN** `snapshot()` is taken and the copy is mutated, **THEN** the live board stays `S` (deep copy, no shared refs).
 - **GIVEN** a snapshot at `T`, **WHEN** the live board mutates after `T`, **THEN** the snapshot does not reflect it.
@@ -394,4 +504,36 @@ and is called repeatedly during interactive preview.
 
 ## Open Questions
 
-[To be designed]
+**Needs an architecture decision (→ ADR during `/create-architecture`):**
+
+1. **Rejected-mutation error contract.** How does the board signal a rejected
+   mutation (`place()` on occupied, `W<1` construction, OOB `tilesInRange` origin)?
+   *Proposed:* expected gameplay rejections return a `Result` (boolean/enum, no
+   throw); genuine programmer errors (invalid construction, OOB query origin)
+   assert/throw. Must be pinned so board, tests, and callers agree. *Owner:* Tech
+   architecture.
+2. **Tile-state representation & `snapshot()` strategy.** `snapshot()` is the
+   highest-risk op (must deep-copy in < 1 ms). *Proposed:* store tile state in flat
+   typed arrays (terrain, occupancy, hazard, flags as parallel arrays) so snapshot is
+   a cheap array copy rather than object-graph clone. *Owner:* Tech architecture. This
+   is the ADR already flagged in Detailed Design.
+
+**Resolved this session (provisional defaults — confirm during implementation):**
+
+3. **`destroy()` on a non-destructible `Blocked` tile** → no-op, returns `false`.
+4. **`clear()` on an already-empty tile** → idempotent no-op.
+5. **`tilesInRange` with `R < 0`** → rejected (assert), consistent with OOB-origin handling.
+6. **`setFlag` on `Blocked`/`Chasm` tiles** → allowed and stored opaquely, same as hazards.
+
+**Deferred to the owning system's GDD:**
+
+7. **Multi-tile units (size > 1).** v1 assumes every unit occupies exactly one tile.
+   If large units (ITB-style 2-tile Vek) are wanted later, the occupancy model must
+   extend to "a unit occupies a set of tiles." *Owner:* Heroes & Abilities (post-v1).
+8. ~~**`rayTiles` for straight-line abilities.**~~ **RESOLVED.** Line-shaped hero
+   abilities are confirmed (Heroes & Abilities' Striker kit). Board & Grid owns
+   `rayTiles(origin, direction, maxLength, board)` — see Formula 8 and the
+   canonical API in Detailed Design, matching `cross-system-contracts.md` §2.
+9. **Cardinal direction between two arbitrary tiles.** Not the board's job (ambiguous
+   unless same row/col). Abilities should author an explicit push direction, or Combat
+   Resolution defines a tie-break rule. *Owner:* Heroes & Abilities / Combat Resolution.
