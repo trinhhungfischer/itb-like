@@ -48,10 +48,13 @@ solvable, interesting battles). The target build is pure web (TypeScript + PixiJ
 | 19 | Draft/Loadout UI (inferred) | UI | Vertical Slice | Designed | design/gdd/draft-loadout-ui.md | Draft / Loadout Meta |
 | 20 | Audio System | Audio | Vertical Slice | Designed | design/gdd/audio-system.md | Combat Resolution, Turn & Phase Manager, Enemy, Abilities & Telegraph, Move Preview |
 | 21 | Onboarding / Tutorial (inferred) | Meta | Vertical Slice | Designed | design/gdd/onboarding-tutorial.md | Battle HUD, Heroes & Abilities, Enemy, Abilities & Telegraph, Combat Resolution |
-| 22 | Pilots / Hero Modifiers | Progression | Alpha | Not Started | — | Heroes & Abilities |
-| 23 | 4X-lite Node Bonuses | Gameplay | Alpha | Not Started | — | Run Structure / Node Map |
-| 24 | Accessibility (inferred) | Meta | Alpha | Not Started | — | Battle HUD, Board Rendering & Juice |
-| 25 | Settings / Options (inferred) | Meta | Alpha | Not Started | — | Audio System, Input & Selection, Accessibility |
+| 22 | Passive Modules | Progression | Vertical Slice | Designed | design/content/passive-modules-and-equipment.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
+| 23 | Gadgets / Secondary Weapons | Progression | Vertical Slice | Designed | design/content/secondary-weapons-and-gadgets.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
+| 24 | Enemy Roster Content | Content | Vertical Slice | Designed | design/content/enemy-roster-and-archetypes.md | Enemy, Abilities & Telegraph, Encounter Generator |
+| 25 | Pilots / Hero Modifiers | Progression | Alpha | Not Started | — | Heroes & Abilities |
+| 26 | 4X-lite Node Bonuses | Gameplay | Alpha | Not Started | — | Run Structure / Node Map |
+| 27 | Accessibility (inferred) | Meta | Alpha | Not Started | — | Battle HUD, Board Rendering & Juice |
+| 28 | Settings / Options (inferred) | Meta | Alpha | Not Started | — | Audio System, Input & Selection, Accessibility |
 
 ---
 
@@ -198,15 +201,15 @@ decisions, not single-system fixes — they belong in the architecture phase.
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 25 |
-| Design docs started | 21 |
-| Design docs reviewed | 21 |
-| Design docs approved | 21 |
+| Total systems identified | 28 |
+| Design docs started | 24 |
+| Design docs reviewed | 24 |
+| Design docs approved | 24 |
 | MVP systems designed | 10/10 |
-| Vertical Slice systems designed | 11/11 |
+| Vertical Slice systems designed | 14/14 |
 
-*(All 21 MVP+VS GDDs independently design-reviewed 2026-07-28, then reconciled against
-`design/architecture/cross-system-contracts.md`. Alpha #22–#25 remain Not Started.)*
+*(All 24 MVP+VS GDDs independently design-reviewed 2026-07-28, then reconciled against
+`design/architecture/cross-system-contracts.md`. Alpha #25–#28 remain Not Started.)*
 
 ---
 

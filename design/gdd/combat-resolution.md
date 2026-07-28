@@ -709,17 +709,12 @@ implementation):**
    **not** redefined here. **PROVISIONAL: assumed not to exist in v1**,
    consistent with the game concept's "no bloated numeric systems" scope
    guidance.
-6. **Hazard catalog beyond Fire.** Only `Fire` is concretely specified
-   (Formula F3). `Smoke`, `Acid`, or other hazard types are reserved type
-   slots that must resolve through `applyHazard`, but their actual effects
-   (damage amount, non-damage effects like vision-blocking) are content
-   authored by Encounter Generator / Enemy, Abilities & Telegraph — both
-   already **Designed** (`systems-index.md`), and each likewise only
-   concretely specifies `Fire` today (`enemy-abilities-and-telegraph.md`
-   itself flags its non-Fire `spawnHazard` calls as provisional). This is
-   unauthored *content* within two already-designed systems, not a
-   design-status gap — expanding the hazard catalog is a future content
-   pass on those two GDDs, not a new architecture question.
+6. **Hazard catalog beyond Fire.** The following hazard types are concretely specified:
+   - **Fire**: `{ damage: 1 (configurable), duration: null (permanent) }` (Formula F3).
+   - **Mine**: `{ damage: 3, duration: ∞, triggerOn: 'step' }` — detonates when any unit enters, then consumed. Source: Sentinel enemy.
+   - **Smoke**: `{ damage: 0, duration: 1, effect: 'blocks_targeting' }` — blocks enemy AI targeting (units on Smoke tiles are skipped by Formula F1). Source: Smoke Bomb gadget. Does NOT block movement or player ability LoS.
+
+   Other hazard types (Acid, etc.) are reserved type slots that must resolve through `applyHazard`, but their actual effects are content authored by Encounter Generator / Enemy, Abilities & Telegraph. Expanding the hazard catalog is a future content pass on those two GDDs, not a new architecture question.
 7. **Multi-tile units (size > 1).** Every primitive in this document assumes
    unit size = 1 (per Board & Grid's Core Rule 5 and its own deferred Open
    Question #7). If larger units are added post-v1, `push`/`pull`/`swap`

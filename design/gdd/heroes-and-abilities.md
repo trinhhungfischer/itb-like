@@ -283,6 +283,7 @@ Unit {
   position: tile                    // mirrors Board occupancy; kept in sync by Combat Resolution
   size: int                         // fixed 1 in v1 (Board & Grid Core Rule 5)
   abilities: AbilityDefinition[]    // length 1 for heroes in v1 (Rule 3)
+  equipmentSlots: [EquipmentSlot, EquipmentSlot] // 2 hybrid slots, each holds PassiveModule | Gadget | null (max 1 Gadget per hero)
   hazardImmunities: HazardType[]    // threaded through Combat's applyHazard / hazard-on-entry call sites
   statusFlags: StatusFlag[]         // reserved, empty in v1 base kit
 }
@@ -956,10 +957,8 @@ implementation):**
    `combat-resolution.md`'s Open Question #2) is resolved here via Rule 10's
    two authoring patterns (target-then-direction at range 1;
    `requiresOrthogonalAlignment` filtering at longer range).
-6. **No passives / single-ability-per-hero in v1** (Rule 3) is a deliberate
-   scope decision favoring Pillar #4 legibility over kit depth; revisit only
-   if playtesting shows the base roster feels too thin, via Pilots / Hero
-   Modifiers rather than a retroactive change here.
+6. **No passives / single-ability-per-hero in v1** (Rule 3) was originally a deliberate
+   scope decision, but has been updated. Passive Modules and Gadgets are now designed (via `passive-modules-and-equipment.md` and `secondary-weapons-and-gadgets.md`), granting 2 equipment slots per hero. Chain-reaction preview is now a base feature (former Tactician's Eye passive).
 
 **Deferred to the owning system's GDD:**
 
