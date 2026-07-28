@@ -134,7 +134,10 @@ already read as machines) and moved Pilots to the unoccupied **action economy ·
 deployment · run-level** lane. Pilots gain XP, level to 3, and **die permanently**
 when their mech is Removed — the sole permanent loss in the whole design.
 `draft-and-loadout-meta.md` Rule 3 was **scoped to mechs** (new Rule 3a), not broken.
-Simulation core: **zero changes**.
+Foundation + Core: **zero changes**. **Presentation is not exempt** — Battle HUD must
+render a mech's *effective* action-slot count when a pilot skill grants extra uses, or
+Pillar 1 (Perfect Information) breaks. The original draft claimed otherwise; the design
+review retracted it.
 
 - Spec: `docs/superpowers/specs/2026-07-28-pilots-design.md`
 - GDD: `design/gdd/pilots.md` — **not yet independently design-reviewed**

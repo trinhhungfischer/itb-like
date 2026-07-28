@@ -310,27 +310,59 @@ constants:
       Awarded regardless of win/loss. Benched pilots earn nothing."
     added: 2026-07-28
     revised: ""
+  # Superseded 2026-07-28 by pilot_level_thresholds. The independent /design-review of
+  # pilots.md reparameterised Formula F2 from two standalone constants onto an array so
+  # that pilot_max_level is actually configurable. Kept (never deleted) per this file's
+  # rules; do not reference these in new work.
   - name: pilot_level2_xp
-    status: active
+    status: deprecated
     source: design/gdd/pilots.md
     referenced_by:
       - design/gdd/pilots.md
     value: 2
     unit: xp
-    note: "Cumulative XP threshold for level 2. INVARIANT: pilot_level2_xp < pilot_level3_xp,
-      validated at config load — a violation makes level 2 unreachable."
+    note: "DEPRECATED 2026-07-28 -> see pilot_level_thresholds[0]. Value was correct (2);
+      only the shape changed."
     added: 2026-07-28
-    revised: ""
+    revised: 2026-07-28
   - name: pilot_level3_xp
-    status: active
+    status: deprecated
     source: design/gdd/pilots.md
     referenced_by:
       - design/gdd/pilots.md
     value: 4
     unit: xp
-    note: "Cumulative XP threshold for level 3. Tuned against run length: run-structure-node-map.md
-      map_depth=6 + Boss yields ~4-5 combat nodes, so a starting pilot peaks as the run reaches its
-      Boss. Retune together with pilot_xp_per_battle if map_depth changes."
+    note: "DEPRECATED 2026-07-28 -> see pilot_level_thresholds[1]. # was: 4 — the design
+      review retuned it to 3 so a starting pilot peaks slightly before the Boss rather
+      than exactly at it."
+    added: 2026-07-28
+    revised: 2026-07-28
+  - name: pilot_level_thresholds
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: [2, 3]
+    unit: xp (cumulative, indexed by target level 2..pilot_max_level)
+    note: "Ascending cumulative-XP array replacing the former pilot_level2_xp/pilot_level3_xp
+      pair (Formula F2). len == pilot_max_level - 1. INVARIANT: strictly ascending —
+      validated at content load by Formula F8, which REJECTS a non-ascending array rather
+      than clamping it. Tuned against run length: run-structure-node-map.md map_depth=6 +
+      Boss yields ~4-5 combat nodes. Retune together with pilot_xp_per_battle if map_depth
+      changes."
+    added: 2026-07-28
+    revised: ""
+  - name: pilot_seed_xp_lag
+    status: active
+    source: design/gdd/pilots.md
+    referenced_by:
+      - design/gdd/pilots.md
+    value: 1
+    unit: battles
+    note: "How many qualifying battles behind a run-long survivor a mid-run recruit starts
+      (Formula F7 catch-up seeding). MUST be >= 1: at 0 a recruit ties a survivor's XP,
+      erasing the veteran-advantage gradient that gives pilot death its cost (Rule 12).
+      At 3+ a recruit cannot reach L2 before run end and PilotOffer becomes a trap pick."
     added: 2026-07-28
     revised: ""
   - name: pilot_max_level

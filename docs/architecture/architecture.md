@@ -18,7 +18,7 @@
 | **Status** | Accepted (TD sign-off 2026-07-28) |
 | **Stack** | TypeScript + PixiJS (2D WebGL) + Vite — pure web, no native engine |
 | **GDDs covered** | 21 (10 MVP + 11 Vertical Slice), all Designed & reconciled 2026-07-28 |
-| **Alpha systems noted (not covered)** | 0 — all four became Designed 2026-07-28 (`pilots.md`, `node-bonuses.md`, `accessibility.md`, `settings-and-options.md`). **None requires a simulation-core change**: Pilots and Node Bonuses are run-layer, Accessibility is a requirements authority, and Settings owns a separate `vanguard.settings.v{N}` persistence domain that is a peer of Run Persistence, not a client. This architecture is unchanged by all four — see §7 |
+| **Alpha systems noted (not covered)** | 0 — all four became Designed 2026-07-28 (`pilots.md`, `node-bonuses.md`, `accessibility.md`, `settings-and-options.md`). **None requires a simulation-core change** (Foundation/Core untouched): Pilots and Node Bonuses are run-layer, Accessibility is a requirements authority, and Settings owns a separate `vanguard.settings.v{N}` persistence domain that is a peer of Run Persistence, not a client. **They do require Presentation-layer changes** — corrected 2026-07-28 after `pilots.md`'s design review retracted a "zero changes" claim: Battle HUD must render a mech's *effective* action-slot count when a pilot skill grants extra uses, or Pillar 1 breaks. See §7 |
 | **Canonical contract source** | `design/architecture/cross-system-contracts.md` |
 | **Registry source** | `design/registry/entities.yaml` |
 | **ADRs referenced** | None yet (`docs/architecture/` contains no `adr-*.md`) — see §7, §8 |
@@ -85,7 +85,8 @@ convention (all abilities depend on Combat's primitives, never the reverse) hold
 │                requestAnimationFrame · pointer/keyboard input                  │
 └──────────────────────────────────────────────────────────────────────────────┘
 
-  ALPHA (all Designed 2026-07-28 — zero sim-core impact):
+  ALPHA (all Designed 2026-07-28 — no Foundation/Core impact;
+                                    Presentation changes DO apply, see §4):
     Feature:   Pilots · 4X-lite Node Bonuses          (run layer)
     Presentation/Meta: Accessibility (requirements authority)
                        Settings/Options (own persistence domain, peer of Run Persistence)
@@ -100,7 +101,7 @@ convention (all abilities depend on Combat's primitives, never the reverse) hold
 | **Core** | Combat Resolution; Input & Selection; Move Preview | Combat is the single board-mutation path. Move Preview is a dry-run of Combat over a snapshot. |
 | **Feature** | Heroes & Abilities; Enemy Abilities & Telegraph; Objective/Win-Lose; Encounter Generator; Difficulty Tiers; Run Structure/Node Map; Draft/Loadout Meta; Ability Upgrades; Meta-progression/Unlocks | All gameplay + progression logic. Abilities compile to Combat primitives one-directionally. |
 | **Presentation** | Board Rendering & Juice; Battle HUD; Map/Run UI; Draft/Loadout UI; Audio System; Onboarding/Tutorial | Read-only consumers of sim state + events. **Never** call a Combat mutation. |
-| **Alpha** | Pilots, 4X-lite Node Bonuses (Feature); Accessibility, Settings/Options (Presentation/Meta) — all Designed 2026-07-28 | Pilots consumes `battle_ended` and writes run state. Node Bonuses observes `MapNode.state == Claimed`. Accessibility authors no runtime code — it is a requirements and verification authority. Settings owns `vanguard.settings.v{N}`, implementing Run Persistence's architecture as a **peer** so a save corruption cannot cost the player their settings. **None touches a Foundation or Core module.** |
+| **Alpha** | Pilots, 4X-lite Node Bonuses (Feature); Accessibility, Settings/Options (Presentation/Meta) — all Designed 2026-07-28 | Pilots consumes `battle_ended` and writes run state. Node Bonuses observes `MapNode.state == Claimed`. Accessibility authors no runtime code — it is a requirements and verification authority. Settings owns `vanguard.settings.v{N}`, implementing Run Persistence's architecture as a **peer** so a save corruption cannot cost the player their settings. **None touches a Foundation or Core module** — but Presentation is not exempt: Battle HUD must display a mech's effective action-slot count once Pilots ships (`pilots.md` Detailed Rules), and Map/Run UI renders Node Bonuses' claim badges and `revealDepth`. *A blanket "zero changes" claim was retracted by `pilots.md`'s design review on 2026-07-28.* |
 
 ---
 

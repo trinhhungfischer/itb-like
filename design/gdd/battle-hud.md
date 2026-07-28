@@ -354,6 +354,9 @@ exactly two commands (End Turn, Undo/Redo) back into Turn & Phase Manager.
 | **Input & Selection** ✅ | Selected unit, available action modes, `Inspect`-panel target | Forwards ability-bar row/icon clicks as an alternate input path into Input & Selection's shared selection state machine (Rule 2's "one shared state machine" is extended here — see Open Questions) | Input & Selection owns the selection/targeting state machine; HUD renders whatever it reports and offers a second, equivalent way to drive it — already listed as a Hard dependent ("selected unit, available action modes, Inspect-panel target") |
 | **Board Rendering & Juice** ✅ | — (no gameplay data read) | Shares canvas/viewport; HUD chrome is composited above Rendering's layer 9 (Rule 13) | **Soft, bidirectional** — flagged gap in `systems-index.md`'s Dependency Map, independently noted by both documents |
 | **Audio System** ✅ | — (peer, not a dependency) | — | Both HUD and Audio are independent, read-only consumers of the same Combat/Turn event streams; neither triggers off the other, avoiding drift — mirrors Audio System's own stated peer relationship with Board Rendering & Juice |
+| **Pilots** ✅ (#25, `pilots.md`, Designed 2026-07-28) | A mech's **effective** action-slot count and the identity of any pilot skill currently modifying it | — | **Added 2026-07-28** by `/consistency-check` — `pilots.md` listed Battle HUD as a downstream consumer while this document had no knowledge of Pilots at all. Pilot skills in the action-economy lane (e.g. a once-per-battle second Move) change how many actions a mech actually has. Rule 5's ability-bar slot indicators must show the *effective* count, not the chassis default of `actions_per_hero_turn = 2` — a player who cannot see the extra slot cannot plan the turn, which breaks **Pillar 1 (Perfect Information)**. Pilots owns what the skill does; HUD owns showing that it is active. Display-only: no effect when no such skill is equipped |
+| **Accessibility** ✅ (#27, `accessibility.md`, Designed 2026-07-28) | Every HUD element as a verification subject | — | A1 (shape/icon redundancy — HP bars, threat markers and slot indicators must not rely on hue), A3 (`uiScale` to 1.5 without clipping), A4 (contrast floors 4.5:1 / 3:1), A7 (keyboard-only reachability). These are **BLOCKING** gates (its V1–V4), applied per screen and per locale, not aspirations |
+| **Settings / Options** ✅ (#28, `settings-and-options.md`, Designed 2026-07-28) | `ui_scale`, `colorblind_mode`, `reduced_motion` | — | Read-only consumer. Settings persists and surfaces the values; this document renders against them |
 
 **Bidirectional-consistency notes:**
 - `turn-and-phase-manager.md`, `combat-resolution.md`, `heroes-and-abilities.md`,
@@ -619,6 +622,9 @@ nothing here, it only reports the number").
 | **Move Preview** ✅ | `Ready` preview state and predicted HP/damage deltas (Rule 16) | **Soft** — the glance-view HP bars function correctly with zero active preview; the predicted-overlay is enrichment only |
 | **Input & Selection** ✅ | Selected unit, available action modes, `Inspect` target | **Hard** |
 | **Board Rendering & Juice** ✅ | Shared canvas/viewport (layer-ordering only, no gameplay data) | **Soft** |
+| **Pilots** ✅ (#25) | A mech's **effective** action-slot count when a pilot skill grants extra uses, plus which skill is granting it | **Soft** — display-only, and a no-op when no such skill is equipped. But when one *is*, showing the chassis default instead of the effective count breaks Pillar 1 (see Interactions) |
+| **Settings / Options** ✅ (#28) | `ui_scale`, `colorblind_mode`, `reduced_motion` | **Hard** |
+| **Accessibility** ✅ (#27) | A1/A3/A4/A7 as **blocking** per-screen verification gates, not runtime data | **Hard** |
 
 **Downstream (systems that depend on Battle HUD):** none currently — Battle
 HUD is a presentation leaf. `systems-index.md`'s Dependency Map lists no
