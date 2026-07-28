@@ -152,12 +152,25 @@ branch of an existing primitive.
   `resolve(board.snapshot(), effects)` — the live board is untouched because the *input*
   was a clone, not because `resolve()` refuses to mutate. This is what makes
   Preview-Commit Parity unconditional.
-- **Canonical events only.** `resolve()` emits exactly the canonical event vocabulary
-  (`damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`,
-  `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`). There is
-  **no** `push_resolved`/`apply()` event or entry point. All consumers (Rendering, Audio,
-  HUD, Move Preview) subscribe to these exact names via the synchronous event bus
-  (ADR-0002).
+- **Closed event vocabulary — 12 names, not 9.** *(Corrected 2026-07-28 during
+  implementation. This bullet previously read "Canonical events only… emits **exactly**"
+  the nine success events, which directly contradicted **ADR-0005**'s Channel-1
+  taxonomy, `combat-resolution.md`'s Edge Cases, and story-004's acceptance criteria —
+  all three of which mandate three rejection events "for debuggability". Three
+  documents against one summary line; the summary line was wrong.)*
+
+  **Nine success events:** `damage_applied`, `displacement_complete`,
+  `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`,
+  `unit_removed`, `terrain_set`, `unit_spawned`.
+
+  **Three rejection events** (ADR-0005 Channel 1 — a rejection is gameplay, not a bug):
+  `swap_failed`, `set_terrain_rejected`, `spawn_unit_rejected`.
+
+  There is **no** `push_resolved`/`apply()` event or entry point, and no generic
+  `*_noop` marker — the GDD floats one, but no story requires it and one variant per
+  primitive would balloon the vocabulary past what any consumer subscribes to. All
+  consumers (Rendering, Audio, HUD, Move Preview) subscribe to these exact names via
+  the synchronous event bus (ADR-0002).
 - **Combat never calls back into Turn & Phase Manager.** Combat is a service; it owns
   *how* an effect list resolves, never *when*. This one-directional relationship is what
   keeps the graph acyclic.

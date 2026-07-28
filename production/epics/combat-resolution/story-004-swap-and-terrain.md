@@ -35,7 +35,16 @@
 - [ ] **GIVEN** unit A at tile `X` and unit B at tile `Y`, **WHEN** `swap(A, B)`, **THEN** A is now at `Y`, B is now at `X`, and no intermediate tile state is ever observable (atomic).
 - [ ] **GIVEN** unit A was removed earlier in the same chain, **WHEN** `swap(A, B)` is attempted, **THEN** the entire swap is rejected, B remains at its original tile, and a `swap_failed` event is emitted.
 - [ ] **GIVEN** an empty `Normal` tile, **WHEN** `setTerrain(tile, Blocked)`, **THEN** `classify(tile)` reports `Blocked` and a subsequent `push` toward that tile stops one tile short with `collision_resolved(kind: Wall)`.
-- [ ] **GIVEN** a `Blocked` tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it, and `terrain_set(tile, Normal)` is emitted.
+- [ ] **GIVEN** a **`BlockedDestructible`** tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it, and `terrain_set(tile, Normal)` is emitted.
+- [ ] **GIVEN** a plain **`Blocked`** tile (permanent), **WHEN** `setTerrain(tile, Normal)` is attempted, **THEN** it is **rejected** with `NotDestructible`, the terrain is unchanged, and `set_terrain_rejected` is emitted.
+
+> **Corrected 2026-07-28 during implementation.** The teardown criterion above said
+> "a `Blocked` tile", which is unsatisfiable against the shipped Board: `board-types.ts`
+> defines **`Blocked` (permanent) and `BlockedDestructible` (tearable) as two distinct
+> terrain values**, and only the latter can transition back to `Normal`. As originally
+> written this criterion would have failed against correct code. Rule 14's "raise and
+> tear down a wall" verb needs `BlockedDestructible`; the permanence of plain `Blocked`
+> is now pinned by its own criterion so the distinction cannot quietly erode.
 - [ ] **GIVEN** a tile occupied by a unit, **WHEN** `setTerrain(tile, Blocked)` is attempted, **THEN** it is rejected, the terrain is unchanged, and `set_terrain_rejected` is emitted.
 
 ---

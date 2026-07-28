@@ -339,10 +339,22 @@ the default tuning-knob values from this document.
 Both `push` and `pull` resolve via the identical step loop; `pull`'s
 `direction` points toward the source (Rule 5) instead of away from it.
 
+> **Corrected 2026-07-28 during implementation.** The pseudocode below originally read
+> `currentTile = board.getTile(unitId)`. **No such call exists** — `Board.getTile` takes
+> `(col, row)` and returns a `TileState`, and `Board` publishes **no reverse
+> unit → tile lookup at all**. Combat derives a unit's tile by scanning `Board`'s
+> occupancy (`findTile()` in `combat-resolve.ts`).
+>
+> This is deliberate, not a workaround: keeping position **only** on the Board means
+> there is no second copy to drift. ADR-0008's `Unit` record does carry a `position`
+> field described as "kept in sync by Combat Resolution" — Combat does not maintain it,
+> because a field that must be *kept* in sync is a field that can fall out of sync.
+> Board is the single source of truth for where a unit is.
+
 ```
 resolveDisplacement(board, unitId, direction, distance):
   stepsMoved = 0
-  currentTile = board.getTile(unitId)
+  currentTile = findTile(board, unitId)   // scan occupancy — see note
   for i in 1..distance:
     nextTile = board.step(currentTile, direction)
     case board.classify(nextTile):
@@ -668,6 +680,20 @@ query/mutation contract).
 | `resolve()` call during Move Preview (chain + `board.snapshot()` cost) | < 2 ms combined | Inherits Board & Grid's `snapshot()` budget (<1 ms on ≤12×12) as its dominant cost |
 
 ## Open Questions
+
+> **Gap found during implementation, 2026-07-28 — `applyHazard` is Fire-only.**
+> Formula F3 defines a single flat `fire_damage_per_tick`, and the shipped
+> `applyHazard` applies it whenever **any** hazard occupies a tile. The hazard registry
+> lists six types, and Mine is described elsewhere as dealing **3** damage on trigger
+> and being consumed — but this GDD gives **no Combat-level formula** for Mine, Smoke,
+> Acid, Vortex or Beacon, deferring per-type behaviour to Encounter Generator / Enemy
+> content authoring (Open Question 6 below).
+>
+> **Concrete consequence today:** spawning a `Mine` hazard deals **1** damage, not 3,
+> and is not consumed. That is not an implementation bug — it is the only behaviour the
+> spec defines. Per-type hazard formulas must land before the hazard registry is
+> content-complete, or five of six hazard types will silently behave as Fire.
+
 
 **Needs an architecture decision (→ ADR during `/create-architecture`):**
 
