@@ -177,6 +177,13 @@ class BoardImpl implements Board {
 
   step(tile: Tile, direction: Direction): Tile {
     const v = DIRECTION_VECTORS[direction];
+    // Channel 2 (ADR-0005): a bad direction is a programmer error, so it must
+    // throw a named InvariantError rather than a bare
+    // "Cannot read properties of undefined (reading 'col')" from the line
+    // below. The type system normally prevents this, but any `as` cast at a
+    // module boundary erases that guarantee -- which is exactly how it was
+    // found (an integration test passed 'east'; Direction is 'N'|'S'|'E'|'W').
+    invariant(v !== undefined, `Board.step: unknown direction ${String(direction)}`);
     return { col: tile.col + v.col, row: tile.row + v.row };
   }
 
