@@ -1,39 +1,28 @@
 // Board & Grid — unit tests (Vitest)
 //
-// These reference implementations mirror the pure formulas defined in
-// design/gdd/board-and-grid.md (Formulas F1–F7). They live in this test file only
-// because src/ does not exist yet; once Board & Grid is implemented, replace them
-// with imports from src/ and keep the assertions.
+// These cases originally shipped with inline reference implementations of
+// Formulas F1-F4, mirroring design/gdd/board-and-grid.md, because src/ did
+// not exist yet. Board & Grid is now implemented at src/core/board/ — this
+// file imports the real implementation and keeps every original assertion
+// unchanged, so it now exercises Board.inBounds/distance/neighbors/tilesInRange
+// on the default 8x8 board.
 //
 // Naming follows the project standard: [system]_[feature]_test.ts,
 // test_[scenario]_[expected] for cases. All tests are deterministic (no RNG, no time).
 
 import { describe, it, expect } from 'vitest'
+import { makeBoard } from '../../../src/core/board/board.js'
+import type { Tile } from '../../../src/core/board/board-types.js'
 
-const W = 8
-const H = 8
+const board = makeBoard() // default 8x8
 
-// F1 — in-bounds
-const inBounds = (c: number, r: number): boolean => c >= 0 && c < W && r >= 0 && r < H
-
-// F2 — Manhattan distance
+const inBounds = (c: number, r: number): boolean => board.inBounds(c, r)
 const distance = (a: [number, number], b: [number, number]): number =>
-  Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1])
-
-// F3 — orthogonal in-bounds neighbors
+  board.distance({ col: a[0], row: a[1] }, { col: b[0], row: b[1] })
 const neighbors = (c: number, r: number): Array<[number, number]> =>
-  ([[0, -1], [0, 1], [-1, 0], [1, 0]] as Array<[number, number]>)
-    .map(([dc, dr]) => [c + dc, r + dr] as [number, number])
-    .filter(([nc, nr]) => inBounds(nc, nr))
-
-// F4 — tiles within Manhattan radius R (clipped to board)
-const tilesInRange = (o: [number, number], R: number): Array<[number, number]> => {
-  const out: Array<[number, number]> = []
-  for (let c = 0; c < W; c++)
-    for (let r = 0; r < H; r++)
-      if (distance(o, [c, r]) <= R) out.push([c, r])
-  return out
-}
+  board.neighbors(c, r).map((t: Tile) => [t.col, t.row] as [number, number])
+const tilesInRange = (o: [number, number], R: number): Array<[number, number]> =>
+  board.tilesInRange({ col: o[0], row: o[1] }, R).map((t: Tile) => [t.col, t.row] as [number, number])
 
 describe('board-and-grid: inBounds (F1)', () => {
   it('test_corner_in_bounds_true', () => expect(inBounds(7, 7)).toBe(true))

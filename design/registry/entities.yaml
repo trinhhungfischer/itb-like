@@ -60,7 +60,7 @@ entities:
       - design/gdd/ability-upgrades.md
       - design/gdd/board-rendering-and-juice.md
       - design/gdd/encounter-generator.md
-    note: "Closed vocabulary of 10 effect primitives ALL abilities compile into: damage, push, pull, swap, spawnHazard, applyHazard, removeUnit, setTerrain, spawnUnit, + a shared collision-resolution algorithm (push/pull). No system may assume an 11th without amending combat-resolution.md. 'wall' verb = setTerrain(tile, Blocked/Normal). Enemy emergence + on-death broods = spawnUnit(tile, unitSpec) on a Clear tile. Canonical events: DamageApplied, DisplacementComplete, CollisionResolved, SwapComplete, HazardSpawned, HazardApplied, UnitRemoved, TerrainSet, UnitSpawned. Entry point: resolve(board, effects[]) -> events[]. See design/architecture/cross-system-contracts.md."
+    note: "Closed vocabulary of 10 effect primitives ALL abilities compile into: damage, push, pull, swap, spawnHazard, applyHazard, removeUnit, setTerrain, spawnUnit, + a shared collision-resolution algorithm (push/pull). No system may assume an 11th without amending combat-resolution.md. 'wall' verb = setTerrain(tile, Blocked/Normal). Enemy emergence + on-death broods = spawnUnit(tile, unitSpec) on a Clear tile. Canonical events: damage_applied, displacement_complete, collision_resolved, swap_complete, hazard_spawned, hazard_applied, unit_removed, terrain_set, unit_spawned. Entry point: resolve(board, effects[]) -> events[]. See design/architecture/cross-system-contracts.md."
     added: 2026-07-27
     revised: ""
   - name: unit_record

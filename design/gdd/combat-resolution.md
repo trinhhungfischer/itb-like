@@ -78,10 +78,10 @@ would break the trust the whole game depends on.
 3. **`damage(targetId, amount, sourceId?)`.** Reduces the target's HP by a
    flat, non-negative integer `amount` (see Formula F1). No hit chance, no
    crit, no resistance/type system is defined by this document — flat damage
-   only. Emits `DamageApplied(targetId, amount, hp')` on every call. If the
+   only. Emits `damage_applied(targetId, amount, hp')` on every call. If the
    target's HP reaches 0, `removeUnit(targetId, Defeated)` is triggered as
    part of the same resolution step, before the next effect in the chain
-   runs (Rule 8 covers the accompanying `UnitRemoved` event).
+   runs (Rule 8 covers the accompanying `unit_removed` event).
 4. **`push(targetId, direction, distance, sourceId?)`.** Displaces `targetId`
    up to `distance` tiles in one cardinal `direction` (per
    `board-and-grid.md` Core Rule 3: push directions are always orthogonal),
@@ -110,7 +110,7 @@ would break the trust the whole game depends on.
    be standing on Blocked or Lethal terrain, so no terrain-validity check is
    needed). Range/targeting restrictions on *which* units may be swapped are
    an ability-level concern (Heroes & Abilities), not this primitive's. A
-   successful exchange emits `SwapComplete(unitAId, unitBId)`.
+   successful exchange emits `swap_complete(unitAId, unitBId)`.
 7. **`spawnHazard(tile, hazardType, duration?)` / `applyHazard(tile)` are
    split by design.** `spawnHazard` only sets the tile's hazard overlay
    (delegates to `Board.setHazard`); it does **not** automatically affect
@@ -125,13 +125,13 @@ would break the trust the whole game depends on.
    A tile holds **at most one hazard**; a new `spawnHazard` call on an
    already-hazarded tile **overwrites** the previous hazard (last-write-wins,
    no stacking, matching Board & Grid's `None ↔ Hazard(type)` state model).
-   A successful `spawnHazard` call emits `HazardSpawned(tile, hazardType,
+   A successful `spawnHazard` call emits `hazard_spawned(tile, hazardType,
    duration)`; a successful `applyHazard` call against a hazarded tile with
-   a current occupant emits `HazardApplied(tile, unitId, amount)`.
+   a current occupant emits `hazard_applied(tile, unitId, amount)`.
 8. **`removeUnit(targetId, cause)` is the single exit point from the board**
    for any unit, regardless of cause (`Defeated`, `Fell`, or a future
    ability-driven `Recalled` — see Open Questions). It clears the unit's
-   board occupancy and emits `UnitRemoved(targetId, cause, tile)`, which is
+   board occupancy and emits `unit_removed(targetId, cause, tile)`, which is
    the event Objective / Win-Lose listens to for both lose conditions (all
    heroes removed) and win conditions (all enemies removed, or a named
    target removed). `removeUnit` is **idempotent**: calling it on a unit
@@ -208,7 +208,7 @@ would break the trust the whole game depends on.
     that unit could not legally stand on (`Blocked` or `Lethal`) is rejected
     as a contract violation, not silently resolved (Edge Cases) — a disguised
     removal must go through `removeUnit`. A successful call emits
-    `TerrainSet(tile, terrainType)`.
+    `terrain_set(tile, terrainType)`.
 15. **`spawnUnit(tile, unitSpec)`.** Creates a new unit on the board at
     `tile` from the caller-supplied `unitSpec` (archetype, team, starting
     HP/abilities — owned and validated by whichever system authored the
@@ -224,7 +224,7 @@ would break the trust the whole game depends on.
     the battle on a Turn & Phase Manager `Spawn` step) and **on-death
     broods** (an enemy's `removeUnit` triggering a follow-up `spawnUnit` for
     its spawn children, per Enemy, Abilities & Telegraph's own on-death
-    effect rules). A successful call emits `UnitSpawned(unitId, tile,
+    effect rules). A successful call emits `unit_spawned(unitId, tile,
     unitSpec)`. A newly spawned unit does **not** retroactively trigger
     hazard-on-entry (Rule 9) — hazard-on-entry only fires for a unit that
     *moves onto* a hazarded tile, and `spawnUnit` creates the unit already
@@ -285,7 +285,7 @@ call it; it never initiates action on its own.
 | **Enemy, Abilities & Telegraph** ✅ | — | — | Same relationship as Heroes & Abilities: enemy actions compile to the same primitive vocabulary — this is the mechanism that breaks the Enemy↔Combat dependency cycle noted in `systems-index.md`. Also calls `spawnUnit` for Spawn-phase emergence and on-death broods (Rule 15) |
 | **Move Preview** ✅ | `resolve(board.snapshot(), effects)` — identical call, cloned input | — | Preview reuses this exact code path (not a reimplementation) so the previewed outcome and the committed outcome can never diverge |
 | **Objective / Win-Lose** ✅ | — | — | Reads battle **state** via a pure `evaluate(battleState, turn, config)` call — state-based polling, no event subscription; it inspects post-resolution board/unit state to evaluate win/lose predicates rather than subscribing to Combat's event stream. Combat never queries or notifies Objective |
-| **Board Rendering & Juice** ✅ | — | — | Reads the emitted event log (`DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned`) to drive knockback animation, hit-flash, spawn-in, and hazard VFX; Combat has no rendering knowledge |
+| **Board Rendering & Juice** ✅ | — | — | Reads the emitted event log (`damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`) to drive knockback animation, hit-flash, spawn-in, and hazard VFX; Combat has no rendering knowledge |
 | **Battle HUD** ✅ | — | — | Reads events to drive damage numbers / HP bar updates; read-only consumer |
 | **Audio System** ✅ | — | — | Reads events for SFX triggers (impact, collision, hazard tick, spawn); read-only consumer |
 | **Encounter Generator** ✅ | — | `spawnHazard` (authoring initial hazard layout at battle setup, alongside Board's initial terrain) | Generator authors *what* hazards exist at setup; Combat provides the primitive it's placed through |
@@ -351,20 +351,20 @@ resolveDisplacement(board, unitId, direction, distance):
         if board.getHazard(nextTile) != None: applyHazard(nextTile)
         currentTile = nextTile; stepsMoved += 1
       OutOfBounds:
-        emit CollisionResolved(unitId, kind: Edge); damage(unitId, collision_damage)
+        emit collision_resolved(unitId, kind: Edge); damage(unitId, collision_damage)
         return  # stop, 0 further steps
       BlockedTerrain:
-        emit CollisionResolved(unitId, kind: Wall); damage(unitId, collision_damage)
+        emit collision_resolved(unitId, kind: Wall); damage(unitId, collision_damage)
         return  # stop
       Lethal:
         board.clear(currentTile); board.place(nextTile, unitId)
         removeUnit(unitId, Fell)
         return  # stop, unit is gone
       Occupied(otherId):
-        emit CollisionResolved(unitId, kind: Unit, otherId)
+        emit collision_resolved(unitId, kind: Unit, otherId)
         damage(unitId, collision_damage); damage(otherId, collision_damage)
         return  # stop, no chain (Rule 10)
-  emit DisplacementComplete(unitId, stepsMoved)
+  emit displacement_complete(unitId, stepsMoved)
 ```
 
 | Variable | Symbol | Type | Range | Description |
@@ -381,14 +381,14 @@ infinite resolution even if `distance` exceeds the board's diameter of 14).
 
 **Worked example 1 (edge collision):** unit at `(7,3)` on an 8×8 board,
 pushed East, `distance=2`. Step 1: `step((7,3),E)=(8,3)`, `classify=OutOfBounds`
-(col 8 ≥ width 8) → `CollisionResolved(kind: Edge)`, unit stays at `(7,3)`,
+(col 8 ≥ width 8) → `collision_resolved(kind: Edge)`, unit stays at `(7,3)`,
 takes 1 damage (`collision_damage` default), `stepsMoved=0`.
 
 **Worked example 2 (unit collision short of full distance):** unit at
 `(2,3)` pushed East, `distance=3`; `(3,3)` and `(4,3)` are `Clear`, `(5,3)`
 is `Occupied`. Step 1: `(3,3)` Clear → move, `stepsMoved=1`. Step 2: `(4,3)`
 Clear → move, `stepsMoved=2`. Step 3: `(5,3)` Occupied →
-`CollisionResolved(kind: Unit)`, mover stays at `(4,3)`, both units take 1
+`collision_resolved(kind: Unit)`, mover stays at `(4,3)`, both units take 1
 damage. Final: unit ends at `(4,3)`, 2 of the requested 3 tiles resolved.
 
 **Worked example 3 (lethal terrain):** unit at `(3,3)` pushed South,
@@ -437,7 +437,7 @@ phase. `duration=null` → unaffected; persists until an explicit future clear
   as `*_noop(targetId, reason: 'already_removed')` for debuggability, but no
   state changes. This is the general rule Rules 3/6/8/11 all rely on.
 - **`push`/`pull` with `distance = 0`:** no-op; no events beyond an optional
-  `DisplacementComplete(unitId, 0)` marker. Not an error.
+  `displacement_complete(unitId, 0)` marker. Not an error.
 - **`push`/`pull` requesting a `distance` larger than the board's diameter
   (e.g. `distance=20` on an 8-wide board):** resolved normally — the
   step-by-step algorithm self-terminates at the first obstacle or the board
@@ -610,14 +610,14 @@ query/mutation contract).
 - **GIVEN** `resolve(board.snapshot(), effects)` is called, **THEN** the original `board` instance is unchanged after the call (Move Preview contract).
 
 **Damage (Rule 3, Formula F1)**
-- **GIVEN** a unit with `hp=5`, **WHEN** `damage(unit, 7)`, **THEN** `hp'=0`, `DamageApplied(unit, 7, 0)` is emitted, and `UnitRemoved(unit, Defeated)` is also emitted in the same `resolve()` call.
+- **GIVEN** a unit with `hp=5`, **WHEN** `damage(unit, 7)`, **THEN** `hp'=0`, `damage_applied(unit, 7, 0)` is emitted, and `unit_removed(unit, Defeated)` is also emitted in the same `resolve()` call.
 - **GIVEN** a unit with `hp=10`, **WHEN** `damage(unit, 3)`, **THEN** `hp'=7` and no removal event fires.
 - **GIVEN** `amount < 0` is constructed, **WHEN** validated, **THEN** it is rejected before `resolve()` accepts the effect list (contract violation, not a runtime no-op).
 
 **Push (Rules 4, 10, 12; Formula F2)**
-- **GIVEN** a unit at `(7,3)` on an 8×8 board, **WHEN** `push(unit, E, 2)`, **THEN** the unit remains at `(7,3)`, exactly `collision_damage` is dealt once, and `CollisionResolved(kind: Edge)` is emitted.
+- **GIVEN** a unit at `(7,3)` on an 8×8 board, **WHEN** `push(unit, E, 2)`, **THEN** the unit remains at `(7,3)`, exactly `collision_damage` is dealt once, and `collision_resolved(kind: Edge)` is emitted.
 - **GIVEN** a unit at `(2,3)` with `(3,3),(4,3)` Clear and `(5,3)` Occupied, **WHEN** `push(unit, E, 3)`, **THEN** the unit ends at `(4,3)`, both units take exactly `collision_damage`, and no third unit or chain displacement occurs (Rule 10).
-- **GIVEN** a unit at `(3,3)` with `(3,4)` a Chasm, **WHEN** `push(unit, S, 1)`, **THEN** the unit is removed with cause `Fell`, `UnitRemoved(unit, Fell, (3,4))` is emitted, and the board tile `(3,3)` is empty.
+- **GIVEN** a unit at `(3,3)` with `(3,4)` a Chasm, **WHEN** `push(unit, S, 1)`, **THEN** the unit is removed with cause `Fell`, `unit_removed(unit, Fell, (3,4))` is emitted, and the board tile `(3,3)` is empty.
 - **GIVEN** a push lands a unit on a hazarded `Clear` tile with no further obstacle, **WHEN** resolved, **THEN** hazard-on-entry fires exactly once for that tile (Rule 9).
 
 **Pull (Rule 5)**
@@ -639,18 +639,18 @@ query/mutation contract).
 - **GIVEN** a tile already hazarded with `Fire`, **WHEN** `spawnHazard(tile, Smoke)` is called, **THEN** `getHazard(tile) == Smoke` (overwrite, no stacking).
 
 **SetTerrain (Rule 14)**
-- **GIVEN** an empty `Normal` tile, **WHEN** `setTerrain(tile, Blocked)`, **THEN** `classify(tile)` reports `Blocked` and a subsequent `push` toward that tile stops one tile short with `CollisionResolved(kind: Wall)` (proving a hero-built wall blocks displacement with no engine changes).
-- **GIVEN** a `Blocked` tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it (wall torn down), and `TerrainSet(tile, Normal)` is emitted.
+- **GIVEN** an empty `Normal` tile, **WHEN** `setTerrain(tile, Blocked)`, **THEN** `classify(tile)` reports `Blocked` and a subsequent `push` toward that tile stops one tile short with `collision_resolved(kind: Wall)` (proving a hero-built wall blocks displacement with no engine changes).
+- **GIVEN** a `Blocked` tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it (wall torn down), and `terrain_set(tile, Normal)` is emitted.
 - **GIVEN** a tile occupied by a unit, **WHEN** `setTerrain(tile, Blocked)` is attempted, **THEN** it is rejected, the terrain is unchanged, and `set_terrain_rejected` is emitted.
 
 **SpawnUnit (Rule 15)**
-- **GIVEN** an empty `Clear` tile, **WHEN** `spawnUnit(tile, unitSpec)`, **THEN** a new unit occupying `tile` exists on the board in the `Alive` state, and `UnitSpawned(unitId, tile, unitSpec)` is emitted exactly once.
-- **GIVEN** a tile that is `Occupied`, `Blocked`, `Lethal`, or `OutOfBounds`, **WHEN** `spawnUnit(tile, unitSpec)` is attempted, **THEN** the call is rejected as a no-op — no unit is created and no `UnitSpawned` event fires.
+- **GIVEN** an empty `Clear` tile, **WHEN** `spawnUnit(tile, unitSpec)`, **THEN** a new unit occupying `tile` exists on the board in the `Alive` state, and `unit_spawned(unitId, tile, unitSpec)` is emitted exactly once.
+- **GIVEN** a tile that is `Occupied`, `Blocked`, `Lethal`, or `OutOfBounds`, **WHEN** `spawnUnit(tile, unitSpec)` is attempted, **THEN** the call is rejected as a no-op — no unit is created and no `unit_spawned` event fires.
 - **GIVEN** a hazarded `Clear` tile, **WHEN** `spawnUnit(tile, unitSpec)` resolves, **THEN** the new unit is **not** damaged by the existing hazard as a direct consequence of spawning (hazard-on-entry does not retroactively apply); a subsequent `applyHazard(tile)` in the same chain is required to damage it.
 
 **RemoveUnit (Rule 8)**
-- **GIVEN** a unit on the board, **WHEN** `removeUnit(unit, Defeated)`, **THEN** its tile becomes empty and `UnitRemoved(unit, Defeated, tile)` fires exactly once.
-- **GIVEN** a unit already removed, **WHEN** `removeUnit` is called on it again (same or different cause), **THEN** no-op — no second `UnitRemoved` event.
+- **GIVEN** a unit on the board, **WHEN** `removeUnit(unit, Defeated)`, **THEN** its tile becomes empty and `unit_removed(unit, Defeated, tile)` fires exactly once.
+- **GIVEN** a unit already removed, **WHEN** `removeUnit` is called on it again (same or different cause), **THEN** no-op — no second `unit_removed` event.
 
 **Target-locking (Rule 11)**
 - **GIVEN** an effect chain `[push(unitB, ...), damage(unitB, 5)]` where the push moves `unitB` off the tile an AoE was originally aimed at, **THEN** the subsequent `damage(unitB, 5)` still resolves against `unitB` by ID (not by re-querying the original tile), proving primitives are ID-addressed, not tile-addressed, once a chain begins.
@@ -673,9 +673,9 @@ query/mutation contract).
 
 1. **Event log serialization contract.** Rendering, HUD, and Audio all
    consume the same canonical event stream this document defines
-   (`DamageApplied`, `DisplacementComplete`, `CollisionResolved`,
-   `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`,
-   `TerrainSet`, `UnitSpawned` — per
+   (`damage_applied`, `displacement_complete`, `collision_resolved`,
+   `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`,
+   `terrain_set`, `unit_spawned` — per
    `design/architecture/cross-system-contracts.md` §1), but the exact wire
    schema (fields, versioning) isn't pinned. *Proposed:* a flat, tagged-union
    event type per primitive, matching the naming used throughout this

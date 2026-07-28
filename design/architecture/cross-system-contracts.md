@@ -27,10 +27,10 @@ locked registry (`design/registry/entities.yaml`) and the game pillars.
   - `setTerrain(tile, terrainType)` mutates terrain (Blocked = build a wall; Normal =
     teardown). Enables the "wall" hero verb. Rejected on an occupied tile → Blocked/Lethal.
 - **Canonical event names** (all consumers — Board Rendering, Audio, Battle HUD, Move
-  Preview — MUST use these): `DamageApplied`, `DisplacementComplete` (carries
-  `stepsMoved`), `CollisionResolved` (carries `collision_damage` dealt to both units),
-  `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`,
-  `UnitSpawned`. There is **no** `push_resolved` / `apply()` event or entry point.
+  Preview — MUST use these): `damage_applied`, `displacement_complete` (carries
+  `stepsMoved`), `collision_resolved` (carries `collision_damage` dealt to both units),
+  `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`,
+  `unit_spawned`. There is **no** `push_resolved` / `apply()` event or entry point.
 
 ## 2. Board & Grid — canonical query/mutation surface
 

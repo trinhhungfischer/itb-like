@@ -97,9 +97,9 @@ migrate.
   headless in Vitest with no canvas and no renderer (Principle P3). The bus must
   therefore have zero dependency on PixiJS, the DOM, or `requestAnimationFrame`.
 - **Compatibility:** Producers emit **only** the canonical event names from
-  `cross-system-contracts.md` §1 (`DamageApplied`, `DisplacementComplete`,
-  `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`,
-  `UnitRemoved`, `TerrainSet`, `UnitSpawned`) plus Turn & Phase Manager phase
+  `cross-system-contracts.md` §1 (`damage_applied`, `displacement_complete`,
+  `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`,
+  `unit_removed`, `terrain_set`, `unit_spawned`) plus Turn & Phase Manager phase
   events. There is no `push_resolved`/`apply()` event or entry point.
 - **Contract precedence:** Where any GDD diverges from `cross-system-contracts.md`,
   the contracts file wins; this ADR follows it.
@@ -398,7 +398,7 @@ rollback-eligible; it is a hard determinism guarantee.
 
 | GDD Document | System | Requirement | How This ADR Satisfies It |
 |-------------|--------|-------------|--------------------------|
-| `design/gdd/combat-resolution.md` | Combat Resolution | "Deterministic engine... produces the same board state and event log, with no RNG, no wall-clock dependence, and no hidden state." Emits the canonical event vocabulary (`DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned`). | Synchronous, registration-ordered dispatch with no deferral makes the emitted event log a pure function of inputs — the mechanism by which Combat's "same event log" guarantee holds end-to-end through its consumers. |
+| `design/gdd/combat-resolution.md` | Combat Resolution | "Deterministic engine... produces the same board state and event log, with no RNG, no wall-clock dependence, and no hidden state." Emits the canonical event vocabulary (`damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`). | Synchronous, registration-ordered dispatch with no deferral makes the emitted event log a pure function of inputs — the mechanism by which Combat's "same event log" guarantee holds end-to-end through its consumers. |
 | `design/gdd/audio-system.md` | Audio System | "Read-only, non-blocking consumer" that "subscribes to the canonical event vocabulary emitted by Combat Resolution's `resolve()`"; Move Preview's dry-run events "structurally never enter the shared stream" the Audio System subscribes to. | Provides the single synchronous subscription channel Audio reads from, and guarantees preview events are never published onto it (structural silence, contracts §7) — no `committed` tag needed. |
 | `design/gdd/board-rendering-and-juice.md` | Board Rendering & Juice | Drives knockback, hit-flash, spawn-in, and hazard VFX by reading Combat's emitted event log (per `combat-resolution.md` consumer table). | Delivers those events in a deterministic order via `on()`; the record-then-animate guideline lets rendering pace paint via rAF without deferring dispatch. |
 | `design/gdd/battle-hud.md` | Battle HUD | Reads events to drive damage numbers / HP-bar updates and the danger/log widgets (read-only consumer). | Same synchronous, ordered event stream; HUD subscribes without the producer knowing it exists (P3). |

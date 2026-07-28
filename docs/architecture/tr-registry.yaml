@@ -179,7 +179,7 @@ requirements:
   - id: TR-COMBAT-004
     system: Combat Resolution
     gdd: design/gdd/combat-resolution.md
-    requirement: "Emits only the canonical event vocabulary (DamageApplied, DisplacementComplete, CollisionResolved, SwapComplete, HazardSpawned, HazardApplied, UnitRemoved, TerrainSet, UnitSpawned); no push_resolved/apply() entry point; events are the sole integration surface for Rendering/HUD/Audio/Preview, delivered over the synchronous bus."
+    requirement: "Emits only the canonical event vocabulary (damage_applied, displacement_complete, collision_resolved, swap_complete, hazard_spawned, hazard_applied, unit_removed, terrain_set, unit_spawned); no push_resolved/apply() entry point; events are the sole integration surface for Rendering/HUD/Audio/Preview, delivered over the synchronous bus."
     adr: "ADR-0002, ADR-0006"
     created: 2026-07-28
     revised: ""
@@ -195,7 +195,7 @@ requirements:
   - id: TR-COMBAT-006
     system: Combat Resolution
     gdd: design/gdd/combat-resolution.md
-    requirement: "hazardImmunities is consulted at every hazard damage site (applyHazard primitive + hazard-on-entry after displacement/spawn); an immune unit takes no damage and emits no HazardApplied event."
+    requirement: "hazardImmunities is consulted at every hazard damage site (applyHazard primitive + hazard-on-entry after displacement/spawn); an immune unit takes no damage and emits no hazard_applied event."
     adr: "ADR-0008"
     created: 2026-07-28
     revised: ""

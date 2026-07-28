@@ -34,8 +34,8 @@
 
 - [ ] **GIVEN** unit A at tile `X` and unit B at tile `Y`, **WHEN** `swap(A, B)`, **THEN** A is now at `Y`, B is now at `X`, and no intermediate tile state is ever observable (atomic).
 - [ ] **GIVEN** unit A was removed earlier in the same chain, **WHEN** `swap(A, B)` is attempted, **THEN** the entire swap is rejected, B remains at its original tile, and a `swap_failed` event is emitted.
-- [ ] **GIVEN** an empty `Normal` tile, **WHEN** `setTerrain(tile, Blocked)`, **THEN** `classify(tile)` reports `Blocked` and a subsequent `push` toward that tile stops one tile short with `CollisionResolved(kind: Wall)`.
-- [ ] **GIVEN** a `Blocked` tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it, and `TerrainSet(tile, Normal)` is emitted.
+- [ ] **GIVEN** an empty `Normal` tile, **WHEN** `setTerrain(tile, Blocked)`, **THEN** `classify(tile)` reports `Blocked` and a subsequent `push` toward that tile stops one tile short with `collision_resolved(kind: Wall)`.
+- [ ] **GIVEN** a `Blocked` tile with no occupant, **WHEN** `setTerrain(tile, Normal)`, **THEN** `classify(tile)` reports `Clear` and a unit may subsequently be pushed or moved onto it, and `terrain_set(tile, Normal)` is emitted.
 - [ ] **GIVEN** a tile occupied by a unit, **WHEN** `setTerrain(tile, Blocked)` is attempted, **THEN** it is rejected, the terrain is unchanged, and `set_terrain_rejected` is emitted.
 
 ---

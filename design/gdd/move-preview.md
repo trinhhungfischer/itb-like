@@ -252,7 +252,7 @@ events (hard-bounded by the board diameter — registry formula
 `manhattan_distance`'s output range `[0,14]` on the default 8×8 board) + 1
 terminal collision/complete event; `swap` → 2 position events (+ up to 2
 hazard-on-entry events); `spawnHazard`/`applyHazard` → 1 event each;
-`setTerrain` → 1 `TerrainSet` event (a wall build or teardown, whichever the
+`setTerrain` → 1 `terrain_set` event (a wall build or teardown, whichever the
 primitive specifies — `cross-system-contracts.md` §1).
 
 | Variable | Symbol | Type | Range | Description |
@@ -264,10 +264,10 @@ primitive specifies — `cross-system-contracts.md` §1).
 **Output range:** `diffEvents ∈ [n, 15n]`. **Worked example:** a 2-primitive
 "shove then hazard-apply" chain on an 8×8 board with a push that resolves 3
 tiles before colliding: push contributes 3 `TileEntered` + 1
-`DisplacementComplete` (or collision event) = 4 events; `applyHazard`
+`displacement_complete` (or collision event) = 4 events; `applyHazard`
 contributes 1 event; `diffEvents = 5`. **Wall-verb worked example:** a
 1-primitive "build wall" candidate (`setTerrain(tile, Blocked)`) targeting an
-unoccupied tile: the primitive contributes exactly 1 `TerrainSet` event, so
+unoccupied tile: the primitive contributes exactly 1 `terrain_set` event, so
 `diffEvents = 1` — the minimum possible non-empty preview, and a case where
 the "consequence" is purely a battlefield-shape change rather than damage or
 displacement. The preview still shows this single tile-delta with the same

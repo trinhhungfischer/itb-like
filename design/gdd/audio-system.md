@@ -48,8 +48,8 @@ on.
 1. **Read-only, non-blocking consumer.** The Audio System subscribes to the canonical
    event vocabulary emitted by Combat Resolution's `resolve(board, effects[])` — all 9
    event types covering its 10 primitives, per `cross-system-contracts.md` §1:
-   `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`,
-   `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned` (plus
+   `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`,
+   `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned` (plus
    the debug-only `swap_failed` event) — and Turn & Phase Manager (`turn_started`,
    `player_phase_begun`, `action_applied`, `action_undone`, `environment_resolved`,
    `hazard_ticked`, `enemy_action_resolved`, `enemy_spawned`, `intents_telegraphed`,
@@ -189,7 +189,7 @@ battles or saved to Run Persistence.
 
 | System | Audio System reads | Audio System calls into | Ownership boundary |
 |--------|---------------------|--------------------------|---------------------|
-| **Combat Resolution** ✅ | `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`/`swap_failed`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned` | — (never calls back) | Combat owns event truth and ordering; Audio owns interpretation into sound |
+| **Combat Resolution** ✅ | `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`/`swap_failed`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned` | — (never calls back) | Combat owns event truth and ordering; Audio owns interpretation into sound |
 | **Turn & Phase Manager** ✅ | `turn_started`, `player_phase_begun`, `action_applied`, `action_undone`, `environment_resolved`, `hazard_ticked`, `enemy_action_resolved`, `enemy_spawned`, `intents_telegraphed`, `battle_ended` | — | Manager owns *when* phases happen; Audio owns *how they sound* |
 | **Heroes & Abilities** ✅ | ability-specific cue IDs (each ability definition must supply a `sfx_cue_id` per verb) | — | Heroes & Abilities owns ability content; Audio owns cue playback. **Gap to flag** — `heroes-and-abilities.md`'s `AbilityDefinition` schema does not yet include an `sfx_cue_id` field (see Bidirectional-consistency note, Dependencies) |
 | **Enemy, Abilities & Telegraph** ✅ | enemy action cue IDs; telegraph-category cue IDs (for Rule 11's stinger); `telegraphedLethalThreatCount(turn)` for Formula F5's tension score, per `cross-system-contracts.md` §9 (resolving C4) | — | Same relationship as Heroes & Abilities. **Gap to flag** — `enemy-abilities-and-telegraph.md` does not yet expose `telegraphedLethalThreatCount(turn)` (see Bidirectional-consistency note, Dependencies) |
@@ -258,7 +258,7 @@ requestVoice(bus, cue):
 **Output range:** `{PLAY, DROP}` — a binary outcome per voice request.
 
 **Worked example 1 (steal):** SFX bus, `V_max=8`, all 8 slots full (6 Normal, 2
-Critical). A new `Critical UnitRemoved` cue arrives. Candidates = all 8 voices
+Critical). A new `Critical unit_removed` cue arrives. Candidates = all 8 voices
 (`P(v.cue) <= 2` is true for everything). Victim = lowest priority first → a Normal
 voice; among Normal voices, oldest (`age_ms` largest) is stolen. New cue plays: `PLAY`.
 
@@ -288,7 +288,7 @@ else:
 base_gain_db]` for `i ≤ K`; `SILENT` for `i > K`.
 
 **Worked example:** `K=3`, `attenuation_db_per_step=-4dB`, `base_gain_db=0dB`. A
-5-target AoE resolves as 5 sequential `DamageApplied` events within a 50ms
+5-target AoE resolves as 5 sequential `damage_applied` events within a 50ms
 `coalesce_window_ms` (Combat Resolution's Rule 2 strict sequencing makes this a
 near-instant chain). `i=1 → 0dB` (full), `i=2 → -4dB`, `i=3 → -8dB`, `i=4,5 → SILENT`
 (cluster counter = 2). The HUD still shows all 5 damage numbers — audio never hides
@@ -336,7 +336,7 @@ stacking further below `duck_amount_db` — the floor is a clamp, not cumulative
 
 **Output range:** `gain_db(t) ∈ [duck_amount_db, 0]`.
 
-**Worked example:** defaults. A `Critical UnitRemoved` fires at `t=0`: gain glides
+**Worked example:** defaults. A `Critical unit_removed` fires at `t=0`: gain glides
 `0dB → -6dB` by `t=50ms`, holds `-6dB` until `t=150ms`, then glides back to `0dB` by
 `t=550ms`. A second Critical cue fires at `t=120ms` (mid-hold): envelope resets to a
 fresh `Attack` starting from the current `-6dB` (no audible jump), extending the ducked
@@ -424,7 +424,7 @@ by row is a possible extension (Open Questions), not designed here.
   leaving the battle, not experiencing its outcome) and the music state machine
   transitions directly to `Ended` with no stinger (States and Transitions).
 - **Two Critical cues fire in the exact same resolution tick (e.g. two simultaneous
-  `UnitRemoved` events from a spreading-fire tick, per Combat Resolution's own edge
+  `unit_removed` events from a spreading-fire tick, per Combat Resolution's own edge
   case for two units hitting 0 HP in one Environment tick):** both request voices; F1
   resolves them independently in the order Combat Resolution emitted them (Rule 12 —
   audio never reorders); the ducking envelope (F4) retriggers once per Critical cue,
@@ -458,7 +458,7 @@ by row is a possible extension (Open Questions), not designed here.
 
 | System | Interface | Hard / Soft |
 |--------|-----------|-------------|
-| **Combat Resolution** ✅ | Reads the emitted event log (`DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`/`swap_failed`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned`) | **Hard** — every SFX cue originates from these events |
+| **Combat Resolution** ✅ | Reads the emitted event log (`damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`/`swap_failed`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`) | **Hard** — every SFX cue originates from these events |
 | **Turn & Phase Manager** ✅ | Reads phase/lifecycle events (`turn_started`, `player_phase_begun`, `action_applied`, `action_undone`, `environment_resolved`, `hazard_ticked`, `enemy_action_resolved`, `enemy_spawned`, `intents_telegraphed`, `battle_ended`) | **Hard** — drives the music state machine and undo/redo audio contract |
 | **Enemy, Abilities & Telegraph** ✅ | Reads `telegraphedLethalThreatCount(turn)` for Formula F5's tension score, per `cross-system-contracts.md` §9 (resolving C4); also the source of enemy action/telegraph cue IDs (Interactions with Other Systems) | **Hard** — Formula F5 has no tension input without it |
 | **Move Preview** ✅ | No direct calls — Audio's Rule 3 correctness depends on Move Preview remaining silent and subscription-based (`move-preview.md`, per `cross-system-contracts.md` §7) and never publishing dry-run `resolve()` events onto the shared Combat/Turn event stream | **Hard** — if this contract ever changed, Audio would need a preview filter it does not currently implement |
@@ -647,13 +647,13 @@ representative sample establishing the pattern, not the complete list.
 
 | Event (from Combat/Turn) | Cue ID | Bus | Priority |
 |---|---|---|---|
-| `DamageApplied` (direct) | `sfx_combat_impact_medium_##` | SFX | Critical |
-| `CollisionResolved` (kind: Unit/Wall/Edge) | `sfx_combat_collision_##` | SFX | Critical |
-| `HazardApplied` (Fire tick) | `sfx_combat_burn_tick_##` | SFX | Normal |
-| `UnitRemoved` | `sfx_combat_unit_defeated_##` | SFX | Critical |
-| `HazardSpawned` | `sfx_combat_hazard_set_##` | SFX | Normal |
-| `TerrainSet` (wall built, hero verb) | `sfx_combat_wall_place_##` | SFX | Normal |
-| `UnitSpawned` (on-death brood) | `sfx_combat_spawn_##` | SFX | Normal |
+| `damage_applied` (direct) | `sfx_combat_impact_medium_##` | SFX | Critical |
+| `collision_resolved` (kind: Unit/Wall/Edge) | `sfx_combat_collision_##` | SFX | Critical |
+| `hazard_applied` (Fire tick) | `sfx_combat_burn_tick_##` | SFX | Normal |
+| `unit_removed` | `sfx_combat_unit_defeated_##` | SFX | Critical |
+| `hazard_spawned` | `sfx_combat_hazard_set_##` | SFX | Normal |
+| `terrain_set` (wall built, hero verb) | `sfx_combat_wall_place_##` | SFX | Normal |
+| `unit_spawned` (on-death brood) | `sfx_combat_spawn_##` | SFX | Normal |
 | `intents_telegraphed` (new lethal threat) | `sfx_telegraph_lethal_reveal_##` | SFX | Critical |
 | `intents_telegraphed` (non-lethal) | `sfx_telegraph_minor_reveal_##` | SFX | Normal |
 | `action_applied` (generic move) | `sfx_combat_move_step_##` | SFX | Normal |

@@ -281,7 +281,7 @@ persistence write (Rule 11).
 | System | Onboarding reads | Onboarding writes / provides | Ownership boundary |
 |---|---|---|---|
 | **Turn & Phase Manager** ✅ | `currentPhase`, `currentTurn`, phase-boundary events; the battle Setup entry point used to load a Tutorial Battle Template (**PROVISIONAL** — exact bootstrap contract not pinned by any document yet, mirrors `heroes-and-abilities.md`'s own flagged deployment-zone gap) | Invokes battle Setup/reload for tutorial content only | Manager owns phase sequencing for every battle including tutorial ones; Onboarding never bypasses it |
-| **Combat Resolution** ✅ | Full event log — canonical events (`design/architecture/cross-system-contracts.md` §1): `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned` — Beat `triggerPredicate`/`completionPredicate` (Formula F1) read this log directly to detect a taught action (e.g. M2's "use Shove" Beat completes on a `DisplacementComplete` event sourced from Shove followed by a `UnitRemoved` event for the Charger) | — | Combat owns *what happened* and its event vocabulary is ground truth for every Beat predicate; Onboarding never calls `resolve()` itself and never mutates the event log |
+| **Combat Resolution** ✅ | Full event log — canonical events (`design/architecture/cross-system-contracts.md` §1): `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned` — Beat `triggerPredicate`/`completionPredicate` (Formula F1) read this log directly to detect a taught action (e.g. M2's "use Shove" Beat completes on a `displacement_complete` event sourced from Shove followed by a `unit_removed` event for the Charger) | — | Combat owns *what happened* and its event vocabulary is ground truth for every Beat predicate; Onboarding never calls `resolve()` itself and never mutates the event log |
 | **Objective / Win-Lose** ✅ | Terminal `EvaluationResult` (`status`, `reason`), scoped to tutorial battles only | — | Objective's verdict logic is completely unmodified; Onboarding only intercepts the *consequence* of a tutorial-scoped Defeat (Rule 8), never the verdict itself |
 | **Heroes & Abilities** ✅ | Action-slot state (`Available`/`Used`/`Unavailable — No Legal Target`), `legalMoveTiles`/`legalTargets` — read to evaluate Beat predicates and to author M1's out-of-range enemy placement (Rule 6) | — | Read-only; Onboarding never grants, restricts, or overrides legality |
 | **Enemy, Abilities & Telegraph** ✅ | `Intent`/`telegraphedEffectTiles`/`telegraphedMoveDestination` — read to anchor callout copy to specific tiles/enemies (e.g. "this enemy will hit this tile next turn") | — | Read-only |
@@ -331,8 +331,8 @@ evaluateBeat(beat, battleState, eventLog):
 Shove" Beat):** `triggerPredicate = (Vanguard.abilitySlot ==
 'Available' AND legalTargets(Vanguard, Shove) ≠ ∅)` → becomes `Armed` the
 moment the Charger enters Shove's range 1. `completionPredicate =
-(eventLog contains a DisplacementComplete event sourced from Shove, followed
-by a UnitRemoved event for the Charger)` — using Combat Resolution's
+(eventLog contains a displacement_complete event sourced from Shove, followed
+by a unit_removed event for the Charger)` — using Combat Resolution's
 canonical event names (`design/architecture/cross-system-contracts.md` §1;
 there is no `push_resolved` event) — → becomes `Completed` the instant the
 player executes the taught action, regardless of which hint tier (0, 1, or 2)
@@ -488,7 +488,7 @@ for either.
 | System | Interface | Hard / Soft |
 |---|---|---|
 | **Turn & Phase Manager** ✅ | `currentPhase`, `currentTurn`, phase events; battle Setup/reload entry point for Tutorial Battle Templates (**PROVISIONAL** — exact bootstrap contract not yet pinned by any document) | **Hard** |
-| **Combat Resolution** ✅ | Full event log — canonical events (`design/architecture/cross-system-contracts.md` §1): `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned` — every Beat `triggerPredicate`/`completionPredicate` (Formula F1) is evaluated against this log | **Hard** |
+| **Combat Resolution** ✅ | Full event log — canonical events (`design/architecture/cross-system-contracts.md` §1): `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned` — every Beat `triggerPredicate`/`completionPredicate` (Formula F1) is evaluated against this log | **Hard** |
 | **Objective / Win-Lose** ✅ | Terminal `EvaluationResult` (`status`, `reason`), scoped to tutorial battles, for Mission-complete detection and non-punishing Defeat interception (Rule 8) | **Hard** |
 | **Heroes & Abilities** ✅ | Action-slot state, `legalMoveTiles`/`legalTargets` (Formulas F1–F2 of that document), for Beat predicate evaluation and M1's ability-out-of-range content authoring (Rule 6) | **Hard** |
 | **Enemy, Abilities & Telegraph** ✅ | `Intent`/`telegraphedEffectTiles`/`telegraphedMoveDestination`, for callout copy anchored to specific tiles/enemies | **Hard** |

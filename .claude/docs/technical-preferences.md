@@ -26,7 +26,7 @@
 
 - **Classes**: PascalCase (`BoardGrid`, `CombatResolver`)
 - **Variables**: camelCase (`currentPhase`, `reachableTiles`)
-- **Signals/Events**: snake_case string literals (`turn_started`, `action_applied`, `battle_ended`)
+- **Signals/Events**: snake_case string literals (`turn_started`, `action_applied`, `battle_ended`) — **no exceptions.** *(Enforced 2026-07-28. Combat Resolution's nine canonical events were authored in PascalCase (`DamageApplied`, `UnitRemoved`, …) and had spread to 17 files, including ADR-0002, which used **both** conventions in one document. All renamed to snake_case: `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`. Surfaced by the Event Bus implementation agent, which could not pick a convention because the project stated one and practised two. Note `unit_removed` (the event) is distinct from `Removed(Defeated | Fell)` (the `Unit` vitality state) — the state keeps PascalCase because it is a type, not a signal.)*
 - **Files**: kebab-case (`board-grid.ts`, `combat-resolver.ts`)
 - **Scenes/Prefabs**: N/A (no scene files — pure code)
 - **Constants**: UPPER_SNAKE_CASE (`GRID_WIDTH`, `MAX_ACTIONS_PER_TURN`)

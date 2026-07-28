@@ -153,8 +153,8 @@ branch of an existing primitive.
   was a clone, not because `resolve()` refuses to mutate. This is what makes
   Preview-Commit Parity unconditional.
 - **Canonical events only.** `resolve()` emits exactly the canonical event vocabulary
-  (`DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`,
-  `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned`). There is
+  (`damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`,
+  `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`). There is
   **no** `push_resolved`/`apply()` event or entry point. All consumers (Rendering, Audio,
   HUD, Move Preview) subscribe to these exact names via the synchronous event bus
   (ADR-0002).
@@ -203,15 +203,15 @@ type EffectPrimitive =
 
 // Canonical events — the ONLY vocabulary consumers may subscribe to.
 type CombatEvent =
-  | { type: 'DamageApplied';        targetId: UnitId; amount: number; hp: number }
-  | { type: 'DisplacementComplete'; targetId: UnitId; stepsMoved: number }
-  | { type: 'CollisionResolved';    a: UnitId; b?: UnitId; collisionDamage: number; kind: 'Edge' | 'Wall' | 'Unit' }
-  | { type: 'SwapComplete';         unitAId: UnitId; unitBId: UnitId }
-  | { type: 'HazardSpawned';        tile: Tile; hazardType: HazardType; duration?: number }
-  | { type: 'HazardApplied';        tile: Tile; unitId: UnitId; amount: number }
-  | { type: 'UnitRemoved';          targetId: UnitId; cause: RemovalCause; tile: Tile }
-  | { type: 'TerrainSet';           tile: Tile; terrainType: TerrainType }
-  | { type: 'UnitSpawned';          unitId: UnitId; tile: Tile };
+  | { type: 'damage_applied';        targetId: UnitId; amount: number; hp: number }
+  | { type: 'displacement_complete'; targetId: UnitId; stepsMoved: number }
+  | { type: 'collision_resolved';    a: UnitId; b?: UnitId; collisionDamage: number; kind: 'Edge' | 'Wall' | 'Unit' }
+  | { type: 'swap_complete';         unitAId: UnitId; unitBId: UnitId }
+  | { type: 'hazard_spawned';        tile: Tile; hazardType: HazardType; duration?: number }
+  | { type: 'hazard_applied';        tile: Tile; unitId: UnitId; amount: number }
+  | { type: 'unit_removed';          targetId: UnitId; cause: RemovalCause; tile: Tile }
+  | { type: 'terrain_set';           tile: Tile; terrainType: TerrainType }
+  | { type: 'unit_spawned';          unitId: UnitId; tile: Tile };
 
 // THE single board-mutation path. Pure w.r.t. inputs: no RNG, no clock.
 // Live commit:  resolve(liveBoard, effects)

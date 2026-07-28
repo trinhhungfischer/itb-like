@@ -346,7 +346,7 @@ exactly two commands (End Turn, Undo/Redo) back into Turn & Phase Manager.
 |---|---|---|---|
 | **Board & Grid** ✅ | (indirect, via Objective's `battleState.board`) tile occupancy/flags for the Reach goal-tile distance readout | — | Board owns the spatial model; HUD only reads through Objective's exposed distance value — already listed as a Soft downstream dependent in `board-and-grid.md`'s Dependencies table ("occasional board reads (tile highlight state); mostly reads combat/unit state") |
 | **Turn & Phase Manager** ✅ | `currentTurn`, `currentPhase`, `undoLevels`/`redoLevels` (Formula F2 of that doc), phase-boundary events | Calls `endPlayerPhase()` (Rule 9) and `undo()`/`redo()` (Rule 11) — both PROVISIONAL method names | Manager owns the phase/undo state machine; HUD only reads it and issues the two commands that document's own contract already anticipates ("Battle HUD | reads current turn #, current phase, undo availability; listens to phase events" — already listed as a Hard downstream dependent) |
-| **Combat Resolution** ✅ | Full event log (`DamageApplied`, `UnitRemoved`, `HazardApplied`, `CollisionResolved`, …) for real-time HP/state updates | — | Combat owns *what happened*; HUD owns *how it's numerically/visually summarized in chrome* — already listed as a Soft downstream dependent ("Reads events for damage numbers / HP bar updates") |
+| **Combat Resolution** ✅ | Full event log (`damage_applied`, `unit_removed`, `hazard_applied`, `collision_resolved`, …) for real-time HP/state updates | — | Combat owns *what happened*; HUD owns *how it's numerically/visually summarized in chrome* — already listed as a Soft downstream dependent ("Reads events for damage numbers / HP bar updates") |
 | **Heroes & Abilities** ✅ | Hero roster (Loadout `HeroDefinition` instances), per-hero HP/`maxHP`, ability name/icon, `legalTargets` count (Formula F2 of that doc, for the `NoLegalTarget` display state), Move/Ability slot state | — | Heroes & Abilities owns legality and chassis data; HUD only displays it — already listed as a Hard dependent ("Hero HP, maxHP, ability name/icon, ability availability… Move-slot/Ability-slot used/available, legal-move-tile and legal-target-tile highlight sets") |
 | **Enemy, Abilities & Telegraph** ✅ | Enemy roster/HP, `Intent`/`SpawnIntent`/`Idle` records (`telegraphedEffectTiles`, `telegraphedMoveDestination`, `abilityId`), `telegraphedEnvironmentTiles(turn)` (Formula F4's environmental term, `cross-system-contracts.md` §9), `enemy_action_whiffed` events | — | Enemy owns AI/telegraph truth; HUD owns the Threat Ticker's enumeration and compression (Rules 7, 14) of that same data — already listed as a Soft dependent ("Reads enemy HP/state for HP bars; exposes Intent summaries") |
 | **Objective / Win-Lose** ✅ | `EvaluationResult` (`status`, `reason`), `ObjectiveConfig` (`type`, `max_turns`, `protectedUnitId`, `goalTile`), `enemiesRemaining` (Formula F3 of that doc) | — | Objective owns the verdict/predicate logic; HUD owns the objective tracker's presentation — already listed as a Hard, provisional dependent ("`status`, `reason`, and type-specific progress figures… for an objective tracker + win/lose banner") |
@@ -522,7 +522,7 @@ nothing here, it only reports the number").
 
 - **HP hits 0 the same frame `removeUnit` fires:** the HP bar shows `0/max`
   (empty fill, `isCritical = true`) for exactly the one frame between the
-  `DamageApplied`/`HazardApplied` event and the `UnitRemoved` event; it
+  `damage_applied`/`hazard_applied` event and the `unit_removed` event; it
   never shows a stale pre-damage value and never renders a negative fill.
 - **A hero's Ability slot has zero legal targets this turn:** the ability
   bar renders the `Unavailable — No Legal Target` state (Rule 8), not
@@ -766,7 +766,7 @@ for Visual/Feel and UI story types.
   replayed), **WHEN** its state is queried, **THEN** every zone renders
   correctly from a single pull across the five upstream read contracts —
   no zone is blank or stale.
-- **GIVEN** a `DamageApplied` event fires, **WHEN** the next frame renders,
+- **GIVEN** a `damage_applied` event fires, **WHEN** the next frame renders,
   **THEN** the affected unit's HP bar reflects the new value within that
   same frame.
 

@@ -135,7 +135,7 @@ ownership boundaries the whole architecture depends on.
 |--------|------|---------|----------|
 | **Heroes & Abilities** ★ | The shared **`AbilityDefinition`** schema (`{shape, targetFilter, effectTemplate, compileEffects()}`); the canonical **`Unit` record** (C2, registry `unit_record`). | `legalMoveTiles()` (F1, via Board `reachableTiles`), `legalTargets()`, `compileEffects()` (→ 10 primitives). | Combat primitives; Board queries. |
 | **Enemy, Abilities & Telegraph** ★ | Enemy roster; deterministic target-selection AI; the **telegraph** (`telegraphedEnvironmentTiles(turn)`, `telegraphedLethalThreatCount(turn)`, C4); enemy emergence + on-death broods (via `spawnUnit`). | `resolveTelegraphed()`, `emergeSpawns()`, `chooseIntents()`, the two telegraph queries. | The **same** `AbilityDefinition` schema (reused, not re-shaped); Combat primitives; Board queries. |
-| **Objective / Win-Lose** ★ | Win/lose predicates; `max_turns`. | `evaluate(battleState, turn, config) → {ongoing, victory, defeat}` — pure, side-effect-free, **state-poll** (no event subscription), callable multiple times/turn. | `battleState` (read-only); `UnitRemoved` semantics (polls board, does not subscribe). |
+| **Objective / Win-Lose** ★ | Win/lose predicates; `max_turns`. | `evaluate(battleState, turn, config) → {ongoing, victory, defeat}` — pure, side-effect-free, **state-poll** (no event subscription), callable multiple times/turn. | `battleState` (read-only); `unit_removed` semantics (polls board, does not subscribe). |
 | **Encounter Generator** | Template-based battle assembly + solvability validation. | `generateEncounter(runSeed, nodeId, difficultyConfig, rosterSnapshot) → Encounter` — **pure** (drives the *real* Combat/Heroes/Objective code paths, never a parallel reimplementation). | mulberry32 PRNG (procedural only); real hero/enemy/objective code; Board flag-writes. |
 | **Difficulty Tiers** ★ | **C1 ownership** — builds `difficultyConfig`; the returned `tier` is the single source of truth for both Map/Run UI display and the generator's difficulty curve. | `getEncounterForNode(runSeed, nodeId, nodeIndex, ascensionOffset, rosterSnapshot) → {tier, encounter}`. | Encounter Generator's `generateEncounter`. |
 | **Run Structure / Node Map** | Node-map graph shape + routing rules; run lifecycle. | `processRunEnd(outcome)` (Meta-progression hooks terminal handling); node-map state. | **Difficulty Tiers**' `getEncounterForNode` (C1) — **not** Encounter Generator directly; drops its own `MapNode.tierIndex`/F6 (display-only). Persists via Run Persistence. |
@@ -150,7 +150,7 @@ second mutation path.
 
 | System | Owns | Consumes |
 |--------|------|----------|
-| **Board Rendering & Juice** | Sprite/animation state; `isAnimating()` gate for Input. | Board queries; Combat's canonical events (drives all juice off `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned`). |
+| **Board Rendering & Juice** | Sprite/animation state; `isAnimating()` gate for Input. | Board queries; Combat's canonical events (drives all juice off `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned`). |
 | **Battle HUD** | HUD widgets; `heroesInDanger` safety check (**unions** environmental telegraph tiles with enemy intents, C4). | Combat events; Heroes/Enemy/Objective/Move Preview queries; Turn Manager turn#/phase. |
 | **Map/Run UI** | Node-map presentation. | Run Structure state; the authoritative `tier` from Difficulty Tiers (C1); Draft state. |
 | **Draft/Loadout UI** | Draft screen presentation. | Draft/Loadout Meta state. |
@@ -322,15 +322,15 @@ type EffectPrimitive =
   // + the shared collision-resolution algorithm used by push/pull (10th "primitive")
 
 type CombatEvent =
-  | { type: 'DamageApplied'; targetId: UnitId; amount: number; hp: number }
-  | { type: 'DisplacementComplete'; targetId: UnitId; stepsMoved: number }
-  | { type: 'CollisionResolved'; a: UnitId; b: UnitId; collisionDamage: number }
-  | { type: 'SwapComplete'; unitAId: UnitId; unitBId: UnitId }
-  | { type: 'HazardSpawned'; tile: Tile; hazardType: HazardType; duration?: number }
-  | { type: 'HazardApplied'; tile: Tile; unitId: UnitId; amount: number }
-  | { type: 'UnitRemoved'; targetId: UnitId; cause: RemovalCause; tile: Tile }
-  | { type: 'TerrainSet'; tile: Tile; terrainType: TerrainType }
-  | { type: 'UnitSpawned'; unitId: UnitId; tile: Tile };
+  | { type: 'damage_applied'; targetId: UnitId; amount: number; hp: number }
+  | { type: 'displacement_complete'; targetId: UnitId; stepsMoved: number }
+  | { type: 'collision_resolved'; a: UnitId; b: UnitId; collisionDamage: number }
+  | { type: 'swap_complete'; unitAId: UnitId; unitBId: UnitId }
+  | { type: 'hazard_spawned'; tile: Tile; hazardType: HazardType; duration?: number }
+  | { type: 'hazard_applied'; tile: Tile; unitId: UnitId; amount: number }
+  | { type: 'unit_removed'; targetId: UnitId; cause: RemovalCause; tile: Tile }
+  | { type: 'terrain_set'; tile: Tile; terrainType: TerrainType }
+  | { type: 'unit_spawned'; unitId: UnitId; tile: Tile };
 
 // Pure: same board + same ordered effects → same mutations + same events. No RNG, no clock.
 // Move Preview calls resolve(board.snapshot(), effects); commit calls resolve(liveBoard, effects).

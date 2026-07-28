@@ -158,7 +158,7 @@ dead, and their mech starts the replayed battle on an AI Core.**
 ### Architecture
 
 ```
-Combat Resolution ──UnitRemoved(unitId)──► Pilots (F4 death resolution)
+Combat Resolution ──unit_removed(unitId)──► Pilots (F4 death resolution)
                                              │
                                              │ pilot was assigned?
                                              ▼

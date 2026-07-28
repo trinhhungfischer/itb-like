@@ -116,10 +116,10 @@ regression, not an improvement, for this game specifically.
    of which are already-decided, final Board states (Core Rule 12).
 7. **Hazard rendering is polled, not purely event-driven.** A tile's hazard
    overlay is drawn from Board & Grid's current `getHazard(tile)` state on
-   every `Static`-state frame, not only in reaction to a `HazardApplied`
+   every `Static`-state frame, not only in reaction to a `hazard_applied`
    event. This matters for **permanent** hazards (`duration = null`, per
    `combat-resolution.md` Formula F4) — their overlay must persist correctly
-   even many turns after the `HazardSpawned` event fired, with no re-trigger
+   even many turns after the `hazard_spawned` event fired, with no re-trigger
    required. Hazard overlays include a subtle idle-loop (e.g. a gentle flame
    flicker) so a persistent hazard reads as "active," not as a static
    decoration.
@@ -136,8 +136,8 @@ regression, not an improvement, for this game specifically.
 9. **Juice playback drains Combat Resolution's event log, one primitive event
    at a time, in log order.** Each event type maps to exactly one defined
    visual reaction (Formulas F2–F5); the mapping is fixed, not
-   ability-specific — a `DisplacementComplete` event (`stepsMoved > 0`)
-   always plays a knockback tween, and a `CollisionResolved` event always
+   ability-specific — a `displacement_complete` event (`stepsMoved > 0`)
+   always plays a knockback tween, and a `collision_resolved` event always
    plays the impact flash (Formulas F2–F3), regardless of which hero or
    enemy caused it, keeping the vocabulary of *what a push looks like*
    consistent across the whole roster (supporting Pillar #4's promise that a
@@ -287,7 +287,7 @@ magnitude is Battle HUD's job via damage numbers).
 
 | Variable | Symbol | Type | Range | Description |
 |---|---|---|---|---|
-| flash duration | `flash_duration_ms` | int | 60–200 ms (Tuning Knobs) | Applies to `CollisionResolved` impact flashes, `DamageApplied` hit-flashes, and `HazardApplied` tile-reaction pulses alike |
+| flash duration | `flash_duration_ms` | int | 60–200 ms (Tuning Knobs) | Applies to `collision_resolved` impact flashes, `damage_applied` hit-flashes, and `hazard_applied` tile-reaction pulses alike |
 
 **Output:** constant `flash_duration_ms` per triggering event. **Example:**
 default `120 ms` — a unit hit by `applyHazard` flashes for exactly 120 ms
@@ -374,7 +374,7 @@ was removed without reading a combat log, supporting Pillar #5.
 - **A hazard has `duration = null` (permanent) and is never cleared for the
   rest of the battle:** its overlay renders continuously with an idle-loop
   animation every `Static` frame (Core Rule 7), without requiring a fresh
-  `HazardApplied` event to remain visible.
+  `hazard_applied` event to remain visible.
 - **Two independent VFX (e.g. a hazard-tick pulse and a collision flash)
   target the same tile within the same short window under
   `parallel_juice_enabled = true`:** both flashes render as separate,
@@ -390,12 +390,12 @@ was removed without reading a combat log, supporting Pillar #5.
 - **Terrain destruction (`Blocked(destructible) → Normal`, per
   `board-and-grid.md`):** rendered as a brief debris-puff VFX plus an
   immediate sprite swap from wall-texture to rubble/normal-texture, driven by
-  the `TerrainSet` event Combat Resolution emits when `setTerrain(tile,
+  the `terrain_set` event Combat Resolution emits when `setTerrain(tile,
   Normal)` resolves — `setTerrain` is one of the 10 canonical combat
   primitives (`design/architecture/cross-system-contracts.md` §1) and
   already covers both directions (`setTerrain(tile, Blocked)` builds a wall;
   `setTerrain(tile, Normal)` tears one down), so no separate "destroy
-  terrain" primitive or event is needed. This system reacts to `TerrainSet`
+  terrain" primitive or event is needed. This system reacts to `terrain_set`
   the same way it reacts to any other juice-triggering event (Core Rule 9),
   not to a polled Board diff.
 - **An ability's effect chain is empty (`effects = []`, per
@@ -425,7 +425,7 @@ was removed without reading a combat log, supporting Pillar #5.
 | System | Interface | Hard / Soft |
 |---|---|---|
 | **Board & Grid** ✅ | full tile grid read: `terrain`, `getHazard`, occupancy/`getOccupant`, flags | **Hard** |
-| **Combat Resolution** ✅ | full event log per `resolve()` call — canonical event names (`design/architecture/cross-system-contracts.md` §1): `DamageApplied`, `DisplacementComplete`, `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`, `UnitRemoved`, `TerrainSet`, `UnitSpawned` | **Hard** |
+| **Combat Resolution** ✅ | full event log per `resolve()` call — canonical event names (`design/architecture/cross-system-contracts.md` §1): `damage_applied`, `displacement_complete`, `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`, `unit_removed`, `terrain_set`, `unit_spawned` | **Hard** |
 | **Turn & Phase Manager** ✅ | current phase (contextual/debug only, not a functional gate) | **Soft** |
 | **Input & Selection** ✅ | hover tile, selected unit, targeting highlight set, keyboard-cursor position | **Hard, bidirectional** |
 | **Move Preview** ✅ | `PreviewResult` per hover request | **Hard** |
@@ -572,14 +572,14 @@ for Visual/Feel story types. Default board **8×8** unless stated.
   `min_tile_size_px` (Edge Cases).
 
 **Juice event mapping (Formulas F2–F5)**
-- **GIVEN** a `DisplacementComplete` event with `stepsMoved=2` and
+- **GIVEN** a `displacement_complete` event with `stepsMoved=2` and
   `step_duration_ms=120`, **WHEN** the renderer processes it, **THEN** it
   creates exactly one knockback tween with `duration=240ms` and no
   additional positional tween.
-- **GIVEN** a `CollisionResolved` event (`stepsMoved=0`), **WHEN**
+- **GIVEN** a `collision_resolved` event (`stepsMoved=0`), **WHEN**
   processed, **THEN** no positional tween is created — only a
   `flash_duration_ms` impact flash fires (Edge Cases).
-- **GIVEN** a `UnitRemoved` event with `cause=Fell` and a second with
+- **GIVEN** a `unit_removed` event with `cause=Fell` and a second with
   `cause=Defeated`, **WHEN** `deathAnimationFor(cause)` is called for each,
   **THEN** it returns two distinct animation IDs (Formula F5).
 - **GIVEN** `animation_speed_multiplier=2.0` and an event batch whose base
@@ -612,7 +612,7 @@ for Visual/Feel story types. Default board **8×8** unless stated.
 **Hazard persistence (Core Rule 7)**
 - **GIVEN** a hazard with `duration=null` spawned on turn 1, **WHEN** the
   renderer draws any `Static` frame on turn 10 with no intervening
-  `HazardApplied` event for that tile, **THEN** the hazard overlay is still
+  `hazard_applied` event for that tile, **THEN** the hazard overlay is still
   present (polled from Board state, not event-dependent for persistence).
 
 **Visual/experiential (ADVISORY — screenshot + lead sign-off)**
@@ -662,10 +662,10 @@ for Visual/Feel story types. Default board **8×8** unless stated.
    Resolution's event log; the exact wire schema (field names, versioning)
    is not yet pinned — already flagged as `combat-resolution.md`'s Open
    Question #1. **Narrowed by `cross-system-contracts.md` §1:** the event
-   *vocabulary* itself is now settled (`DamageApplied`, `DisplacementComplete`,
-   `CollisionResolved`, `SwapComplete`, `HazardSpawned`, `HazardApplied`,
-   `UnitRemoved`, `TerrainSet`, `UnitSpawned` — no separate
-   `terrain_destroyed` event; `TerrainSet` already covers it, see Edge Cases).
+   *vocabulary* itself is now settled (`damage_applied`, `displacement_complete`,
+   `collision_resolved`, `swap_complete`, `hazard_spawned`, `hazard_applied`,
+   `unit_removed`, `terrain_set`, `unit_spawned` — no separate
+   `terrain_destroyed` event; `terrain_set` already covers it, see Edge Cases).
    What remains open is only field-level schema/versioning detail. *Owner:*
    Tech architecture, coordinated across Combat Resolution, Board Rendering &
    Juice, Battle HUD, and Audio System.
@@ -684,12 +684,12 @@ implementation):**
    (`parallel_juice_enabled = false`) to guarantee animated order always
    matches Combat Resolution's strict resolution order. Revisit after
    playtesting shows whether parallel playback stays legible for pacing.
-5. **Terrain-destruction VFX react to the `TerrainSet` event** emitted when
+5. **Terrain-destruction VFX react to the `terrain_set` event** emitted when
    Combat Resolution's `setTerrain(tile, Normal)` resolves — `setTerrain` is
    one of the 10 canonical combat primitives and already covers terrain
    destruction (no separate primitive or event needed; see Edge Cases).
    **Narrowed, not fully resolved:** the only remaining open detail is the
-   exact trigger point for the debris-puff VFX (on `TerrainSet` receipt vs.
+   exact trigger point for the debris-puff VFX (on `terrain_set` receipt vs.
    on the terrain sprite swap completing) — an implementation-timing
    question, not a schema gap.
 6. **Death-animation distinction by cause is a v1 requirement**; the

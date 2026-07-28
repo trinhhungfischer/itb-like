@@ -32,13 +32,13 @@
 
 *From GDD `design/gdd/combat-resolution.md`, scoped to this story:*
 
-- [ ] **GIVEN** a unit with `hp=5`, **WHEN** `damage(unit, 7)`, **THEN** `hp'=0`, `DamageApplied(unit, 7, 0)` is emitted, and `UnitRemoved(unit, Defeated)` is also emitted in the same `resolve()` call.
+- [ ] **GIVEN** a unit with `hp=5`, **WHEN** `damage(unit, 7)`, **THEN** `hp'=0`, `damage_applied(unit, 7, 0)` is emitted, and `unit_removed(unit, Defeated)` is also emitted in the same `resolve()` call.
 - [ ] **GIVEN** a unit with `hp=10`, **WHEN** `damage(unit, 3)`, **THEN** `hp'=7` and no removal event fires.
 - [ ] **GIVEN** `amount < 0` is constructed, **WHEN** validated, **THEN** it is rejected before `resolve()` accepts the effect list (contract violation, not a runtime no-op).
-- [ ] **GIVEN** an empty `Clear` tile, **WHEN** `spawnUnit(tile, unitSpec)`, **THEN** a new unit occupying `tile` exists on the board in the `Alive` state, and `UnitSpawned(unitId, tile, unitSpec)` is emitted exactly once.
-- [ ] **GIVEN** a tile that is `Occupied`, `Blocked`, `Lethal`, or `OutOfBounds`, **WHEN** `spawnUnit(tile, unitSpec)` is attempted, **THEN** the call is rejected as a no-op — no unit is created and no `UnitSpawned` event fires.
-- [ ] **GIVEN** a unit on the board, **WHEN** `removeUnit(unit, Defeated)`, **THEN** its tile becomes empty and `UnitRemoved(unit, Defeated, tile)` fires exactly once.
-- [ ] **GIVEN** a unit already removed, **WHEN** `removeUnit` is called on it again (same or different cause), **THEN** no-op — no second `UnitRemoved` event.
+- [ ] **GIVEN** an empty `Clear` tile, **WHEN** `spawnUnit(tile, unitSpec)`, **THEN** a new unit occupying `tile` exists on the board in the `Alive` state, and `unit_spawned(unitId, tile, unitSpec)` is emitted exactly once.
+- [ ] **GIVEN** a tile that is `Occupied`, `Blocked`, `Lethal`, or `OutOfBounds`, **WHEN** `spawnUnit(tile, unitSpec)` is attempted, **THEN** the call is rejected as a no-op — no unit is created and no `unit_spawned` event fires.
+- [ ] **GIVEN** a unit on the board, **WHEN** `removeUnit(unit, Defeated)`, **THEN** its tile becomes empty and `unit_removed(unit, Defeated, tile)` fires exactly once.
+- [ ] **GIVEN** a unit already removed, **WHEN** `removeUnit` is called on it again (same or different cause), **THEN** no-op — no second `unit_removed` event.
 
 ---
 

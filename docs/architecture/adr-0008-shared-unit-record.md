@@ -156,13 +156,13 @@ Loadout Meta each **import and reference** `Unit` — they must not define a
 parallel `EnemyUnit`, `ObjectiveUnit`, or add fields. Objective's earlier
 `faction`/`hp`/`alive` phrasing is corrected to `team`/`maxHP`+`currentHP` and
 the shared vitality model (a unit is "alive" iff it has a live `Unit` record on
-the board; removal is a `UnitRemoved` consequence of Combat, per ADR-0006).
+the board; removal is a `unit_removed` consequence of Combat, per ADR-0006).
 
 **`hazardImmunities` threading.** `hazardImmunities` is consulted inside
 `Combat.resolve()` at every hazard damage site — the `applyHazard` primitive and
 every hazard-on-entry check (a unit displaced onto or spawned onto a hazard
 tile). If `unit.hazardImmunities` contains the tile's `HazardType`, the hazard
-deals no damage to that unit and no `HazardApplied` event is emitted for it. This
+deals no damage to that unit and no `hazard_applied` event is emitted for it. This
 keeps immunity a property of the data, not special-cased in each ability, and
 keeps Combat the single place hazard damage is computed (Principle P2).
 
@@ -236,7 +236,7 @@ interface Unit {
 
 // Combat hazard sites (ADR-0006) now consult immunity — no per-ability special-casing:
 //   applyHazard(tile): for each unit entering/occupying `tile`,
-//     if unit.hazardImmunities.includes(board.getHazard(tile)) → no damage, no HazardApplied.
+//     if unit.hazardImmunities.includes(board.getHazard(tile)) → no damage, no hazard_applied.
 
 // Run-terminal contract (contracts §10):
 type RunResult = 'Victory' | 'Defeat' | 'Abandon';
@@ -409,7 +409,7 @@ state. No data migration involved.
       Upgrades/Draft import it (grep/review finds no second unit shape).
 - [ ] Registry `unit_record` is `status: active` with Heroes & Abilities as owner.
 - [ ] A unit whose `hazardImmunities` contains a tile's `HazardType` takes **no**
-      hazard damage and produces **no** `HazardApplied` event (unit test, headless).
+      hazard damage and produces **no** `hazard_applied` event (unit test, headless).
 - [ ] `currentHP`/`position` are mutated only through `Combat.resolve()` (no
       direct writes outside Combat — verified by review).
 - [ ] `battle_ended` carries `nodeType` for battle-node outcomes and omits it for

@@ -32,9 +32,9 @@
 
 *From GDD `design/gdd/combat-resolution.md`, scoped to this story:*
 
-- [ ] **GIVEN** a unit at `(7,3)` on an 8×8 board, **WHEN** `push(unit, E, 2)`, **THEN** the unit remains at `(7,3)`, exactly `collision_damage` is dealt once, and `CollisionResolved(kind: Edge)` is emitted.
+- [ ] **GIVEN** a unit at `(7,3)` on an 8×8 board, **WHEN** `push(unit, E, 2)`, **THEN** the unit remains at `(7,3)`, exactly `collision_damage` is dealt once, and `collision_resolved(kind: Edge)` is emitted.
 - [ ] **GIVEN** a unit at `(2,3)` with `(3,3),(4,3)` Clear and `(5,3)` Occupied, **WHEN** `push(unit, E, 3)`, **THEN** the unit ends at `(4,3)`, both units take exactly `collision_damage`, and no third unit or chain displacement occurs (Rule 10).
-- [ ] **GIVEN** a unit at `(3,3)` with `(3,4)` a Chasm, **WHEN** `push(unit, S, 1)`, **THEN** the unit is removed with cause `Fell`, `UnitRemoved(unit, Fell, (3,4))` is emitted, and the board tile `(3,3)` is empty.
+- [ ] **GIVEN** a unit at `(3,3)` with `(3,4)` a Chasm, **WHEN** `push(unit, S, 1)`, **THEN** the unit is removed with cause `Fell`, `unit_removed(unit, Fell, (3,4))` is emitted, and the board tile `(3,3)` is empty.
 - [ ] **GIVEN** a `pull` call, **WHEN** no explicit `direction` is supplied, **THEN** construction/validation rejects it (Combat Resolution never infers direction — Rule 5).
 - [ ] **GIVEN** a pull whose distance would land the target on the source's own tile, **WHEN** resolved, **THEN** standard `Occupied` collision applies and **both** the target and the source take `collision_damage`.
 - [ ] **GIVEN** two `push` effects in one chain targeting different units toward the same destination tile, **THEN** the effect listed first in `effects[]` claims the tile and the second collides with it as `Occupied`.
@@ -47,7 +47,7 @@
 
 - Implement step-by-step displacement algorithm (F2) shared by `push` and `pull`.
 - Handle edge, unit, and wall collisions.
-- Emit `DisplacementComplete` and `CollisionResolved`.
+- Emit `displacement_complete` and `collision_resolved`.
 
 ---
 
