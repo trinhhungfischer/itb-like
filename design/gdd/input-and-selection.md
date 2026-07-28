@@ -178,6 +178,22 @@ Formula 1); otherwise the click resolves to `null` (off-board).
 origin=(32,32)`, click at `(300,150)` → `col=⌊268/64⌋=4`, `row=⌊118/64⌋=1` →
 `(4,1)`; `inBounds(4,1)=true` on 8×8 → resolves to tile `(4,1)`.
 
+**Boundary tie-break — every tile is half-open on its top/left edge.**
+*(Stated explicitly 2026-07-28 during implementation. It falls out of `⌊⌋`
+mechanically and was never invented, but the formula alone left it implicit — and it
+silently decides which tile a player selects on an exact edge click, which is
+player-facing behaviour, not an implementation detail.)*
+
+A pixel lying exactly on the boundary between two tiles resolves to the
+**higher-index** tile — the one it is entering, never the one it is leaving. Each
+tile owns `[origin + i·tileSize, origin + (i+1)·tileSize)`.
+
+*Worked example:* `tileSize=64, originX=32`. Pixel `x=96` is `⌊64/64⌋ = 1`, so it is
+the **first** pixel of column 1, not the last of column 0.
+
+This is verified at three separate boundaries, including one deep inside the board,
+so it cannot pass by coincidence at the origin alone.
+
 ### 2. Tile-to-Screen Mapping (center point)
 `tileToScreenCenter(col, row) = (originX + col·tileSize + tileSize/2, originY + row·tileSize + tileSize/2)`
 — the exact inverse of Formula 1, used to place the keyboard-cursor reticle and

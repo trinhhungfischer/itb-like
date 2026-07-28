@@ -261,9 +261,11 @@ function reachable(O: Tile, M: number, board: Board): Tile[] {
 
 // ── Part B: the ONE screen<->tile transform (Input/Rendering boundary, C3) ──────
 type ViewTransform = {
-  originX: number;   // board top-left screen x  (owned/supplied by Board Rendering)
-  originY: number;   // board top-left screen y
-  tileSize: number;  // uniform square tile edge in px  (> 0)
+  originX: number;     // board top-left screen x  (owned/supplied by Board Rendering)
+  originY: number;     // board top-left screen y
+  tileSize: number;    // uniform square tile edge in px  (> 0)
+  boardWidth: number;  // board extent in tiles — see note below (added 2026-07-28)
+  boardHeight: number;
   // future: camera/zoom fields — added here once, consumed everywhere
 };
 
@@ -273,7 +275,29 @@ function screenToTile(px: number, py: number, view: ViewTransform): Tile | null;
 function tileToScreenCenter(col: number, row: number, view: ViewTransform): { px: number; py: number }; // F2
 // Contract: for any in-bounds (col,row), screenToTile(tileToScreenCenter(col,row,v).px,
 //           ...py, v) === {col,row}  (round-trip identity up to the tile-center offset).
+//
+// Boundary tie-break: tiles are half-open on top/left — a pixel exactly on a shared
+// edge resolves to the HIGHER-index tile. See input-and-selection.md Formula 1.
+//
+// tileToScreenCenter does NOT validate (col,row) and does NOT throw on out-of-bounds
+// input — F2 is unconditional arithmetic. This deliberately differs from Board's
+// Channel-2 throw-on-bad-origin contract (ADR-0005), because a screen position is
+// meaningful for an off-board tile (e.g. computing where an off-board marker would
+// sit) whereas a board query on a bad tile is a bug.
 ```
+
+
+> **Amended 2026-07-28 during implementation.** `ViewTransform` gained `boardWidth`
+> and `boardHeight`. Formula F1 must return `null` for an off-board click, which
+> requires knowing the board's extent — but the story forbids hardcoding `8`, and
+> threading extra positional parameters would have broken the `(px, py, view)`
+> signature this ADR fixes. Folding the extent into `ViewTransform` keeps that
+> signature intact, and this ADR already declared the shape growable ("future:
+> camera/zoom fields - added here once, consumed everywhere").
+>
+> **Board Rendering & Juice must supply these two fields**, as it already supplies
+> `tileSize` and `origin`. Both consumers depend on the same shape, so a divergence
+> here reproduces exactly the silent-misclick failure this ADR exists to prevent.
 
 ### Implementation Guidelines
 
