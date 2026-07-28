@@ -306,13 +306,13 @@ Hero Turn Options:
 ## Synergy Examples (Gadget × Hero × Passive)
 
 ### Build 1: "The Wrecking Ball" (Vanguard)
-- **Signature**: Shove (push 2)
+- **Signature**: Ram (push 2)
 - **Gadget**: Impact Charge (damage 2 + push 2)
 - **Passive**: Force Amplifier (doubled collision damage)
 - **Play pattern**: Impact Charge → enemy hits wall for 4 collision damage + 2 direct. Then Shove → enemy hits another wall for 4 more collision damage. Total: 10 damage in one turn. But the hero didn't Move — stuck in place.
 
 ### Build 2: "The Smoke Screen" (Crucible)
-- **Signature**: Hex Ward (spawnHazard Vortex)
+- **Signature**: Eruption (spawnHazard Fire + push outward)
 - **Gadget**: Smoke Bomb (protect a hero from targeting)
 - **Passive**: Hazard Walker (immune to fire)
 - **Play pattern**: Drop Smoke on a threatened hero, then place Vortex on a choke point. The team is protected from both telegraphed attacks AND terrain hazards.

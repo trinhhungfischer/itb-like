@@ -361,4 +361,6 @@ All enemies use **Red (#FF4444)** as their base silhouette color (vs Blue #4488F
 | **Acid** (existing) | `acid_damage_per_tick` | N turns | Per-tick (Environment Phase) | Lobber T3 |
 | **Mine** (new) | 3 | ∞ (until triggered) | On-step (any unit enters tile) | Sentinel enemy |
 | **Smoke** (new) | 0 | 1 turn | Passive (blocks targeting) | Smoke Bomb gadget |
+| **Vortex** (new) | 1 | 2 turns | Per-tick + on-spawn pull (pulls neighbors 1 tile inward) | Flux hero ability |
+| **Beacon** (new) | 0 | ∞ (until used) | Player-activated (teleport) | Warp Beacon passive |
 
