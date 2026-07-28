@@ -24,3 +24,6 @@
 | [audio-system](audio-system/EPIC.md) | Presentation | Audio System | Ready |
 | [onboarding-tutorial](onboarding-tutorial/EPIC.md) | Presentation | Onboarding / Tutorial | Ready |
 | [event-bus](event-bus/EPIC.md) | Foundation | Event Bus | 1 stories |
+| [passive-modules](passive-modules/EPIC.md) | Feature | Passive Modules | Ready (5 stories) |
+| [gadgets-secondary](gadgets-secondary/EPIC.md) | Feature | Gadgets Secondary | Ready (4 stories) |
+| [enemy-roster-content](enemy-roster-content/EPIC.md) | Content | Enemy Roster Content | Ready (5 stories) |
