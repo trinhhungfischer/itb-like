@@ -234,7 +234,7 @@ The only lifecycle it owns is **per-screen compliance status**:
 | `Unverified → Pass` | All applicable Verification Procedures items pass for that screen |
 | `Unverified → Fail` | Any applicable item fails |
 | `Fail → Pass` | Defects fixed and re-verified |
-| `Pass → Unverified` | The screen's visuals, layout, or bindings change |
+| `Pass → Unverified` | The screen's visuals, layout, or bindings change, **or new authored VO is added to it** (added 2026-07-28, `qa-lead` gate — without this trigger V10 passes vacuously today and never re-runs when a death line ships, which is exactly the content A12 exists for) |
 
 A screen at `Unverified` or `Fail` is **not Done**, per Rule 15.
 
@@ -363,12 +363,20 @@ tritanopia}`, every pair of palette colors must remain separated:
 
 **Output:** `PASS`, or the failing pairs with their `ΔE₀₀` values.
 
-**Fallback when F4 cannot be satisfied:** F4 is the *second* line of defence, not the
-first. If an 8-way palette cannot achieve `delta_e_min` under all three deficiencies —
-which is likely, since 8 hues is a lot — the resolution is **not** to weaken the
-threshold. It is to rely on F3: shape redundancy already guarantees correctness, and
-the palette only needs to be *pleasant*, not *sufficient*. Rule 2 is the load-bearing
-requirement; F4 is quality of life.
+**Fallback when F4 cannot be satisfied — and it cannot.** *(Confirmed 2026-07-28,
+`art-director` gate: an 8-hue palette **cannot** reach `delta_e_min` across all three
+deficiencies; the realistic ceiling is **4–5 hues**. This is a property of the colour
+space, not of a badly-chosen palette.)*
+
+F4 is the *second* line of defence, not the first. The resolution is **not** to weaken
+the threshold, and — per Open Question #4 — **not** to shrink the verb-family roster
+either. It is to rely on F3: shape redundancy already guarantees correctness, and the
+palette only needs to be *pleasant*, not *sufficient*. Rule 2 is the load-bearing
+requirement; F4 is quality of life, and it is expected to fail.
+
+**F4 currently has no defined input** — the palette array is not enumerated in this
+document or in `art-bible.md` (Open Question #5). Until it is published, V9 cannot be
+run at all.
 
 **Example:** a red/green verb pair scores `ΔE₀₀ ≈ 4` under deuteranopia — a clear fail.
 Because F3 passes (chevron vs hooked arrow), the game is still correct for that player;
@@ -493,18 +501,27 @@ condition (Rule 15).
 | V2 | **Contrast pass** | Measure every text/background pair with F1 against the 4.5 / 3.0 floors | **BLOCKING** |
 | V3 | **Scale pass** | Render at `uiScale = ui_scale_verified_max` (1.5); confirm no clipping, overlap, or truncation — **for every locale in the supported-locale list** owned by Localization. **Until that list exists, the checklist is `["en"]`** — an unbounded "per locale" gate is not executable | **BLOCKING** |
 | V4 | **Keyboard-only pass** | Complete the screen's full interaction set using only Tab / Enter / Esc / arrows | **BLOCKING** |
-| V5 | **Muted pass** | Complete a full battle with audio disabled; confirm no information was missed | **BLOCKING** |
-| V6 | **Reduced-motion pass** | Enable `reduced_motion`; confirm every informational overlay is intact and only decoration was removed | **BLOCKING** |
+| V5 | **Muted pass** | Complete a full battle with audio disabled; confirm every entry in the **telegraph/threat/outcome registry** was received visually. **That registry does not exist yet** — until it does, the checklist is the enumerated Intent types in `enemy-abilities-and-telegraph.md` and the event list in `combat-resolution.md` | **BLOCKING** |
+| V6 | **Reduced-motion pass** | Enable `reduced_motion`; confirm every entry in the **informational-overlay registry** is intact and only decoration was removed. **That registry does not exist yet** — until it does, the checklist is the overlay set enumerated in `board-rendering-and-juice.md` and `battle-hud.md` | **BLOCKING** |
 | V7 | **Remap pass** | Reassign every binding; confirm none is hardcoded and none conflicts silently | **BLOCKING** |
 | V8 | **Flash audit** | Review every entry in the **VFX/animation registry** for content exceeding 3 Hz. **That registry does not exist yet** — until `board-rendering-and-juice.md` or the asset pipeline publishes one, this gate has no closed checklist and cannot be signed off. Creating it is a prerequisite, not part of the audit | **BLOCKING** |
-| V10 | **Caption pass** (A12) | Enumerate every authored VO cue; confirm each has an on-screen text equivalent | **BLOCKING** |
+| V10 | **Caption pass** (A12) | Enumerate every authored VO cue; confirm each has an on-screen text equivalent. **Vacuously passes today** — zero VO exists (`pilots.md`'s death line is unauthored). See the re-verification trigger below, which exists precisely so this does not stay silently green when VO lands | **BLOCKING** |
 | V11 | **Board target pass** (A14) | At `uiScale = 1.5`, confirm board tile hit-targets scaled with the UI, or that a board-zoom control exists | **BLOCKING** |
 | V9 | **Colorblind separation** | Run F4 across the palette under all three simulated deficiencies | **ADVISORY** — see F4's fallback |
 
 V9 is the only advisory item, for the reason given in F4: shape redundancy is the
 correctness guarantee, and gating a release on an 8-hue palette achieving perceptual
 separation under three deficiencies would block on something Rule 2 already makes
-unnecessary.
+unnecessary. **10 of 11 rows are BLOCKING.**
+
+> **A BLOCKING gate with no closable checklist is worse than no gate** — it either
+> stalls release permanently or gets rubber-stamped, and the second is the likely one.
+> `qa-lead` (2026-07-28) found four rows in that state: **V8** (VFX registry), **V5**
+> and **V6** (no enumerated information/overlay source of truth), and **V10** (vacuous
+> until VO exists). Each now names an **interim checklist source** so it can be
+> executed today, following the pattern V3 already used for the missing locale list.
+> The permanent registries remain prerequisites, tracked as such — not as reasons the
+> gate is un-runnable.
 
 ---
 
@@ -633,11 +650,41 @@ What this document requires *of* that UI:
    scales with the number of supported languages. Whether that is automated (rendering
    harness) or manual is a tooling decision. *Owner:* `localization-lead` and tooling.
 
-4. **Does `delta_e_min = 15` survive contact with an 8-hue palette?** F4's own fallback
-   anticipates it may not. If the palette consistently fails, the honest resolution is
-   to reduce the palette to fewer verb-families rather than to lower the threshold —
-   which would be a `game-concept.md`-level scope decision. *Owner:* `art-director`,
-   escalating to `creative-director` if the palette must shrink.
+4. **Does `delta_e_min = 15` survive contact with an 8-hue palette? — ANSWERED
+   2026-07-28 (`art-director` gate): no, and that is fine.**
+
+   **An 8-hue palette cannot pass ΔE₀₀ ≥ 15 across all three CVD simulations. The
+   realistic ceiling is 4–5 hues.** This is a property of the colour space, not of any
+   particular palette — no amount of tuning gets 8 hues there.
+
+   **Decision: keep F4 advisory, and do NOT shrink the verb-family count.** This
+   document's Open Question previously proposed shrinking the roster as "the honest
+   resolution." The art-director gate rejected that trade: cutting verb-families to
+   chase an advisory colour metric would damage Pillar 4 (Every Hero Is a Verb) and the
+   12-hero roster to satisfy a gate that Rule 2's shape redundancy already makes
+   unnecessary for correctness. **Shape is the guarantee; hue is the convenience.**
+
+   What replaces it, per the gate's recommendation: fix the *cheap, unforced* collisions
+   (Open Question #6), and layer **pattern** redundancy onto the colorblind-mode legend
+   screen — the one surface where hue genuinely has to carry meaning.
+
+5. **F4 has no defined input.** *(New, `art-director` gate.)* The formula quantifies over
+   "the palette", but **the verb-family accent palette is never enumerated anywhere** —
+   not in `art-bible.md`, not here. A gate with no defined input set cannot be run at
+   all, advisory or otherwise. Publishing that array is a prerequisite to V9.
+   *Owner:* `art-director`, in `art-bible.md` §4.
+
+6. **Three hue collisions already exist, independent of colour-blindness.**
+   *(New, `art-director` gate — these are live defects, not CVD edge cases.)*
+   - **Green cluster** — Zone / Acid / Confirm
+   - **Red-orange cluster** — Shove / Fire / Lethal
+   - **Cancel ≈ Lethal-red**
+
+   And the art bible's own principle 3, *"one accent color per verb-family"*, **is
+   already false as authored**: Ember and Crucible's Zone abilities render in Fire's
+   orange-red rather than Zone's canonical mint. A2 and F3 both rest on that principle
+   holding. *Owner:* `art-director`. This is the highest-value palette work available,
+   and it is far cheaper than the roster cut that was previously proposed.
 
 ---
 

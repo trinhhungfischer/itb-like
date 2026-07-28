@@ -523,8 +523,24 @@ bonuses — shape/icon redundancy per `design/ux/accessibility-requirements.md` 
 - **GIVEN** a route claiming Battle, Reward, Battle, Rest, Elite, Reward, Boss,
   **WHEN** the run ends, **THEN** `RunState.nodeBonuses` contains exactly 7 entries
   with Supply Line ×2 and Requisition ×2 (F1).
-- **GIVEN** `node_bonus_stack_cap = 3` and a bonus claimed 4 times, **WHEN**
-  `magnitude` is computed, **THEN** it returns `base × 3`, not `base × 4` (F2).
+- *(Logic / **BLOCKING**)* **GIVEN** `node_bonus_stack_cap = 3` and a bonus claimed 4
+  times, **WHEN** `magnitude` is computed, **THEN** it returns `base × 3`, not
+  `base × 4` (F2).
+- *(Logic / **BLOCKING**)* **GIVEN** Requisition claimed **3** times, **WHEN**
+  `magnitude(requisition)` is computed, **THEN** it returns `base × 2` — the per-bonus
+  override `stackCap(requisition) = 2`, **not** the global `node_bonus_stack_cap` of 3.
+  *(Added 2026-07-28, `qa-lead` gate. The per-bonus cap was the `systems-designer`
+  gate's CRITICAL fix and had **no** criterion exercising it: the generic stacking AC
+  above uses the global cap, and F1's worked route claims Requisition exactly twice —
+  at the cap, never past it — so a regression to a global cap, or a mistyped override,
+  would have shipped undetected.)*
+- *(Logic / **BLOCKING**)* **GIVEN** Supply Line claimed twice with one already
+  consumed, **WHEN** `pending(supply_line)` is computed, **THEN** it returns
+  `base × 1` — the `consumed` map is subtracted, so a spent one-shot charge is not
+  silently restored (F2).
+- *(Logic / **BLOCKING**)* **GIVEN** base `offerCount = 3`, Requisition at its cap, and
+  an unconsumed Supply Line, **WHEN** F3 is computed, **THEN** the result is clamped to
+  `max_effective_offer_count` (5) and never exceeds it.
 - **GIVEN** a bonus claimed 0 times, **WHEN** `magnitude` is computed, **THEN** it
   returns 0 (F2).
 - **GIVEN** base `offerCount = 3`, Requisition ×2, and one unconsumed Supply Line,
@@ -546,9 +562,14 @@ bonuses — shape/icon redundancy per `design/ux/accessibility-requirements.md` 
   `run-structure-node-map.md`'s existing three is written.
 - **GIVEN** a Rest node claimed at full squad HP, **WHEN** its Rest resolves, **THEN**
   the Field Hospital bonus applies to that same Rest (Rule 8).
-- **GIVEN** any battle, **WHEN** the simulation core executes, **THEN** no Combat
-  Resolution, Board & Grid, Turn & Phase Manager, or Move Preview code path reads
-  `RunState.nodeBonuses`.
+- *(Logic / **BLOCKING** — **static import-boundary test, not a runtime claim**)*
+  **GIVEN** the simulation-core modules (Combat Resolution, Board & Grid, Turn & Phase
+  Manager, Move Preview), **WHEN** their import graph is inspected, **THEN** none
+  imports `RunState.nodeBonuses` or this system's module.
+  *(Reframed 2026-07-28, `qa-lead` gate. The original wording — "when the simulation
+  core executes, no code path reads…" — is a negative existential over all executions
+  and cannot be proven by running one battle. `pilots.md` already solved the identical
+  problem this way; this document now copies that pattern.)*
 - **GIVEN** a mid-run save, **WHEN** it is reloaded, **THEN** `RunState.nodeBonuses`
   and every one-shot consumption flag match the pre-save state exactly.
 - **GIVEN** the same seed and the same routing choices, **WHEN** a run is replayed,
@@ -592,6 +613,13 @@ bonuses — shape/icon redundancy per `design/ux/accessibility-requirements.md` 
 
 ## Review Status
 
+> **`qa-lead` gate: ✅ RUN 2026-07-28.** Found the `systems-designer` gate's own CRITICAL
+> fix — `stackCap(requisition) = 2` — had **no acceptance criterion**, and that F1's
+> worked route claims Requisition exactly twice, i.e. *at* the cap and never past it, so
+> nothing in the document exercised it. A regression to a global cap would have shipped
+> undetected. Criteria added for the per-bonus cap, the `consumed` subtraction, and F3's
+> clamp; the "no code path reads" claim reframed as a static import-boundary test.
+>
 > **`systems-designer` gate: ✅ RUN 2026-07-28.** Returned 1 CRITICAL, 3 HIGH and
 > several MEDIUM findings, **all applied**:
 > **Field Hospital was mechanically dead** — `draft-and-loadout-meta.md` F5's

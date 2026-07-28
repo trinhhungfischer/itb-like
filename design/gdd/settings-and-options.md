@@ -657,8 +657,10 @@ be reassignable.
   F3).
 - **GIVEN** any setting is changed, **WHEN** the change is made, **THEN** it takes
   effect without an Apply button and without a restart (Rule 6).
-- **GIVEN** a changed setting, **WHEN** `settings_write_debounce_ms` elapses, **THEN**
-  the full `SettingsState` is written to `vanguard.settings.v{N}` (Rule 7).
+- *(Logic / **BLOCKING**)* **GIVEN** a changed setting, **WHEN**
+  `settings_write_debounce_ms` elapses, **THEN** the full `SettingsState` is written to
+  `vanguard.settings.v{N}` (Rule 7). **Implement with fake timers** (`vi.useFakeTimers`),
+  never a real sleep — the project's Determinism rule forbids time-dependent assertions.
 - **GIVEN** settings have been changed and committed, **WHEN** a run is started,
   completed, abandoned, and the Meta Save is reset, **THEN** every setting is unchanged
   (Rule 3).
@@ -697,16 +699,65 @@ be reassignable.
 
 **Cross-system**
 
-- **GIVEN** any volume change, **WHEN** it is applied, **THEN** it reaches the audio
-  layer only via `setBusGain(bus, db)` and never by manipulating a bus directly.
+- *(Logic / **BLOCKING** — **static import-boundary test, not a runtime claim**)*
+  **GIVEN** this system's modules, **WHEN** their import graph is inspected, **THEN**
+  the only Audio System symbol imported is `setBusGain`. *(Reframed 2026-07-28,
+  `qa-lead` gate: "never manipulates a bus directly" is a negative existential over all
+  code paths and cannot be proven by exercising one flow. `pilots.md` already uses this
+  pattern.)*
 - **GIVEN** the settings screen at default values, **WHEN** Accessibility V1–V4 are run
   against it, **THEN** all four pass (bootstrap requirement).
 - **GIVEN** a key already bound, **WHEN** the player assigns it to a second action,
   **THEN** the conflict is shown, both sides are named, and neither binding changes
   until the player resolves it (Rule 13).
-- **GIVEN** a battle in progress, **WHEN** the player opens settings, changes a value,
-  and closes, **THEN** the turn number, all action slots, and the undo stack are
-  unchanged (Rule 15).
+- *(Integration / **BLOCKED — not executable today**)* **GIVEN** a battle in progress,
+  **WHEN** the player opens settings, changes a value, and closes, **THEN** the turn
+  number, all action slots, and the undo stack are unchanged (Rule 15).
+  **This criterion cannot be run.** Rule 15 is flagged 🔴 BLOCKED — there is no
+  `Paused` state in Turn & Phase Manager, the pause hook in `input-and-selection.md` is
+  unimplemented, and Battle HUD has no Settings affordance. There is no code path by
+  which a tester can open settings mid-battle. *(Flagged 2026-07-28, `qa-lead` gate:
+  the criterion previously read as executable while the rule it tests was already
+  marked blocked three sections earlier.)*
+
+**Reset and confirm (Rule 14)** — *added 2026-07-28, `qa-lead` gate. The `ux-designer`
+gate's C2 CRITICAL fix had **zero** acceptance criteria: nothing asserted the confirm
+step actually blocks the destructive action.*
+
+- *(Logic / **BLOCKING**)* **GIVEN** any reset control, **WHEN** it is activated,
+  **THEN** no value changes until the confirm step is accepted.
+- *(Logic / **BLOCKING**)* **GIVEN** a confirm prompt, **WHEN** it is cancelled,
+  **THEN** every setting retains its pre-reset value.
+- *(Logic / **BLOCKING**)* **GIVEN** a **per-binding** reset, **WHEN** confirmed,
+  **THEN** exactly that binding returns to default and no other binding or section
+  changes.
+- *(Logic / **BLOCKING**)* **GIVEN** a **per-section** reset, **WHEN** confirmed,
+  **THEN** only that section's keys change.
+- *(Logic / **BLOCKING**)* **GIVEN** a **global** reset, **WHEN** confirmed, **THEN**
+  every section resets **and** `PLATFORM_DEFAULTED` keys re-consult the platform, so a
+  global reset behaves like a fresh install (Rule 5).
+
+**Keybinding conflict resolution (Rule 13)** — *added 2026-07-28, `qa-lead` gate: only
+the Cancel path was implicitly covered; the Swap path had no criterion at all.*
+
+- *(Logic / **BLOCKING**)* **GIVEN** a conflict, **WHEN** the player chooses **Cancel**,
+  **THEN** both bindings keep their current keys and the state returns to `Idle`.
+- *(Logic / **BLOCKING**)* **GIVEN** a conflict, **WHEN** the player chooses **Swap**,
+  **THEN** the new action takes the key **and** the previous holder enters an explicit
+  `Unbound` warning state — never silently dropped.
+- *(UI / ADVISORY)* **GIVEN** a conflict, **WHEN** it is presented, **THEN** both the
+  incoming action and the current holder are named on screen.
+
+**Tab order (Formula F5)** — *added 2026-07-28, `qa-lead` gate. F5 is a fully-specified
+pure function over four states and had no criterion, despite the project rule requiring
+one per formula — on the very screen carrying the accessibility bootstrap requirement.*
+
+- *(Logic / **BLOCKING**)* **GIVEN** state `Browsing`, **WHEN** `tabOrder` is computed,
+  **THEN** the four section tabs come first, before any control row.
+- *(Logic / **BLOCKING**)* **GIVEN** state `Listening`, **WHEN** Tab is pressed,
+  **THEN** focus does not move and Tab is recorded as the candidate binding.
+- *(Logic / **BLOCKING**)* **GIVEN** state `Conflict` or `Confirm`, **WHEN** `tabOrder`
+  is computed, **THEN** it contains only that state's two controls — focus is trapped.
 - **GIVEN** `localStorage` throws on write, **WHEN** the player changes a setting,
   **THEN** it applies for the session and play is never blocked (Rule 8).
 - **GIVEN** a corrupted settings payload, **WHEN** the game loads, **THEN** it is
@@ -783,5 +834,14 @@ be reassignable.
 > mitigation (**M1**), modality/focus-trap stated (**M2**), audio preview throttled
 > (**M3**).
 >
-> **Still not consulted:** `systems-designer` (Formulas), `qa-lead` (Acceptance
-> Criteria), `accessibility-specialist` (the bootstrap requirement).
+> **`qa-lead` gate: ✅ RUN 2026-07-28.** Found that the two most recent CRITICAL fixes
+> had **no acceptance criteria at all** — Rule 14 (reset + mandatory confirm) and
+> Formula F5 (`tabOrder`) — so the C2 fix was untested and F5 violated the project's
+> one-criterion-per-formula rule on the very screen carrying the accessibility
+> bootstrap requirement. Also: the mid-battle AC read as executable while Rule 15 was
+> already flagged BLOCKED; Rule 13's **Swap** path was uncovered; two negative-existential
+> claims reframed as static import-boundary tests; the debounce AC flagged for fake
+> timers. **All applied**, with story-type/gate tags added.
+>
+> **Still not consulted:** `systems-designer` (Formulas), `accessibility-specialist`
+> (the bootstrap requirement).
