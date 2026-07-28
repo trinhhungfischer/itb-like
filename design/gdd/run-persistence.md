@@ -58,17 +58,33 @@ acceptable; a silent one is not.
    - **Run Save** (`vanguard.run.v{N}`) — the *single* in-progress run's state:
      node-map graph + current node position + claimed/visited nodes, roster
      (heroes recruited this run + their ability upgrades), draft history, an
-     immutable `runSeed` set once at run start, and a start timestamp. Removed
+     immutable `runSeed` set once at run start, a start timestamp, and
+     **`pilotDeaths: string[]`** (append-only `PilotInstance.id` list — added
+     2026-07-28 by **ADR-0012**; see Rule 2's sanctioned exception). Removed
      entirely when the run ends (Victory, Defeat, or Abandon at the **campaign**
      level — not a single battle).
-2. **Save granularity is node-map level, not mid-battle.** A checkpoint is
-   captured at the start of a node (battle) and after a node resolves. Mid-battle
-   state — current turn number, hazard overlays, unit HP/status, the undo stack —
-   is **never persisted**; it lives only in memory, owned by Turn & Phase Manager
-   / Combat Resolution. **PROVISIONAL scope decision** (see Open Questions):
-   true mid-battle resume would require those systems to expose a full
-   serialize/deserialize contract, which does not exist yet and is out of scope
-   for v1.
+2. **Save granularity is node-map level, not mid-battle — with exactly one
+   sanctioned exception.** A checkpoint is captured at the start of a node
+   (battle) and after a node resolves. Mid-battle state — current turn number,
+   hazard overlays, unit HP/status, the undo stack — is **never persisted**; it
+   lives only in memory, owned by Turn & Phase Manager / Combat Resolution.
+   **PROVISIONAL scope decision** (see Open Questions): true mid-battle resume
+   would require those systems to expose a full serialize/deserialize contract,
+   which does not exist yet and is out of scope for v1.
+
+   **Exception — `commitPilotDeath(pilotId)` (ADR-0012, 2026-07-28).** A pilot
+   death is written to the Run Save at the moment it occurs rather than waiting
+   for the node to resolve, appending to `pilotDeaths` (Rule 1). This is the
+   *only* sanctioned mid-battle write. It exists because `pilots.md` Rule 13 makes
+   pilot death the single permanent loss in the design, and a node-granular commit
+   point would let a player undo it by closing the tab — which, in a fully
+   deterministic game, deletes the stakes entirely. The write is small
+   (one string), rare (at most `squad_size` per battle, usually zero), never
+   debounced (debouncing reopens the window it closes), and idempotent.
+
+   > **Any request to widen this exception should be treated as a request for full
+   > mid-battle serialization** (ADR-0012 Alternative 1) and needs its own ADR.
+   > This is not a foothold for general mid-battle saving.
 3. **Resume restores the last checkpoint, not the last turn.** On load, if a
    valid Run Save exists, "Continue Run" restores the player to the **start** of
    the node/battle they were on, regenerated deterministically via the Encounter

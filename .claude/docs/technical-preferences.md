@@ -76,6 +76,7 @@
 - ADR-0009: Reachable Tiles Coordinate Transform
 - ADR-0010: Difficulty Tier Ownership
 - ADR-0011: Environmental Telegraph Query
+- ADR-0012: Ironman Run Commitment (pilot-death durability)
 
 ## Engine Specialists
 

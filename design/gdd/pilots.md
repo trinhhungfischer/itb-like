@@ -193,18 +193,35 @@ not about power.
     run on AI Cores and remain fully functional. The system has no death spiral: the
     worst case is the baseline experience.
 
-21. **Pilot death is permanent under an ironman save policy.** The run uses a
-    **single-slot autosave that resumes but never rewinds**: state is committed at
-    the terminal `battle_ended` event (the same point F4 resolves death), and there
-    is no manual save-slot or pre-battle checkpoint the player can reload to undo a
-    death. This is what makes "something is genuinely gone" true rather than
-    aspirational — without it, deterministic replay (Acceptance Criteria) plus a
+21. **Pilot death is committed the moment it happens, and survives any reload.**
+    *(Rewritten 2026-07-28 by **ADR-0012: Ironman run commitment**, which found this
+    rule's original wording unachievable — see the correction note below.)*
+    When a piloted mech's `Unit` enters `Removed(Defeated | Fell)`, the death is
+    written to the Run Save **immediately**, before the UI announces it — not at the
+    terminal `battle_ended` event. It therefore survives any reload, clean or
+    unclean. This is what makes "something is genuinely gone" true rather than
+    aspirational: without it, deterministic replay (Acceptance Criteria) plus a
     reloadable mid-run save would make every death retroactively avoidable, and the
-    entire premise of the system would collapse into save-scumming. This policy is a
-    **run-persistence contract**, not a pilots-only rule: it is owned by
-    `run-persistence.md` and formalised in **ADR-0012 (proposed): Ironman Run
-    Commitment** (see Dependencies and Open Questions #6). Pilots does not implement
-    saving; it depends on this commitment.
+    entire premise of the system would collapse into save-scumming.
+
+    **What is *not* guaranteed:** the battle itself remains replayable. A player who
+    closes the tab mid-battle resumes at the start of that battle
+    (`run-persistence.md` Rule 3) — but any pilot who had already died stays dead,
+    and their mech starts the replayed battle on an AI Core. Closing that residual
+    hole requires full mid-battle serialization, which `run-persistence.md` Rule 2
+    places out of v1 scope.
+
+    > **Correction.** This rule originally claimed "there is no manual save-slot or
+    > pre-battle checkpoint the player can reload to undo a death." The second half
+    > was false: `run-persistence.md` Rules 2–3 capture a checkpoint at the start of
+    > every node and resume there. As written, the rule was not satisfiable by the
+    > persistence system it depended on. ADR-0012 closes the gap by moving the commit
+    > point onto the death event, and states the achievable guarantee here.
+
+    This policy is a **run-persistence contract**, not a pilots-only rule: it is
+    owned by `run-persistence.md` and formalised in **ADR-0012** (Accepted
+    2026-07-28). Pilots does not implement saving; it depends on this commitment and
+    calls `commitPilotDeath(pilotId)` from Formula F4.
 
 ### States and Transitions
 
