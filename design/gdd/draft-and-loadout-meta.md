@@ -468,8 +468,9 @@ Generator's solver).
 ### F3. Candidate offer pool construction
 
 ```
-buildCandidatePool(roster, heroCatalog, upgradeCatalog):
-  pool = { NewHero: [], AbilityUpgrade: [] }
+buildCandidatePool(roster, heroCatalog, upgradeCatalog,
+                   moduleCatalog, gadgetCatalog, pilotCatalog):
+  pool = { NewHero: [], AbilityUpgrade: [], PassiveModule: [], Gadget: [], Pilot: [] }
   if |roster.members| < max_roster_size:
     for hero in heroCatalog:
       if hero.id not in roster.members.map(m -> m.heroDefinitionId):
@@ -479,15 +480,39 @@ buildCandidatePool(roster, heroCatalog, upgradeCatalog):
       for upgradeDef in upgradeCatalog:
         if isCompatible(effectiveAbility(member), upgradeDef):   // Ability Upgrades F1-adjacent check
           pool.AbilityUpgrade.append(AbilityUpgradeOffer(member.id, upgradeDef.id))
+    if member.equipmentSlots has an Empty slot:                  // Passive Modules Rule 1 (2 hybrid slots)
+      for moduleDef in moduleCatalog:
+        if moduleDef.id not equipped by ANY member               // Passive Modules Rule 7 (no duplicates)
+           ∧ not conflictsWith(member.equipmentSlots, moduleDef.incompatible):
+          pool.PassiveModule.append(PassiveModuleOffer(member.id, moduleDef.id))
+      if member has no Gadget equipped:                          // Passive Modules Rule 10 (max 1 Gadget)
+        for gadgetDef in gadgetCatalog:
+          if gadgetDef.id not equipped by ANY member:
+            pool.Gadget.append(GadgetOffer(member.id, gadgetDef.id))
+  if pilotOfferEligible(roster):                                 // pilots.md Formula F5
+    for pilotDef in pilotCatalog:
+      if pilotDef.id not already instantiated this run:
+        pool.Pilot.append(PilotOffer(pilotDef.id))
   return pool
 ```
+
+> **Extended 2026-07-28 (`/consistency-check`).** The three categories below
+> `AbilityUpgrade` were absent, so their pools were always empty and F4 could
+> never draw them — see F4's correction note. Each category's eligibility
+> filter is owned by the system that defines the content: equipment-slot and
+> no-duplicate rules by `passive-modules-and-equipment.md` (Rules 1, 7, 10),
+> cockpit availability by `pilots.md` (Formula F5). This document filters at
+> construction, never at draw time — matching the existing convention above.
 
 | Variable | Symbol | Type | Range | Description |
 |---|---|---|---|---|
 | roster | `roster` | Roster | `0..max_roster_size` members | Current run's Roster |
 | hero catalog | `heroCatalog` | HeroDefinition[] | full authored v1 roster (6–8 heroes) | Filtered by Meta-progression's unlock state if that system exists (Rule 17) |
 | upgrade catalog | `upgradeCatalog` | AbilityUpgradeDefinition[] | full authored catalog | Ability Upgrades' content |
-| output | `pool` | `{NewHero: DraftOffer[], AbilityUpgrade: DraftOffer[]}` | each sub-list `≥0` | Never contains an incompatible or already-full-slot combination (filtered at construction, not at draw time) |
+| module catalog | `moduleCatalog` | PassiveModuleDefinition[] | 14 authored (`passive-modules-and-equipment.md`) | Filtered by equipment-slot availability, the no-duplicate rule (its Rule 7), and `incompatible[]` |
+| gadget catalog | `gadgetCatalog` | GadgetDefinition[] | 9 authored (`secondary-weapons-and-gadgets.md`) | Filtered by the max-1-Gadget-per-hero rule (Passive Modules Rule 10) |
+| pilot catalog | `pilotCatalog` | PilotDefinition[] | authored content (`pilots.md`) | Gated wholesale by `pilotOfferEligible(roster)` — empty unless some member has `pilotId == null` |
+| output | `pool` | `{NewHero[], AbilityUpgrade[], PassiveModule[], Gadget[], Pilot[]}` | each sub-list `≥0` | Never contains an incompatible, already-full-slot, or duplicate combination (filtered at construction, not at draw time) |
 
 **Output range:** either sub-list may legally be empty (Edge Cases handles
 both, and their simultaneous case). **Worked example:** Roster =
@@ -513,9 +538,13 @@ generateOffers(pool, offerCount, categoryOverride = null):
     if categoryOverride != null:
       category = categoryOverride                       // Rest-node Train path (Rule 11)
     else:
-      weights = normalize({ NewHero: w_new if |remaining.NewHero|>0 else 0,
-                             AbilityUpgrade: w_upg if |remaining.AbilityUpgrade|>0 else 0 })
-      if weights is empty (both remaining lists exhausted): break   // Edge Cases
+      weights = normalize({ NewHero:       w_new  if |remaining.NewHero|>0       else 0,
+                             AbilityUpgrade: w_upg  if |remaining.AbilityUpgrade|>0 else 0,
+                             PassiveModule:  w_mod  if |remaining.PassiveModule|>0  else 0,
+                             Gadget:         w_gad  if |remaining.Gadget|>0         else 0,
+                             Pilot:          w_pilot if (|remaining.Pilot|>0
+                                                          ∧ pilotOfferEligible(roster)) else 0 })
+      if weights is empty (every remaining list exhausted): break   // Edge Cases
       draw_cat = next()                                  // F2
       category = rollWeightedType(draw_cat, weights)      // reuses run-structure-node-map.md F4's pattern
     draw_item = next()                                    // F2
@@ -528,15 +557,26 @@ generateOffers(pool, offerCount, categoryOverride = null):
 
 | Variable | Symbol | Type | Range | Description |
 |---|---|---|---|---|
-| candidate pool | `pool` | `{NewHero[], AbilityUpgrade[]}` | Formula F3 output | Deep-copied so draws consume a local working set |
+| candidate pool | `pool` | `{NewHero[], AbilityUpgrade[], PassiveModule[], Gadget[], Pilot[]}` | Formula F3 output | Deep-copied so draws consume a local working set |
 | offer count | `offerCount` | int | `1–4` (Tuning Knobs, context-dependent) | How many non-Skip offers to draw |
-| category weights | `w_new`, `w_upg` | float | default `0.5 / 0.5`, `offer_category_weights` knob | Zero-weight categories (empty remaining pool) are excluded and the remainder renormalized to sum `1.00` — the same structural-fallback shape as `run-structure-node-map.md` Rule 8's `Battle` fallback, generalized to two categories instead of one guaranteed one |
+| category weights | `w_new`, `w_upg`, `w_mod`, `w_gad`, `w_pilot` | float | default `0.30 / 0.30 / 0.20 / 0.10 / 0.10`, `offer_category_weights` knob | Zero-weight categories are excluded and the remainder renormalized to sum `1.00` — the same structural-fallback shape as `run-structure-node-map.md` Rule 8's `Battle` fallback, generalized across five categories. A category is zero-weighted when its remaining pool is empty; **`Pilot` additionally requires `pilotOfferEligible(roster)`** (`pilots.md` Formula F5 — at least one `RosterMember` with `pilotId == null`), so an offered pilot always has an empty cockpit to occupy |
 | category override | `categoryOverride` | enum \| null | `null` or `AbilityUpgrade` | Forces every slot to one category (Rest-node Train, Rule 11) |
 
-**Output range:** `offers.length == min(offerCount, |pool.NewHero| +
-|pool.AbilityUpgrade|) + 1` (the `+1` is the always-present `SkipOffer`) —
+**Output range:** `offers.length == min(offerCount, Σ|pool[c]| over every
+eligible category c) + 1` (the `+1` is the always-present `SkipOffer`) —
 never pads with duplicates or fabricated offers when the pool is smaller
 than `offerCount` (Edge Cases).
+
+> **Corrected 2026-07-28 (`/consistency-check`).** This formula previously
+> weighted only `NewHero` and `AbilityUpgrade`, while Rule 8's `DraftOffer`
+> union had grown to five drawable categories. Taken literally, **14 Passive
+> Modules, 9 Gadgets, and every Pilot were structurally undraftable** —
+> designed content that could never reach a player. The gap appeared when
+> `passive-modules-and-equipment.md` and `secondary-weapons-and-gadgets.md`
+> extended the union (2026-07-28) without touching this formula;
+> `pilots.md`'s review surfaced it as the third instance. The default weights
+> above are a **starting point requiring playtest**, not a balanced curve —
+> see Tuning Knobs.
 
 **Worked example (Reward node, `offerCount=3`, `w_new=w_upg=0.5`):** pool =
 `{NewHero: [Warden, Twinblade], AbilityUpgrade: [(Vanguard,PushBoost),
@@ -719,7 +759,7 @@ which prior documents' open gaps this document resolves.
 | `reward_offer_count` | 3 | 2–4 | Curve | At `2`, Reward nodes feel stingy relative to their dedicated-screen status, weakening Pillar #3's "variety lives in the draft" promise | Above `4`, decision fatigue at every Reward node undermines the fast between-battle pacing `game-concept.md`'s session-level loop targets |
 | `battle_victory_offer_count` | 1 | 0–2 | Curve | At `0`, a plain Battle victory grants literally nothing to decide — defeats the purpose of calling it a draft trigger at all (still legal, just a flat "no reward" tuning) | At `2`, a plain Battle's payoff approaches Elite's, erasing the risk/reward differentiation Elites exist to provide |
 | `elite_victory_offer_count` | 3 | 2–5 | Curve | Below `2`, an Elite's extra risk isn't rewarded relative to a plain Battle, weakening the incentive to seek Elites out (Achiever/Explorer motivation, `game-concept.md`) | Above `5`, aggressive Elite-seeking can reach Ability Upgrades' field caps very early in a run, compressing the intended difficulty/power ramp too fast relative to Run Structure's tiered escalation |
-| `offer_category_weights` (`w_new` / `w_upg`) | `0.5 / 0.5` | each `0.0–1.0`, sums to `1.00` | Curve | Skewing far toward `AbilityUpgrade` (e.g. `≤0.2` for `w_new`) makes Roster growth rare, starving the "which new verb did I get" Discovery/Expression beats | Skewing far toward `NewHero` (e.g. `≥0.8`) makes upgrades rare relative to recruits, weakening individual hero build identity (Ability Upgrades' whole Player Fantasy) |
+| `offer_category_weights` (`w_new` / `w_upg` / `w_mod` / `w_gad` / `w_pilot`) | `0.30 / 0.30 / 0.20 / 0.10 / 0.10` | each `0.0–1.0`, sums to `1.00` | Curve | Skewing far toward `AbilityUpgrade` (e.g. `≤0.2` for `w_new`) makes Roster growth rare, starving the "which new verb did I get" Discovery/Expression beats. Skewing toward `w_mod`/`w_gad` floods the 2 equipment slots early, after which those offers are dead weight | Skewing far toward `NewHero` (e.g. `≥0.8`) makes upgrades rare relative to recruits, weakening individual hero build identity (Ability Upgrades' whole Player Fantasy). Any category at `0.0` makes its content unreachable — which is exactly the defect the 2026-07-28 consistency check found |
 | `rest_heal_percent` | 1.00 (100%) | 0.25–1.00 | Curve | Below `0.50`, Rest nodes stop reliably fulfilling the "guaranteed prep before the Boss" fairness promise `run-structure-node-map.md`'s `guarantee_rest_before_boss` knob explicitly exists to protect (Pillar #1) | N/A — hard-capped at `1.00` (Formula F5's `min(maxHP, …)` clamp); no value above 100% is meaningful |
 | `min_hp_for_deployment` | 1 | 1 (**not recommended to raise**) | Gate | N/A at default — `1` is the floor Rule 3 already guarantees every member meets | **Do not raise without also redesigning the Roster-growth/HP-recovery rules** — Formula F6's "Loadout is always formable" proof depends structurally on this value equaling `1`; any higher value reintroduces a real risk of a temporarily-unformable Loadout (Edge Cases) |
 
@@ -729,6 +769,16 @@ which prior documents' open gaps this document resolves.
   regardless of its configured value (Formula F3/F4's structural fallback)
   — raising `w_new` late in a run at a full Roster has no effect, by
   design.
+- **The same structural zeroing applies to the three categories added
+  2026-07-28.** `w_mod` and `w_gad` fall to `0` once every Roster member's
+  2 equipment slots are full (`passive-modules-and-equipment.md` Rule 1),
+  and `w_pilot` falls to `0` whenever every member has a pilot
+  (`pilots.md` Formula F5). Late in a run the weight vector therefore
+  renormalizes toward `w_upg`, which is intended — upgrades are the only
+  category with no structural saturation point.
+- **These five defaults have not been playtested.** They were chosen to make
+  every category *reachable*, which was the defect being fixed; they are not
+  a tuned curve. Revisit once Sprint 2 content is playable.
 - `reward_offer_count`, `battle_victory_offer_count`, and
   `elite_victory_offer_count` should be tuned as a **relative** triple, not
   independently — their ordering (`Battle ≤ Reward ≤ Elite`, in the v1

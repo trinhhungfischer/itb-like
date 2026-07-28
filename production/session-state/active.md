@@ -167,34 +167,57 @@ the other's domain.
 Accessibility "#24"; `input-and-selection.md` called Settings "#25" (which is Pilots)
 in three places.
 
-### ⚠️ Review debt — verdicts not captured
+### Review status — 1 of 4 landed
 
-All four `/design-review` runs were **executed by the user in a terminal on
-2026-07-28**, independently of the authoring session (correct procedure — the
-reviewing agent must not inherit the authoring context).
+*Corrected 2026-07-28: an earlier note here said the verdicts were lost. They were
+not — `pilots.md`'s review arrived as uncommitted working-tree changes after that
+check ran.*
 
-**However, no verdict or finding landed in the repo.** The working tree was clean
-afterward and no review artifact exists. The reviews' output stayed in those
-terminal sessions.
+| GDD | Review | Verdict | State |
+|---|---|---|---|
+| `pilots.md` | ✅ run (full mode) | **MAJOR REVISION NEEDED** | Revision applied in-doc by the review session; committed `f59f5da` |
+| `node-bonuses.md` | ⚠️ run, no repo change | unknown | — |
+| `accessibility.md` | ⚠️ run, no repo change | unknown | — |
+| `settings-and-options.md` | ⚠️ run, no repo change | unknown | — |
 
-**This is the top open item.** Until the verdicts are captured, the four GDDs sit in
-an indeterminate state, and two downstream steps are blocked:
+The Pilots review recorded its verdict in the GDD's own Review Status block and
+resolved all 9 blocking items. Specialists consulted there: `game-designer`,
+`systems-designer`, `economy-designer`, `qa-lead`, `creative-director`.
 
-1. `systems-index.md` cannot advance them from `Designed` to `Approved` (or back to
-   `In Review` if revisions were requested). Its Progress Tracker currently reads
-   "Design docs reviewed: 24" — understating reality, because 4 reviews did happen.
-2. Each GDD's Status header should record its verdict, per the project convention
-   already used for `CD-GDD-ALIGN`:
-   `> **Design Review**: APPROVED [date] / NEEDS REVISION [date]`
+**The other three produced no repo change.** That may mean clean verdicts or
+terminal-only output — indistinguishable from here. `systems-index.md` still reads
+"Design docs reviewed: 24" and cannot advance those three past `Designed` until
+someone confirms.
 
-**To resolve:** paste the four verdicts (and any findings) into a session, or re-run
-the reviews with output redirected to `production/qa/` so they persist.
+**Still open from the Pilots review itself:** ADR-0012 (ironman save policy) is
+proposed but unauthored; death-rate and skill-strength tuning targets are undefined;
+narrative and skill-catalog content passes are outstanding. The review recommends an
+independent **re-review before implementation**.
 
-**Separate, still outstanding:** no specialist gate ran during authoring — subagent
-dispatch was unavailable. `accessibility.md` should not reach production without an
-`accessibility-specialist` pass; `settings-and-options.md` is almost entirely UI and
-never saw a `ux-designer`. An independent `/design-review` does not substitute for
-either.
+### ⚠️ Open consistency findings — 3 deferred
+
+`/consistency-check` ran 2026-07-28. Full detail in `docs/consistency-failures.md`.
+One conflict fixed, three deferred by user decision:
+
+1. **Registry stale vs. reviewed `pilots.md`** — the review reshaped
+   `pilot_level2_xp`/`pilot_level3_xp` into a `pilot_level_thresholds` array and
+   changed L3 from 4 to 3; added `pilot_seed_xp_lag`. `entities.yaml` still holds the
+   old shape and value.
+2. **A retracted claim is still propagated** — the review corrected `pilots.md`'s
+   "Battle HUD / Board Rendering: zero changes" claim (an extra Move slot must be
+   visible or Pillar 1 breaks). `architecture.md` and this file still carry the
+   uncorrected version. The *simulation-core* half remains true.
+3. **`pilots.md` → `battle-hud.md` edge is one-directional** — `battle-hud.md` has no
+   mention of Pilots, violating the bidirectional-dependency rule.
+
+**Also outstanding:** no specialist gate ran during authoring of #26/#27/#28 —
+subagent dispatch was unavailable. `accessibility.md` should not reach production
+without an `accessibility-specialist` pass; `settings-and-options.md` is almost
+entirely UI and never saw a `ux-designer`. An independent `/design-review` does not
+substitute for either.
+
+<!-- CONSISTENCY-CHECK: 2026-07-28 | GDDs checked: 25 | Conflicts found: 4 (1 resolved, 3 deferred) | Report: docs/consistency-failures.md -->
+
 
 ### Key Architecture Reminders
 - **Deterministic**: No RNG in battle. PRNG = mulberry32, seeded once per encounter.
