@@ -1,12 +1,12 @@
 # Story 002: Checksum & Corruption Detection
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -30,11 +30,11 @@
 
 *From GDD `design/gdd/run-persistence.md`, scoped to this story:*
 
-- [ ] **AC4**: GIVEN a valid Run Save, WHEN one character of the stored data string is mutated (checksum now mismatched) and loadRun() is called, THEN it returns Corrupted, the key is quarantined under vanguard.run.corrupt.*, and the live vanguard.run.v{N} key is cleared (treated as Empty).
-- [ ] **AC5**: GIVEN a stored value that is not valid JSON, WHEN loadRun(), THEN Corrupted (same quarantine path), no exception escapes to the caller.
-- [ ] **AC6**: GIVEN a valid JSON payload missing a required top-level field, WHEN loadRun(), THEN Corrupted.
-- [ ] **AC7**: GIVEN a corrupted Meta Save, WHEN loadMeta(), THEN Corrupted, quarantined, and the live key is reset to schema defaults (not merely cleared) — verifying the harsher Meta-specific outcome.
-- [ ] **AC20**: GIVEN s="AB", THEN checksum(s) == 197 (F2 worked example, exact regression value).
+- [x] **AC4**: GIVEN a valid Run Save, WHEN one character of the stored data string is mutated (checksum now mismatched) and loadRun() is called, THEN it returns Corrupted, the key is quarantined under vanguard.run.corrupt.*, and the live vanguard.run.v{N} key is cleared (treated as Empty).
+- [x] **AC5**: GIVEN a stored value that is not valid JSON, WHEN loadRun(), THEN Corrupted (same quarantine path), no exception escapes to the caller.
+- [x] **AC6**: GIVEN a valid JSON payload missing a required top-level field, WHEN loadRun(), THEN Corrupted.
+- [x] **AC7**: GIVEN a corrupted Meta Save, WHEN loadMeta(), THEN Corrupted, quarantined, and the live key is reset to schema defaults (not merely cleared) — verifying the harsher Meta-specific outcome.
+- [x] **AC20**: GIVEN s="AB", THEN checksum(s) == 197 (F2 worked example, exact regression value).
 
 ---
 
@@ -68,7 +68,7 @@
 **Required evidence**:
 - Logic: `tests/unit/run-persistence/checksum-corruption_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Tests exist and pass
 
 ---
 
@@ -76,3 +76,12 @@
 
 - Depends on: Story 001 must be DONE
 - Unlocks: Story 003
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 5/5 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at `tests/unit/run-persistence/checksum-corruption_test.ts`
+**Code Review**: Complete (APPROVED)

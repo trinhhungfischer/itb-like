@@ -27,7 +27,7 @@ export interface Persistence {
   /** Saves permanent meta-progression data. */
   saveMeta(data: unknown): WriteResult;
   /** Loads permanent meta-progression data. */
-  loadMeta(): LoadResult<unknown>;
+  loadMeta(defaultMeta?: unknown): LoadResult<unknown>;
 }
 
 export interface StorageAdapter {
@@ -55,7 +55,12 @@ export class RunPersistence implements Persistence {
   }
 
   loadRun(): LoadResult<unknown> {
-    return this.loadFromDomain(this.runKey, 1);
+    const result = this.loadFromDomain(this.runKey, 1);
+    if (result.kind === 'Corrupted') {
+      this.quarantine(this.runKey);
+      this.clearRun();
+    }
+    return result;
   }
 
   clearRun(): void {
@@ -70,8 +75,29 @@ export class RunPersistence implements Persistence {
     return this.saveToDomain(this.metaKey, 1, data);
   }
 
-  loadMeta(): LoadResult<unknown> {
-    return this.loadFromDomain(this.metaKey, 1);
+  loadMeta(defaultMeta: unknown = {}): LoadResult<unknown> {
+    const result = this.loadFromDomain(this.metaKey, 1);
+    if (result.kind === 'Corrupted') {
+      this.quarantine(this.metaKey);
+      this.saveMeta(defaultMeta);
+    } else if (result.kind === 'Empty') {
+      this.saveMeta(defaultMeta);
+    }
+    return result;
+  }
+
+  private quarantine(key: string): void {
+    try {
+      const stored = this.storage.getItem(key);
+      if (stored) {
+        const timestamp = Date.now();
+        const domainMatch = key.match(/^(vanguard\.[a-z]+)/);
+        const baseKey = domainMatch ? domainMatch[1] : key;
+        this.storage.setItem(`${baseKey}.corrupt.${timestamp}`, stored);
+      }
+    } catch {
+      // Best effort quarantine
+    }
   }
 
   private saveToDomain(key: string, version: number, data: unknown): WriteResult {
@@ -128,6 +154,9 @@ export class RunPersistence implements Persistence {
       }
 
       const dataString = JSON.stringify(envelope.data);
+      if (dataString === undefined) {
+        return { kind: 'Corrupted' };
+      }
       if (checksum(dataString) !== envelope.checksum) {
         return { kind: 'Corrupted' };
       }
