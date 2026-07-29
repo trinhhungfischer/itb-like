@@ -48,9 +48,9 @@ solvable, interesting battles). The target build is pure web (TypeScript + PixiJ
 | 19 | Draft/Loadout UI (inferred) | UI | Vertical Slice | Designed | design/gdd/draft-loadout-ui.md | Draft / Loadout Meta |
 | 20 | Audio System | Audio | Vertical Slice | Designed | design/gdd/audio-system.md | Combat Resolution, Turn & Phase Manager, Enemy, Abilities & Telegraph, Move Preview |
 | 21 | Onboarding / Tutorial (inferred) | Meta | Vertical Slice | Designed | design/gdd/onboarding-tutorial.md | Battle HUD, Heroes & Abilities, Enemy, Abilities & Telegraph, Combat Resolution |
-| 22 | Passive Modules | Progression | Vertical Slice | Designed | design/content/passive-modules-and-equipment.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
-| 23 | Gadgets / Secondary Weapons | Progression | Vertical Slice | Designed | design/content/secondary-weapons-and-gadgets.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
-| 24 | Enemy Roster Content | Content | Vertical Slice | Designed | design/content/enemy-roster-and-archetypes.md | Enemy, Abilities & Telegraph, Encounter Generator |
+| 22 | Passive Modules | Progression | Vertical Slice | NEEDS REVISION | design/content/passive-modules-and-equipment.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
+| 23 | Gadgets / Secondary Weapons | Progression | Vertical Slice | NEEDS REVISION | design/content/secondary-weapons-and-gadgets.md | Heroes & Abilities, Combat Resolution, Draft / Loadout Meta |
+| 24 | Enemy Roster Content | Content | Vertical Slice | NEEDS REVISION | design/content/enemy-roster-and-archetypes.md | Enemy, Abilities & Telegraph, Encounter Generator |
 | 25 | Pilots | Progression | Alpha | Designed | design/gdd/pilots.md | Draft / Loadout Meta, Heroes & Abilities, Turn & Phase Manager, Run Persistence |
 | 26 | 4X-lite Node Bonuses | Gameplay | Alpha | Designed | design/gdd/node-bonuses.md | Run Structure / Node Map, Draft / Loadout Meta, Run Persistence |
 | 27 | Accessibility (inferred) | Meta | Alpha | Designed | design/gdd/accessibility.md | Art Bible, Map/Run UI, Input & Selection, Audio System |

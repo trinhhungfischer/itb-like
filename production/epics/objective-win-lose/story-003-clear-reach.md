@@ -1,12 +1,12 @@
 # Story 003: Clear & Reach Objectives
 
 > **Epic**: Objective / Win-Lose
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -89,7 +89,7 @@ Objective polls battleState.units (Unit record with team discriminant) and battl
 **Required evidence**:
 - Logic: `tests/unit/objective-win-lose/clear-reach_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created at tests/unit/objective-win-lose/clear-reach_test.ts
 
 ---
 
@@ -97,3 +97,10 @@ Objective polls battleState.units (Unit record with team discriminant) and battl
 
 - Depends on: Story 001 must be DONE
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 9/9 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/objective-win-lose/clear-reach_test.ts
+**Code Review**: Complete

@@ -25,7 +25,7 @@
 - All abilities compile into the 10 Combat Resolution primitives
 - AI uses Nearest-Threat target selection (Formula F1)
 - Telegraph is immutable once set — never recomputed mid-turn
-- Resolution order: ascending `unitId` (spawn order, oldest first)
+- Resolution order: ascending `unitId` (spawn order, oldest first). **UI Requirement**: The execution order MUST be explicitly displayed as numbered badges (1, 2, 3...) on the enemy intent overlays to ensure deterministic readability.
 
 ### Enemy Design Test
 > *"If a player cannot name what this enemy will do (move + effect) after seeing its telegraph for 10 seconds, redesign the telegraph."* (Pillar #5)
@@ -68,7 +68,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 2 | 4 | 6 |
+| **maxHP** | 2 | 3 | 4 |
 | **moveRange** | 3 | 4 | 4 |
 | **attackRange** | 1 | 1 | 1 |
 | **Ability** | Bite | Bite | Venomous Bite |
@@ -88,7 +88,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 4 | 6 | 8 |
+| **maxHP** | 3 | 4 | 5 |
 | **moveRange** | 3 | 4 | 4 |
 | **attackRange** | 1 | 1 | 1 |
 | **Ability** | Charge Strike | Charge Strike | Ram Through |
@@ -108,7 +108,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 3 | 5 | 7 |
+| **maxHP** | 2 | 3 | 4 |
 | **moveRange** | 4 | 5 | 5 |
 | **attackRange** | 1 | 1 | 1 |
 | **Ability** | Slash | Slash | Ambush |
@@ -130,7 +130,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 3 | 5 | 7 |
+| **maxHP** | 2 | 4 | 5 |
 | **moveRange** | 1 | 1 | 2 |
 | **attackRange** | 4 | 4 | 5 |
 | **Ability** | Acid Glob | Acid Glob | Acid Rain |
@@ -151,7 +151,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 3 | 5 | 7 |
+| **maxHP** | 2 | 3 | 4 |
 | **moveRange** | 0 | 1 | 1 |
 | **attackRange** | ∞ | ∞ | ∞ |
 | **Ability** | Spike Shot | Spike Shot | Impaling Shot |
@@ -171,7 +171,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 4 | 6 | 8 |
+| **maxHP** | 3 | 4 | 5 |
 | **moveRange** | 0 | 0 | 1 |
 | **attackRange** | 3 | 3 | 4 |
 | **Ability** | Mine Layer | Mine Layer | Mine Field |
@@ -193,7 +193,7 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 5 | 7 | 9 |
+| **maxHP** | 4 | 5 | 6 |
 | **moveRange** | 1 | 2 | 2 |
 | **attackRange** | 0 (spawns, doesn't attack) | 0 | 1 |
 | **Ability** | Spawn Brood | Spawn Brood | Spawn Brood + Shriek |
@@ -213,13 +213,13 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 | Field | T1 | T2 | T3 |
 |-------|----|----|-----|
-| **maxHP** | 4 | 6 | 8 |
+| **maxHP** | 3 | 4 | 5 |
 | **moveRange** | 2 | 2 | 3 |
 | **attackRange** | 2 | 3 | 3 |
 | **Ability** | Erect Wall | Erect Wall | Terraform |
 | **Shape** | SingleTile | SingleTile | SingleTile |
-| **Filter** | EmptyTile | EmptyTile | AnyTile |
-| **Effect** | `setTerrain(target, Blocked, duration=3)` | `setTerrain(target, Blocked, duration=3)` | `setTerrain(target, Chasm)` (permanent) |
+| **Filter** | EmptyTile | EmptyTile | EmptyTile |
+| **Effect** | `setTerrain(target, Blocked, duration=3)` | `setTerrain(target, Blocked, duration=3)` | `setTerrain(target, Chasm, duration=3)` (temporary chasm that fills back in) |
 
 **Tactical role**: The "architect" enemy. T1-T2 creates temporary walls that block hero movement and can trap heroes in corners. **Clever players use the walls offensively — push an enemy into the Shifter's wall for collision damage.** T3 creates permanent Chasms — a lethal tile that kills anything pushed into it. This turns every push/pull into a potential instant-kill if the terrain lines up.
 
@@ -233,14 +233,14 @@ Each archetype has up to 3 tiers. Higher tiers appear at higher difficulty via t
 
 > Teaches: "kill the Psion first." Global passive effect on all other enemies.
 
-Overseers are unique — they don't attack directly. Instead, they provide a **passive aura** that buffs all other enemies on the board. Only 1 Overseer per encounter. Each has a different aura type:
+Overseers are unique — they don't attack directly. Instead, they provide a **passive aura** that buffs other enemies. To prevent soft-locks and global runaway stats, the aura has a **maximum range of 4 tiles** (radius 4) rather than being fully global. Only 1 Overseer per encounter. Each has a different aura type:
 
 | Variant | Aura Effect | Visual Cue | Counter-strategy |
 |---------|------------|------------|-----------------|
-| **Warchief** | All enemies gain +1 damage on all abilities | Red glow on all enemies | Kill early — every turn it lives, total incoming damage scales with enemy count |
-| **Ironhide** | All enemies gain +2 maxHP (healing to full on spawn) | Grey armor overlay on all enemies | Focus priority target — more HP means enemies survive longer to deal more damage |
-| **Volatile** | All enemies explode on death: `spawnHazard(deathTile, Fire, 2, duration=1)` per neighbor | Orange shimmer on all enemies | Position kills — killing an enemy near your heroes hurts them; killing enemies near OTHER enemies chains explosions |
-| **Hivemind** | All enemies gain +1 moveRange | Speed lines on all enemies | Harder to avoid engagements — walls and positioning become critical |
+| **Warchief** | Allies within range 4 gain +1 damage on all abilities | Red glow on affected enemies | Position enemies out of the aura or kill the Overseer early |
+| **Ironhide** | Allies within range 4 gain a 1-HP Shield (absorbs 1 instance of damage, refreshes each turn) | Grey armor overlay on affected enemies | Focus priority target or pull enemies out of the aura. Replaces raw maxHP padding to keep collision damage relevant. |
+| **Volatile** | Allies within range 4 explode on death: `spawnHazard(deathTile, Fire, 2, duration=1)` per neighbor | Orange shimmer on affected enemies | Position kills — killing an enemy near your heroes hurts them; killing enemies near OTHER enemies chains explosions |
+| **Hivemind** | Allies within range 4 gain +1 moveRange | Speed lines on affected enemies | Harder to avoid engagements — walls and positioning become critical |
 
 | Field | All variants |
 |-------|-------------|

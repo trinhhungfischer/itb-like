@@ -63,7 +63,13 @@ export interface CombatStateView {
   getOnDeathTriggerCauses(id: UnitId): readonly RemovalCause[];
 
   /** Registers a unit's stats and effects at spawn time. */
-  registerUnit(id: UnitId, unitSpec: UnitSpec): void;
+  registerUnit(
+    id: UnitId,
+    hp: number,
+    hazardImmunities?: readonly HazardType[],
+    onDeath?: (lastTile: Tile) => readonly EffectPrimitive[],
+    onDeathTriggerCauses?: readonly RemovalCause[]
+  ): void;
 
   /** Removes `id`'s record. Called when a unit leaves the board. */
   deleteUnit(id: UnitId): void;

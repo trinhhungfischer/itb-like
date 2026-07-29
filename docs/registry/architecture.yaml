@@ -71,7 +71,19 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: passive_effect_queue
+    status: active
+    pattern: follow_up_queue
+    producer: passive-modules
+    consumers:
+      - combat-resolution
+    adr: docs/architecture/adr-0013-passive-module-resolution-timing.md
+    signal_signature: "CombatEngine.queuePassiveEffect(effect: EffectPrimitive[])"
+    referenced_by:
+      - docs/architecture/adr-0013-passive-module-resolution-timing.md
+    added: 2026-07-29
+    revised: ""
 
 # Example:
 #
@@ -157,7 +169,20 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: gadget_consumes_move_slot
+    status: active
+    description: "Gadgets must not consume the Move action slot."
+    why: "Consuming the Move slot breaks melee heroes who rely on movement for tactical positioning. Gadgets must consume the Ability slot instead."
+    adr: docs/architecture/adr-0013-gadget-action-slot.md
+    added: 2026-07-29
+
+  - pattern: synchronous_mid_chain_injection
+    status: active
+    description: "Passive effect primitives must not be injected directly into the currently executing resolve() queue. Use queuePassiveEffect instead."
+    why: "Violates the single-mutation path contract (ADR-0006). Can cause deeply nested state mutations, infinite loops, and breaks determinism."
+    adr: docs/architecture/adr-0013-passive-module-resolution-timing.md
+    added: 2026-07-29
 
 # Example:
 #

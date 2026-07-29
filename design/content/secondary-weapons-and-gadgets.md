@@ -18,20 +18,20 @@ VANGUARD's Pillar #4 says "every hero is a verb" — and the current design enfo
 
 ### VANGUARD's Solution: "Your verb is permanent. Your tool changes."
 
-Instead of replacing the hero's signature ability, secondary weapons **add a second, constrained action option** that the hero can use INSTEAD of (not in addition to) their Move slot:
+Secondary weapons **add a second, constrained action option** that the hero can use INSTEAD of (not in addition to) their signature Ability slot:
 
-> **Core rule: a hero still gets exactly 2 actions per turn (1 Move + 1 Ability). A secondary weapon replaces the Move action with an alternative.**
+> **Core rule: a hero still gets exactly 2 actions per turn (1 Move + 1 Ability). A secondary weapon replaces the Ability action with an alternative.**
 
 This preserves:
-- **Pillar #4**: The hero's identity (signature ability) never changes
+- **Tactical Positioning**: Heroes can still Move before acting, which is critical for melee heroes.
 - **Actions per turn**: Still 2, per Turn & Phase Manager's `actions_per_hero_turn = 2`
-- **Readability**: The player chooses "Move OR Gadget, then Ability" — not a 3-action explosion
+- **Readability**: The player chooses "Move, then Ability OR Gadget" — maintaining clean decision-making.
 
 ### ITB Reference → VANGUARD Adaptation
 
 | ITB Pattern | VANGUARD Adaptation |
 |------------|---------------------|
-| 2 weapon slots (Prime + alternate) | 1 permanent Ability + 1 Gadget (replaces Move) |
+| 2 weapon slots (Prime + alternate) | 1 permanent Ability + 1 Gadget (replaces Ability) |
 | Found in time pods, shops, reputation rewards | Found via Draft / Loadout Meta (Reward, Shop, Elite) |
 | Any mech can equip any weapon | **Class-restricted** — each Gadget lists compatible squads/heroes |
 | Weapons can be moved between mechs freely | Gadgets are **bound to a hero** once equipped (run-long) |
@@ -63,23 +63,24 @@ GadgetDefinition {
 1. Gadgets occupy an **Equipment slot** (shared with Passive Modules — see [passive-modules-and-equipment.md](passive-modules-and-equipment.md))
 2. Each hero has **2 Equipment slots** total — a Gadget takes 1 slot, and a hero may equip **at most 1 Gadget** (the other slot can be a Passive or empty)
 3. A Gadget is an `AbilityDefinition` — same schema, same `compileEffects()`, same resolution through Combat Resolution
-4. **Using a Gadget consumes the Move slot**, not the Ability slot:
-   - The hero chooses: **Move** (normal walk) OR **Gadget** (activate secondary weapon)
-   - Then: **Ability** (signature verb) as normal
+4. **Using a Gadget consumes the Ability slot**, not the Move slot:
+   - The hero chooses: **Move** (normal walk)
+   - Then: **Ability** (signature verb) OR **Gadget** (activate secondary weapon)
    - Total actions per turn: still 2
-5. The Gadget has `cooldownTurns` and/or `usesPerBattle` — if on cooldown or out of uses, the hero must Move normally
-6. Gadgets are found via Draft and bound to a specific hero
+5. The Gadget has `cooldownTurns` and/or `usesPerBattle` — if on cooldown or out of uses, the hero must use their signature Ability (or do nothing).
+6. Gadgets are found via Draft and bound to a specific hero.
+7. **Undo Stack Integration**: Using a Gadget pushes a state to the Undo Stack exactly like an Ability. Because Gadgets are deterministic, they can be fully undone unless they trigger an effect that reveals hidden information.
 
-### Why "Replace Move" and Not a 3rd Action?
+### Why "Replace Ability" and Not Move?
 
 | Alternative | Problem |
 |------------|---------|
-| 3rd action slot | Breaks Turn & Phase Manager's `actions_per_hero_turn = 2` — every downstream system (preview, undo stack, board rendering) assumes at most 2 actions per hero |
-| Replace Ability | Breaks Pillar #4 — the hero loses their identity verb |
+| 3rd action slot | Breaks Turn & Phase Manager's `actions_per_hero_turn = 2` — every downstream system assumes at most 2 actions per hero |
+| Replace Move | Breaks melee heroes who must position to be effective, ruining tactical positioning. |
 | Separate phase | Adds combat complexity, breaks "Read in Ten Seconds" |
-| **Replace Move ✅** | Trades mobility for utility — a meaningful tactical decision every turn |
+| **Replace Ability ✅** | Preserves mobility (Move). You trade your signature verb for situational utility. |
 
-**The trade-off is the design**: using your Gadget means you can't reposition first. A Vanguard with a Smoke Bomb must choose: "Do I walk closer to shove the Charger, or do I stand here and drop smoke to block the Lobber's telegraph?" This is Pillar #2 (Positioning Over Power) at its sharpest — the player is literally trading position for power.
+**The trade-off is the design**: using your Gadget means you sacrifice your signature output for that turn. A Vanguard with a Smoke Bomb must choose: "Do I Shove the Charger, or do I drop smoke to protect the team?" This emphasizes tactical flexibility while maintaining positioning.
 
 ---
 
@@ -129,7 +130,7 @@ GadgetDefinition {
 | **Cooldown** | 2 turns |
 | **Effect** | `damage(target, 2)` + `push(target, dir=casterToTarget, 2)` |
 
-**Design intent**: A "second shove" for melee heroes. Deals damage AND pushes 2 tiles. Since it replaces Move, the hero is trading mobility for a devastating double-displacement turn: Impact Charge (push 2) + Signature Ability (e.g., Vanguard Shove push 2 = enemy moves 4 tiles total if both connect). **Hero-class restricted** to melee fighters.
+**Design intent**: A "second shove" for melee heroes. Deals damage AND pushes 2 tiles. Since it replaces the Ability slot, the hero uses this *instead* of their normal attack, providing a longer push at the cost of their signature verb. **Hero-class restricted** to melee fighters.
 
 ---
 
@@ -148,7 +149,7 @@ GadgetDefinition {
 
 **Smoke hazard effect**: A unit standing on a Smoke tile **cannot be targeted by enemy abilities** (the enemy's AI skips it as a candidate in Formula F1, or if already telegraphed, the effect whiffs when targeting through smoke). Smoke does NOT block movement. Duration 1 = disappears next Environment Phase.
 
-**Design intent**: The ultimate defensive Gadget. Drop smoke on a hero to make them untargetable for one turn. Or drop smoke on a spawn point to delay enemy emergence. Since it replaces Move, the hero can't reposition — they protect from where they stand.
+**Design intent**: The ultimate defensive Gadget. Drop smoke on a hero to make them untargetable for one turn. Or drop smoke on a spawn point to delay enemy emergence. Since it replaces Ability, the hero can still move into position before deploying it.
 
 > **New hazard type required**: Smoke (0 damage, blocks targeting, duration=1)
 
@@ -198,9 +199,9 @@ GadgetDefinition {
 | **Cooldown** | 0 (every turn) |
 | **Effect** | `pull(self, dir=selfToTarget, distance=min(4, distanceToTarget-1))` — pulls the CASTER toward the target tile, stopping 1 tile before it (or at the first obstruction) |
 
-**Design intent**: A **movement alternative**, not a weapon. Instead of walking 2-3 tiles via BFS (normal Move), the hero launches a grapple and pulls themselves in a straight line up to 4 tiles. Can cross over hazards (fire, acid) without triggering them because the path is direct, not tile-by-tile. BUT: only cardinal directions, no pathing around obstacles. **0 cooldown** because it replaces Move and is roughly equivalent in utility.
+**Design intent**: A **movement alternative** packaged as a Gadget. Since it replaces Ability, you can Move normally *and then* Grapple, allowing for extreme repositioning (Move 3 + Grapple 4 = 7 tiles of displacement). BUT: only cardinal directions, no pathing around obstacles. **0 cooldown** but uses up your offensive action for the turn.
 
-**Trade-off**: Normal Move lets you path around obstacles. Grapple Hook goes straight but further. Choose based on the board state.
+**Trade-off**: You give up your attack to reposition drastically. Choose based on the board state.
 
 ---
 
@@ -236,7 +237,7 @@ GadgetDefinition {
 
 **Design intent**: Deploy a Decoy to redirect enemy telegraphs. If the Decoy is closer than any real hero, enemies target it instead. Dies in 1 hit but buys a turn of safety. **Extremely powerful for protecting objectives** or splitting enemy attention. 3-turn cooldown for balance.
 
-> **Architectural note**: The Decoy is a `Unit` with `team: Hero`, making it a valid F1 candidate. This is the simplest implementation — no special-casing in enemy AI.
+> **Architectural note**: The Decoy is a `Unit` with `team: Hero`, making it a valid F1 candidate. **AI Phase Integration**: The AI resolves its target selection (Formula F1) during the Enemy Phase. Since the Decoy is deployed during the Player Phase, it is fully registered in the board state before the AI evaluates targets, preventing phase contradictions.
 
 ---
 
@@ -256,6 +257,8 @@ Reward nodes now offer a **mixed pool** of 3 content types:
 ```
 RewardChoice = AbilityUpgrade | PassiveModule | Gadget
 ```
+
+**Economy Integration**: In the Shop, Gadgets cost 3 Reputation (same as an Ability Upgrade). Selling an equipped Gadget yields 1 Reputation. This forces the player to weigh Gadgets directly against permanent stat upgrades.
 
 The player drafts from a curated selection each time. This is the "variety lives in the draft" promise — every run has a different combination of upgrades, passives, and gadgets available.
 
@@ -279,7 +282,7 @@ HeroRunState {
   currentHP: int
   position: tile
   moveSlotUsed: boolean
-  abilitySlotUsed: boolean
+  abilitySlotUsed: boolean // Shared by Signature Ability AND Gadget
   gadgetCooldown: int             // 0 = ready
   gadgetUsesRemaining: int | null // null = unlimited
 }
@@ -293,10 +296,10 @@ EquipmentSlot = PassiveModule | Gadget | null
 ```
 Hero Turn Options:
   Slot 1 (Position):  Move (walk within moveRange)
-                      — OR —
-                      Gadget (if equipped, if off cooldown)
 
   Slot 2 (Verb):      Signature Ability (always available if legal targets exist)
+                      — OR —
+                      Gadget (if equipped, if off cooldown)
 ```
 
 **Total actions: always 2.** `actions_per_hero_turn = 2` is preserved.
@@ -309,7 +312,7 @@ Hero Turn Options:
 - **Signature**: Ram (push 2)
 - **Gadget**: Impact Charge (damage 2 + push 2)
 - **Passive**: Force Amplifier (doubled collision damage)
-- **Play pattern**: Impact Charge → enemy hits wall for 4 collision damage + 2 direct. Then Shove → enemy hits another wall for 4 more collision damage. Total: 10 damage in one turn. But the hero didn't Move — stuck in place.
+- **Play pattern**: Move to position, then Impact Charge → enemy hits wall for 4 collision damage + 2 direct. Total: 6 damage in one turn, but from a longer range than normal Shove.
 
 ### Build 2: "The Smoke Screen" (Crucible)
 - **Signature**: Eruption (spawnHazard Fire + push outward)
@@ -337,16 +340,16 @@ Hero Turn Options:
 
 | System | Change | Scope |
 |--------|--------|-------|
-| **Heroes & Abilities** | Add `gadgetSlot: GadgetInstance \| null` to runtime state; modify Move slot to accept "Gadget" as alternative | Medium |
+| **Heroes & Abilities** | Add `gadgetSlot: GadgetInstance \| null` to runtime state; modify Ability slot to accept "Gadget" as alternative | Medium |
 | **Turn & Phase Manager** | No change — `actions_per_hero_turn` stays 2. Gadget is just a different action in slot 1 | None |
-| **Input & Selection** | When hero is selected, show "Move \| Gadget" toggle for slot 1 (if Gadget equipped + off cooldown) | Small |
+| **Input & Selection** | When hero is selected, show "Ability \| Gadget" toggle for slot 2 (if Gadget equipped + off cooldown) | Small |
 | **Move Preview** | Gadget's `compileEffects()` feeds into the same preview pipeline as abilities | Small |
 | **Combat Resolution** | No change — Gadgets compile to the same `EffectPrimitive[]` | None |
 | **Draft / Loadout Meta** | Add Gadget to draftable pool | Medium |
 | **Battle HUD** | Show Gadget icon + cooldown per hero | Small |
 
 ### New ADR Recommended
-> **ADR-0013: Gadget action slot** — Gadgets consume the Move action slot, not the Ability slot. This is enforced at the Heroes & Abilities level: `resolveSlot1(hero, choice: "move" | "gadget")`. The rest of the combat pipeline sees the Gadget as a normal `resolve()` call, identical to an ability use.
+> **ADR-0013: Gadget action slot** — Gadgets consume the Ability action slot, not the Move slot. This is enforced at the Heroes & Abilities level: `resolveSlot2(hero, choice: "ability" | "gadget")`. The rest of the combat pipeline sees the Gadget as a normal `resolve()` call, identical to an ability use.
 
 ---
 

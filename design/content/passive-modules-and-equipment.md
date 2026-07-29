@@ -81,16 +81,16 @@ PassiveModuleDefinition {
 
 ---
 
-#### C2. Piercing Strikes *(Uncommon)*
+#### C2. Shatter Strike *(Uncommon)*
 
 | Field | Value |
 |-------|-------|
 | **Scope** | Self |
-| **Trigger** | Always |
-| **Effect** | This hero's `damage` primitives ignore the first 1 point of enemy HP reduction prevention (future-proofing for shields/armor). In v1: no mechanical change — exists as a slot for future shield/armor counter-play. **V1 actual effect**: +1 damage to all `damage` primitives from this hero |
+| **Trigger** | OnHit |
+| **Effect** | When this hero damages an enemy that is adjacent to `Blocked` terrain (walls, rubble), the `Blocked` terrain is destroyed, and the enemy takes 1 additional collision damage from the debris. |
 | **Incompatible** | — |
 
-**Design intent**: Simple damage amplifier for damage-dealing heroes (Striker, Piston). Straightforward and always useful.
+**Design intent**: Replaces stat-padding damage buffs with positional damage. Rewards attacking enemies near walls, synergizing perfectly with push abilities.
 
 ---
 
@@ -124,16 +124,16 @@ PassiveModuleDefinition {
 
 ### Category: TACTICAL — "How you move and plan"
 
-#### T1. Pathfinder *(Common)*
+#### T1. Slipstream *(Common)*
 
 | Field | Value |
 |-------|-------|
 | **Scope** | Self |
-| **Trigger** | Always |
-| **Effect** | This hero's `moveRange` +1 |
+| **Trigger** | OnAction (Move) |
+| **Effect** | Moving through or out of `Hazard` tiles (Fire, Acid) refunds 1 Move point. Does not prevent hazard damage/effects. |
 | **Incompatible** | — |
 
-**Design intent**: More movement = more positioning options. Simple, always useful. Particularly valuable on low-mobility heroes (Warden, Ember with moveRange 2).
+**Design intent**: Replaces raw +Move stat-padding with a tactical mobility option. Encourages players to use hazards as highways, making hazard creation (like Aftershock) synergize with mobility.
 
 ---
 
@@ -259,6 +259,27 @@ PassiveModuleDefinition {
 | **Incompatible** | — |
 
 **Design intent**: Information advantage. When targeting with this hero's ability, you see not just the enemy's position but WHAT it plans to do next turn. Helps make informed push/pull decisions.
+
+---
+
+## Acceptance Criteria, Edge Cases & Stacking Rules
+
+### 1. Stacking Rules
+- **Same Module, Different Heroes**: Allowed (unless `Scope: Squad`). If two heroes equip *Force Amplifier*, both get doubled collision damage.
+- **Squad-Scope Stacking**: If a module is `Scope: Squad`, a second copy of it will NOT appear in the Draft pool. It cannot be stacked.
+- **Trigger Order**: When multiple passives trigger simultaneously (e.g., `OnHit` from *Kinetic Armor* and *Last Stand*), they resolve in the order they were equipped.
+
+### 2. Hazard & Multi-Hit Edge Cases
+- **Aftershock + Multi-Tile Abilities**: If an ability hits a 3x3 area, *Aftershock* spawns Fire on ALL 9 tiles.
+- **Chain Reaction + Multiple Kills**: If one ability kills 3 enemies simultaneously, *Chain Reaction* triggers 3 separate `push` events originating from the 3 removed units. These resolve in ascending `unitId` order of the killed units.
+- **Kinetic Armor + Hazards**: *Kinetic Armor* ONLY prevents collision damage from walls/units. If pushed into a Fire hazard, the Fire damage still applies.
+- **Last Stand + Multi-Hit**: If a hero at 1 HP takes 2 damage, *Last Stand* triggers, preventing the death and resetting HP to 1. If a *second* hit occurs in the same turn, the hero dies (Last Stand is once per battle).
+
+### 3. Acceptance Criteria
+- **AC1**: A hero can equip a maximum of 2 passive modules.
+- **AC2**: Attempting to equip a 3rd module prompts the player to replace an existing one.
+- **AC3**: Passive effects are deterministically applied during the Combat Resolution phase and reflected accurately in the Move Preview.
+- **AC4**: `Scope: Squad` modules apply their effect to all heroes but consume only one equipment slot on the hero who drafted it.
 
 ---
 

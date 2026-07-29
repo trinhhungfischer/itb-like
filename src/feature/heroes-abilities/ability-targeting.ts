@@ -71,6 +71,12 @@ export function legalTargets(
     const occupantId = isOccupied ? board.getOccupant(t.col, t.row) : null;
     const occupant = occupantId ? getUnit(occupantId) : null;
 
+    if (occupant && board.getHazard(t.col, t.row) === 'Smoke') {
+      if (targetFilter === 'Ally' || targetFilter === 'Enemy' || targetFilter === 'AnyUnit') {
+        return false;
+      }
+    }
+
     switch (targetFilter) {
       case 'Ally':
         return occupant !== null && occupant.team === caster.team;

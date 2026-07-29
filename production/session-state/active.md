@@ -476,3 +476,81 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 - Story: production/epics/enemy-abilities-telegraph/story-007-spawn-emergence.md — Story 007: Spawn Emergence
 - Tech debt logged: None
 - Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-001-envelope-serialization.md — Story 001: Envelope Serialization & Round Trip
+- Files changed: src/foundation/run-persistence/persistence.ts
+- Test written: tests/unit/run-persistence/envelope-serialization_test.ts
+- Blockers: None
+- Next: /code-review src/foundation/run-persistence/persistence.ts tests/unit/run-persistence/envelope-serialization_test.ts then /story-done production/epics/run-persistence/story-001-envelope-serialization.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/run-persistence/story-001-envelope-serialization.md — Story 001: Envelope Serialization & Round Trip
+- Tech debt logged: None
+- Next recommended: None identified
+<!-- CONSISTENCY-CHECK: 2026-07-29 | GDDs checked: 27 | Conflicts found: 0 | Report: docs/consistency-report-2026-07-29.md -->
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-002-checksum-corruption.md — Story 002: Checksum & Corruption Detection
+- Files changed: src/foundation/run-persistence/persistence.ts
+- Test written: tests/unit/run-persistence/checksum-corruption_test.ts
+- Blockers: None
+- Next: /code-review src/foundation/run-persistence/persistence.ts then /story-done production/epics/run-persistence/story-002-checksum-corruption.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/run-persistence/story-002-checksum-corruption.md — Story 002: Checksum & Corruption Detection
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-003-schema-versioning.md — Story 003: Schema Versioning & Migrations
+- Files changed: src/foundation/run-persistence/persistence.ts
+- Test written: tests/unit/run-persistence/schema-versioning_test.ts
+- Blockers: None
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/run-persistence/story-003-schema-versioning.md — Story 003: Schema Versioning & Migrations
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-004-quota-capability.md — Story 004: Quota, Capability & Memory Mode
+- Files changed: src/foundation/run-persistence/persistence.ts
+- Test written: tests/integration/run-persistence/quota-capability_test.ts
+- Blockers: None
+- Next: /code-review src/foundation/run-persistence/persistence.ts tests/integration/run-persistence/quota-capability_test.ts then /story-done production/epics/run-persistence/story-004-quota-capability.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/run-persistence/story-004-quota-capability.md — Story 004: Quota, Capability & Memory Mode
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-005-run-lifecycle.md — Story 005: Run Lifecycle & Single-Slot Rules
+- Files changed: src/foundation/run-persistence/persistence.ts
+- Test written: tests/integration/run-persistence/run-lifecycle_test.ts
+- Blockers: None
+- Next: /code-review src/foundation/run-persistence/persistence.ts tests/integration/run-persistence/run-lifecycle_test.ts then /story-done production/epics/run-persistence/story-005-run-lifecycle.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/run-persistence/story-005-run-lifecycle.md — Story 005: Run Lifecycle & Single-Slot Rules
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/run-persistence/story-006-determinism-resume.md — Story 006: Determinism & Resume Contract
+- Files changed: src/foundation/prng/prng.ts
+- Test written: tests/integration/run-persistence/determinism-resume_test.ts
+- Blockers: None
+- Next: /code-review src/foundation/prng/prng.ts tests/integration/run-persistence/determinism-resume_test.ts then /story-done production/epics/run-persistence/story-006-determinism-resume.md
+
+## Session Extract - /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/run-persistence/story-006-determinism-resume.md - Story 006: Determinism & Resume Contract
+- Tech debt logged: None
+- Next recommended: None identified

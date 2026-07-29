@@ -129,6 +129,9 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
     let minDistance = Infinity;
 
     for (const hero of heroes) {
+      if (board.getHazard(hero.position.col, hero.position.row) === 'Smoke') {
+        continue;
+      }
       const dist = board.distance(enemy.position, hero.position);
       if (dist < minDistance) {
         minDistance = dist;
@@ -257,6 +260,8 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
 
         if (!targetPos) {
           whiff = false; // Target is gone, attack still fires at telegraphed tiles (no-op)
+        } else if (board.getHazard(targetPos.col, targetPos.row) === 'Smoke') {
+          whiff = true;
         } else {
           const dist = board.distance(enemyPos, targetPos);
           if (dist > attackRange) {

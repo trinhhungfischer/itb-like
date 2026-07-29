@@ -1,12 +1,12 @@
 # Story 006: On-Death Effects
 
 > **Epic**: Enemy, Abilities & Telegraph
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**:
 > **Manifest Version**: 2026-07-28
-> **Last Updated**:
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -81,3 +81,10 @@ Wait until the entire cascade of follow-up calls concludes before yielding contr
 
 - Depends on: Story 005
 - Unlocks: Story 007
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Integration: test file at `tests/integration/enemy-abilities-and-telegraph/on-death-effects_test.ts`
+**Code Review**: Complete (Approved)

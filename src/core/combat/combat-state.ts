@@ -99,12 +99,18 @@ export class CombatState implements CombatStateView {
   }
 
   /** Registers a unit's stats and effects at spawn time. */
-  registerUnit(id: UnitId, unitSpec: UnitSpec): void {
+  registerUnit(
+    id: UnitId,
+    hp: number,
+    hazardImmunities: readonly HazardType[] = [],
+    onDeath?: (lastTile: Tile) => readonly EffectPrimitive[],
+    onDeathTriggerCauses?: readonly RemovalCause[]
+  ): void {
     this.units.set(id, {
-      currentHP: unitSpec.hp,
-      hazardImmunities: unitSpec.hazardImmunities ?? [],
-      onDeath: unitSpec.onDeath,
-      onDeathTriggerCauses: unitSpec.onDeathTriggerCauses,
+      currentHP: hp,
+      hazardImmunities,
+      onDeath,
+      onDeathTriggerCauses,
     });
   }
 

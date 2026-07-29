@@ -47,6 +47,7 @@ interface ResolveContext {
   readonly bus: EventBus<CombatEventMap>;
   readonly config: CombatConfig;
   readonly events: CombatEvent[];
+  readonly followUps: EffectPrimitive[];
 }
 
 function emit(ctx: ResolveContext, event: CombatEvent): void {
@@ -104,9 +105,17 @@ function removeUnitPrimitive(ctx: ResolveContext, targetId: UnitId, cause: Remov
   if (!ctx.state.hasUnit(targetId)) return; // idempotent no-op: already removed
   const tile = findTile(ctx.board, targetId);
   invariant(tile !== null, `Combat.removeUnit: unit ${targetId} is registered but not found on the board`);
+
+  const onDeath = ctx.state.getOnDeath(targetId);
+  const triggerCauses = ctx.state.getOnDeathTriggerCauses(targetId);
+
   ctx.board.clear(tile);
   ctx.state.deleteUnit(targetId);
   emit(ctx, { type: 'unit_removed', targetId, cause, tile });
+
+  if (onDeath && triggerCauses.includes(cause)) {
+    ctx.followUps.push(...onDeath(tile));
+  }
 }
 
 /** `spawnUnit(tile, unitSpec)` — GDD Rule 15. `tile` must classify `Clear`; otherwise rejected as a no-op (ADR-0005 Channel 1, reason `TileNotClear`). */
@@ -118,7 +127,13 @@ function spawnUnitPrimitive(ctx: ResolveContext, tile: Tile, unitSpec: UnitSpec)
   }
   const result = ctx.board.place(tile, unitSpec.id);
   invariant(result.ok, 'Combat.spawnUnit: place() failed immediately after a Clear classification');
-  ctx.state.registerUnit(unitSpec.id, unitSpec.hp, unitSpec.hazardImmunities ?? []);
+  ctx.state.registerUnit(
+    unitSpec.id,
+    unitSpec.hp,
+    unitSpec.hazardImmunities ?? [],
+    unitSpec.onDeath,
+    unitSpec.onDeathTriggerCauses
+  );
   emit(ctx, { type: 'unit_spawned', unitId: unitSpec.id, tile, unitSpec });
   // No hazard-on-entry: spawnUnit is creation, not "moving onto" a tile (Rule 15 Edge Case).
 }
@@ -170,7 +185,7 @@ function applyHazardPrimitive(ctx: ResolveContext, tile: Tile): void {
   if (occupantId === null) return;
 
   const immunities = ctx.state.getHazardImmunities(occupantId);
-  if (!immunities.includes(hazardType)) {
+  if (!immunities.includes(hazardType) && hazardType !== 'Smoke') {
     emit(ctx, { type: 'hazard_applied', tile, unitId: occupantId, amount: ctx.config.fireDamagePerTick });
     applyDamage(ctx, occupantId, ctx.config.fireDamagePerTick);
   }
@@ -333,9 +348,25 @@ export function resolve(
     bus: options.bus ?? new EventBus<CombatEventMap>(),
     config: options.config ?? DEFAULT_COMBAT_CONFIG,
     events: [],
+    followUps: [],
   };
-  for (const effect of effects) {
-    dispatch(ctx, effect);
+  
+  let currentEffects: readonly EffectPrimitive[] = effects;
+  let cascadeDepth = 0;
+  const MAX_CASCADE_DEPTH = 100;
+
+  while (currentEffects.length > 0) {
+    invariant(cascadeDepth <= MAX_CASCADE_DEPTH, 'Combat.resolve: Infinite cascade detected in effect resolution');
+    
+    ctx.followUps.length = 0;
+    
+    for (const effect of currentEffects) {
+      dispatch(ctx, effect);
+    }
+    
+    currentEffects = [...ctx.followUps];
+    cascadeDepth++;
   }
+  
   return ctx.events;
 }

@@ -94,6 +94,120 @@ entities:
       AbilityDefinition field (owned by Ability Upgrades). Touches no sim-core module."
     added: 2026-07-28
     revised: ""
+  - name: Drone
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Charger
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Stalker
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Lobber
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Spitter
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Sentinel
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Broodmother
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Shifter
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Overseer
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Behemoth
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Architect
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Mine
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Smoke
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Vortex
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+    added: 2026-07-29
+    revised: ""
+  - name: Beacon
+    status: active
+    source: design/content/enemy-roster-and-archetypes.md
+    referenced_by:
+      - design/content/enemy-roster-and-archetypes.md
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Decoy Drone
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
 
 # Example (remove when first real entry is added):
 #
@@ -122,7 +236,161 @@ entities:
 # Attribute fields: value_gold, weight, stackable, category, and any stat
 #   modifiers that another system (e.g., economy, crafting) might reference.
 
-items: []
+items:
+  - name: Force Amplifier
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Shatter Strike
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Aftershock
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Chain Reaction
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Slipstream
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Overwatch
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Warp Beacon
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Kinetic Armor
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Hazard Walker
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Acid Walker
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Last Stand
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Scavenger
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Spotter
+    status: active
+    source: design/content/passive-modules-and-equipment.md
+    referenced_by:
+      - design/content/passive-modules-and-equipment.md
+    added: 2026-07-29
+    revised: ""
+  - name: Frag Grenade
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Rail Driver
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Impact Charge
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Smoke Bomb
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Deployable Shield
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Gravity Well
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Grapple Hook
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Swap Beacon
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
+  - name: Decoy Drone
+    status: active
+    source: design/content/secondary-weapons-and-gadgets.md
+    referenced_by:
+      - design/content/secondary-weapons-and-gadgets.md
+    added: 2026-07-29
+    revised: ""
 
 # Example:
 #
