@@ -1,12 +1,12 @@
 # Story 003: Trigger Type Implementations
 
 > **Epic**: Passive Modules
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -31,8 +31,8 @@
 
 *From GDD `design/content/passive-modules-and-equipment.md`, scoped to this story:*
 
-- [ ] Implement triggers: `Always`, `OnAction`, `OnHit`, `OnKill`, `OnTurnStart`.
-- [ ] Ensure triggers fire appropriately based on combat resolution events and turn phase transitions.
+- [x] Implement triggers: `Always`, `OnAction`, `OnHit`, `OnKill`, `OnTurnStart`.
+- [x] Ensure triggers fire appropriately based on combat resolution events and turn phase transitions.
 
 ---
 
@@ -73,7 +73,7 @@ Implement the hooks for each of the 5 trigger types. `OnTurnStart` hooks into th
 **Required evidence**:
 - Logic: `tests/unit/combat-resolution/trigger-types_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] tests/unit/combat-resolution/trigger-types_test.ts
 
 ---
 
@@ -81,3 +81,10 @@ Implement the hooks for each of the 5 trigger types. `OnTurnStart` hooks into th
 
 - Depends on: Story 002
 - Unlocks: Story 004
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: tests/unit/combat-resolution/trigger-types_test.ts
+**Code Review**: Complete

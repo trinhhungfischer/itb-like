@@ -6,13 +6,20 @@ export interface GadgetDefinition {
   compatible: string[];
 }
 
+export type PassiveTrigger =
+  | { type: 'Always' }
+  | { type: 'OnAction' }
+  | { type: 'OnHit' }
+  | { type: 'OnKill' }
+  | { type: 'OnTurnStart' };
+
 export interface PassiveModuleDefinition {
   type: 'passive';
   id: string;
   name: string;
   category: string;
   scope: string;
-  trigger: any;
+  trigger: PassiveTrigger;
   effect: any;
   rarity: string;
   incompatible: string[];
