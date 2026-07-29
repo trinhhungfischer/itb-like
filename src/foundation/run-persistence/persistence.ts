@@ -23,6 +23,7 @@ export interface DomainSchema {
 export interface PersistenceOptions {
   runSchema?: DomainSchema;
   metaSchema?: DomainSchema;
+  eventDispatcher?: { emit(event: { type: 'storage_full' | 'storage_unavailable' }): void };
 }
 
 export type WriteResult =
@@ -41,12 +42,25 @@ export interface Persistence {
   saveMeta(data: unknown): WriteResult;
   /** Loads permanent meta-progression data. */
   loadMeta(defaultMeta?: unknown): LoadResult<unknown>;
+  /** Boot-time capability probe. Returns false if storage is disabled/unavailable. */
+  isStorageAvailable(): boolean;
 }
 
 export interface StorageAdapter {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+  readonly length?: number;
+  key?(index: number): string | null;
+}
+
+class MemoryStorageAdapter implements StorageAdapter {
+  private map = new Map<string, string>();
+  getItem(key: string) { return this.map.get(key) ?? null; }
+  setItem(key: string, value: string) { this.map.set(key, value); }
+  removeItem(key: string) { this.map.delete(key); }
+  get length() { return this.map.size; }
+  key(index: number) { return Array.from(this.map.keys())[index] ?? null; }
 }
 
 export function checksum(s: string): number {
@@ -63,10 +77,28 @@ export class RunPersistence implements Persistence {
   private runSchema: DomainSchema;
   private metaSchema: DomainSchema;
   private unsupportedDomains = new Set<string>();
+  private eventDispatcher?: { emit(event: { type: 'storage_full' | 'storage_unavailable' }): void };
 
   constructor(private storage: StorageAdapter, options: PersistenceOptions = {}) {
     this.runSchema = options.runSchema ?? { currentVersion: 1 };
     this.metaSchema = options.metaSchema ?? { currentVersion: 1 };
+    this.eventDispatcher = options.eventDispatcher;
+
+    if (!this.isStorageAvailable()) {
+      this.storage = new MemoryStorageAdapter();
+      this.eventDispatcher?.emit({ type: 'storage_unavailable' });
+    }
+  }
+
+  isStorageAvailable(): boolean {
+    const probe = '__vanguard_capability_probe__';
+    try {
+      this.storage.setItem(probe, probe);
+      this.storage.removeItem(probe);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   saveRun(data: unknown): WriteResult {
@@ -137,13 +169,39 @@ export class RunPersistence implements Persistence {
       this.storage.setItem(key, envelopeString);
       return { kind: 'Written' };
     } catch (e) {
-      if (e instanceof Error && e.name === 'QuotaExceededError') {
-        return { kind: 'QuotaExceeded' };
+      const isQuota = e instanceof Error && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED');
+      if (isQuota) {
+        this.pruneQuarantine();
+        try {
+          const csum = checksum(JSON.stringify(data)!);
+          const envelopeString = `{"schemaVersion":${schema.currentVersion},"checksum":${csum},"data":${JSON.stringify(data)}}`;
+          this.storage.setItem(key, envelopeString);
+          return { kind: 'Written' };
+        } catch (retryError) {
+          this.eventDispatcher?.emit({ type: 'storage_full' });
+          return { kind: 'QuotaExceeded' };
+        }
       }
       if (e instanceof Error && e.name === 'SecurityError') {
         return { kind: 'SecurityBlocked' };
       }
       return { kind: 'SecurityBlocked' };
+    }
+  }
+
+  private pruneQuarantine(): void {
+    const s = this.storage as any;
+    if (typeof s.length === 'number' && typeof s.key === 'function') {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < s.length; i++) {
+        const k = s.key(i);
+        if (k && k.includes('.corrupt.')) {
+          keysToRemove.push(k);
+        }
+      }
+      for (const k of keysToRemove) {
+        s.removeItem(k);
+      }
     }
   }
 

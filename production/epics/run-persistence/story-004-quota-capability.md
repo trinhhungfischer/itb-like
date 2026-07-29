@@ -1,12 +1,12 @@
 # Story 004: Quota, Capability & Memory Mode
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Integration
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -30,8 +30,8 @@
 
 *From GDD `design/gdd/run-persistence.md`, scoped to this story:*
 
-- [ ] **AC11**: GIVEN a write that throws QuotaExceededError, WHEN saveRun() is called, THEN it retries once after removing quarantine keys; if the retry also throws, the write is abandoned, the previous good save (if any) is byte-identical to before the attempt, and a storage_full event fires.
-- [ ] **AC12**: GIVEN the capability probe throws on setItem, WHEN the app boots, THEN the session enters memory-only mode: subsequent saveRun/loadRun calls succeed against an in-memory store for that session only, and a storage_unavailable event fires once.
+- [x] **AC11**: GIVEN a write that throws QuotaExceededError, WHEN saveRun() is called, THEN it retries once after removing quarantine keys; if the retry also throws, the write is abandoned, the previous good save (if any) is byte-identical to before the attempt, and a storage_full event fires.
+- [x] **AC12**: GIVEN the capability probe throws on setItem, WHEN the app boots, THEN the session enters memory-only mode: subsequent saveRun/loadRun calls succeed against an in-memory store for that session only, and a storage_unavailable event fires once.
 
 ---
 
@@ -72,3 +72,10 @@
 
 - Depends on: Story 003 must be DONE
 - Unlocks: Story 005
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: Integration: `tests/integration/run-persistence/quota-capability_test.ts`
+**Code Review**: Complete
