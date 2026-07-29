@@ -1,12 +1,12 @@
 # Story 005: Run Lifecycle & Single-Slot Rules
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Integration
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -77,3 +77,10 @@
 
 - Depends on: Story 004 must be DONE
 - Unlocks: Story 006
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Integration: test file at tests/integration/run-persistence/run-lifecycle_test.ts
+**Code Review**: Complete

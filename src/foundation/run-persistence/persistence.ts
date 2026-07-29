@@ -29,7 +29,8 @@ export interface PersistenceOptions {
 export type WriteResult =
   | { kind: 'Written' }
   | { kind: 'QuotaExceeded' }
-  | { kind: 'SecurityBlocked' };
+  | { kind: 'SecurityBlocked' }
+  | { kind: 'Rejected_DifferentRun' };
 
 export interface Persistence {
   /** Saves the current run state, overwriting any existing run save. */
@@ -42,6 +43,8 @@ export interface Persistence {
   saveMeta(data: unknown): WriteResult;
   /** Loads permanent meta-progression data. */
   loadMeta(defaultMeta?: unknown): LoadResult<unknown>;
+  /** Merges unlocks into meta and saves it. */
+  mergeUnlocksIntoMeta(unlocks: string[]): WriteResult;
   /** Boot-time capability probe. Returns false if storage is disabled/unavailable. */
   isStorageAvailable(): boolean;
 }
@@ -102,6 +105,14 @@ export class RunPersistence implements Persistence {
   }
 
   saveRun(data: unknown): WriteResult {
+    const existing = this.loadFromDomain(this.runKey, this.runSchema);
+    if (existing.kind === 'Valid' && typeof existing.data === 'object' && existing.data !== null && typeof data === 'object' && data !== null) {
+      if ('runSeed' in existing.data && 'runSeed' in data) {
+        if ((existing.data as { runSeed: unknown }).runSeed !== (data as { runSeed: unknown }).runSeed) {
+          return { kind: 'Rejected_DifferentRun' };
+        }
+      }
+    }
     return this.saveToDomain(this.runKey, this.runSchema, data);
   }
 
@@ -135,6 +146,19 @@ export class RunPersistence implements Persistence {
       this.saveMeta(defaultMeta);
     }
     return result;
+  }
+
+  mergeUnlocksIntoMeta(unlocks: string[]): WriteResult {
+    const metaLoad = this.loadMeta();
+    let currentMeta: Record<string, unknown> = {};
+    if (metaLoad.kind === 'Valid' && typeof metaLoad.data === 'object' && metaLoad.data !== null) {
+      currentMeta = metaLoad.data as Record<string, unknown>;
+    }
+    
+    const existingUnlocks = Array.isArray(currentMeta.unlocks) ? currentMeta.unlocks : [];
+    currentMeta.unlocks = Array.from(new Set([...existingUnlocks, ...unlocks]));
+    
+    return this.saveMeta(currentMeta);
   }
 
   private quarantine(key: string): void {
