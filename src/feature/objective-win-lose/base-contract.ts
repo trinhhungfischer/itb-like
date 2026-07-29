@@ -13,6 +13,7 @@ export interface ObjectiveConfig {
   type: ObjectiveType;
   max_turns?: number | null;
   protectedUnitId?: string;
+  goalTile?: { col: number; row: number };
 }
 
 export interface BattleState {
@@ -66,6 +67,30 @@ export function evaluate(battleState: BattleState, turn: number, config: Objecti
   }
 
   // (Specific objective logic for Survive/Protect/Clear/Reach will be added here in subsequent stories)
+  if (config.type === 'Clear') {
+    const enemyUnits = battleState.units.filter(u => u.team === 'enemy');
+    if (enemyUnits.length === 0) {
+      return { status: 'Victory', reason: 'AllEnemiesCleared' };
+    }
+    if (config.max_turns && turn >= config.max_turns) {
+      return { status: 'Defeat', reason: 'TimeExpired' };
+    }
+  }
+
+  if (config.type === 'Reach') {
+    if (!config.goalTile) {
+      throw new Error('Contract violation: Reach config must have goalTile');
+    }
+    const heroAtGoal = battleState.units.find(
+      u => u.team === 'hero' && u.position.col === config.goalTile!.col && u.position.row === config.goalTile!.row
+    );
+    if (heroAtGoal) {
+      return { status: 'Victory', reason: 'GoalTileReached' };
+    }
+    if (config.max_turns && turn >= config.max_turns) {
+      return { status: 'Defeat', reason: 'TimeExpired' };
+    }
+  }
 
   return { status: 'Ongoing' };
 }
