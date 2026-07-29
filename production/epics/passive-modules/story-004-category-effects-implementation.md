@@ -1,12 +1,12 @@
 # Story 004: Category Effects Implementation
 
 > **Epic**: Passive Modules
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -31,8 +31,8 @@
 
 *From GDD `design/content/passive-modules-and-equipment.md`, scoped to this story:*
 
-- [ ] AC4: `Scope: Squad` modules apply their effect to all heroes but consume only one equipment slot on the hero who drafted it.
-- [ ] Implement the Combat (C1-C4), Tactical (T1-T3), Survival (S1-S4), and Utility (U1-U2) modules as defined in the Module Catalog.
+- [x] AC4: `Scope: Squad` modules apply their effect to all heroes but consume only one equipment slot on the hero who drafted it.
+- [x] Implement the Combat (C1-C4), Tactical (T1-T3), Survival (S1-S4), and Utility (U1-U2) modules as defined in the Module Catalog.
 
 ---
 
@@ -73,7 +73,7 @@ Implement the 13 modules (T4 was removed). For `Scope: Squad`, the trigger regis
 **Required evidence**:
 - Logic: `tests/unit/heroes-and-abilities/module-effects_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] tests/unit/heroes-and-abilities/module-effects_test.ts
 
 ---
 
@@ -81,3 +81,10 @@ Implement the 13 modules (T4 was removed). For `Scope: Squad`, the trigger regis
 
 - Depends on: Story 003
 - Unlocks: Story 005
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: tests/unit/heroes-and-abilities/module-effects_test.ts
+**Code Review**: Complete
