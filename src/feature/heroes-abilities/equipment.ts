@@ -61,3 +61,23 @@ export function equipItem(heroState: HeroRunState, item: EquipmentDefinition): H
     equipment: [...heroState.equipment, item]
   };
 }
+
+export function replaceItem(heroState: HeroRunState, index: number, newItem: EquipmentDefinition): HeroRunState {
+  if (index < 0 || index >= heroState.equipment.length) {
+    throw new EquipmentError('Invalid equipment index.');
+  }
+
+  const currentEquipment = [...heroState.equipment];
+  currentEquipment[index] = newItem;
+
+  // Validate gadgets
+  const gadgetCount = currentEquipment.filter(e => e.type === 'gadget').length;
+  if (gadgetCount > 1) {
+    throw new EquipmentError('Max 1 Gadget equipped per hero.');
+  }
+
+  return {
+    ...heroState,
+    equipment: currentEquipment
+  };
+}

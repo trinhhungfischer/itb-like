@@ -1,12 +1,12 @@
 # Story 005: Draft Integration
 
 > **Epic**: Passive Modules
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -31,8 +31,8 @@
 
 *From GDD `design/content/passive-modules-and-equipment.md`, scoped to this story:*
 
-- [ ] AC2: Attempting to equip a 3rd module prompts the player to replace an existing one.
-- [ ] Add Module to the draftable content pool alongside heroes and upgrades, distributing by rarity weights.
+- [x] AC2: Attempting to equip a 3rd module prompts the player to replace an existing one.
+- [x] Add Module to the draftable content pool alongside heroes and upgrades, distributing by rarity weights.
 
 ---
 
@@ -72,7 +72,7 @@ Ensure the draft pool seeded random generator (`mulberry32`) is used to pick mod
 **Required evidence**:
 - Integration: `tests/integration/draft-and-loadout-meta/draft-modules_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] tests/integration/draft-and-loadout-meta/draft-modules_test.ts
 
 ---
 
@@ -80,3 +80,10 @@ Ensure the draft pool seeded random generator (`mulberry32`) is used to pick mod
 
 - Depends on: Story 004
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: tests/integration/draft-and-loadout-meta/draft-modules_test.ts
+**Code Review**: Complete
