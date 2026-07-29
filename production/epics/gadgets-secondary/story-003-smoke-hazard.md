@@ -1,7 +1,7 @@
 # Story 003: Smoke Hazard
 
 > **Epic**: Gadgets & Secondary Weapons
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
