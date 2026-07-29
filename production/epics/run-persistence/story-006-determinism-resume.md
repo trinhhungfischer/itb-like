@@ -1,12 +1,12 @@
 # Story 006: Determinism & Resume Contract
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Integration
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -34,8 +34,8 @@
 
 *From GDD `design/gdd/run-persistence.md`, scoped to this story:*
 
-- [ ] **AC18**: GIVEN a stored runSeed and nodeId, WHEN resume calls generateEncounter(runSeed, nodeId, difficultyConfig, rosterSnapshot) twice in a row with the same re-derived difficultyConfig/rosterSnapshot, THEN both calls return deep-equal encounter definitions (purity check on the contract this GDD imposes).
-- [ ] **AC19**: GIVEN (N, B_node, H, B_hero, O), THEN runSaveBytes matches F1 for ≥3 sample tuples incl. the worked example (N=20,H=6 → 4300 bytes).
+- [x] **AC18**: GIVEN a stored runSeed and nodeId, WHEN resume calls generateEncounter(runSeed, nodeId, difficultyConfig, rosterSnapshot) twice in a row with the same re-derived difficultyConfig/rosterSnapshot, THEN both calls return deep-equal encounter definitions (purity check on the contract this GDD imposes).
+- [x] **AC19**: GIVEN (N, B_node, H, B_hero, O), THEN runSaveBytes matches F1 for ≥3 sample tuples incl. the worked example (N=20,H=6 → 4300 bytes).
 
 ---
 
@@ -68,7 +68,7 @@
 **Required evidence**:
 - Integration: `tests/integration/run-persistence/determinism-resume_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Exists and passes
 
 ---
 
@@ -76,3 +76,10 @@
 
 - Depends on: Story 005 must be DONE
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: Integration test file at `tests/integration/run-persistence/determinism-resume_test.ts`
+**Code Review**: Complete
