@@ -12,6 +12,19 @@ export type LoadResult<T> =
   | { kind: 'Corrupted' }
   | { kind: 'Unsupported' };
 
+export type MigrationFn = (data: unknown) => unknown;
+
+export interface DomainSchema {
+  currentVersion: number;
+  migrations?: Record<number, MigrationFn>;
+  validate?: (data: unknown) => boolean;
+}
+
+export interface PersistenceOptions {
+  runSchema?: DomainSchema;
+  metaSchema?: DomainSchema;
+}
+
 export type WriteResult =
   | { kind: 'Written' }
   | { kind: 'QuotaExceeded' }
@@ -47,15 +60,21 @@ export function checksum(s: string): number {
 export class RunPersistence implements Persistence {
   private runKey = 'vanguard.run.v1';
   private metaKey = 'vanguard.meta.v1';
+  private runSchema: DomainSchema;
+  private metaSchema: DomainSchema;
+  private unsupportedDomains = new Set<string>();
 
-  constructor(private storage: StorageAdapter) {}
+  constructor(private storage: StorageAdapter, options: PersistenceOptions = {}) {
+    this.runSchema = options.runSchema ?? { currentVersion: 1 };
+    this.metaSchema = options.metaSchema ?? { currentVersion: 1 };
+  }
 
   saveRun(data: unknown): WriteResult {
-    return this.saveToDomain(this.runKey, 1, data);
+    return this.saveToDomain(this.runKey, this.runSchema, data);
   }
 
   loadRun(): LoadResult<unknown> {
-    const result = this.loadFromDomain(this.runKey, 1);
+    const result = this.loadFromDomain(this.runKey, this.runSchema);
     if (result.kind === 'Corrupted') {
       this.quarantine(this.runKey);
       this.clearRun();
@@ -72,11 +91,11 @@ export class RunPersistence implements Persistence {
   }
 
   saveMeta(data: unknown): WriteResult {
-    return this.saveToDomain(this.metaKey, 1, data);
+    return this.saveToDomain(this.metaKey, this.metaSchema, data);
   }
 
   loadMeta(defaultMeta: unknown = {}): LoadResult<unknown> {
-    const result = this.loadFromDomain(this.metaKey, 1);
+    const result = this.loadFromDomain(this.metaKey, this.metaSchema);
     if (result.kind === 'Corrupted') {
       this.quarantine(this.metaKey);
       this.saveMeta(defaultMeta);
@@ -100,7 +119,10 @@ export class RunPersistence implements Persistence {
     }
   }
 
-  private saveToDomain(key: string, version: number, data: unknown): WriteResult {
+  private saveToDomain(key: string, schema: DomainSchema, data: unknown): WriteResult {
+    if (this.unsupportedDomains.has(key)) {
+      return { kind: 'Written' }; // silently drop writes to unsupported domains
+    }
     try {
       const dataString = JSON.stringify(data);
       if (dataString === undefined) {
@@ -109,7 +131,7 @@ export class RunPersistence implements Persistence {
       const csum = checksum(dataString);
       
       // Serialize data once and reuse that exact string for both hashing and storage
-      const envelopeString = `{"schemaVersion":${version},"checksum":${csum},"data":${dataString}}`;
+      const envelopeString = `{"schemaVersion":${schema.currentVersion},"checksum":${csum},"data":${dataString}}`;
       
       // Build-then-swap atomic write
       this.storage.setItem(key, envelopeString);
@@ -125,7 +147,7 @@ export class RunPersistence implements Persistence {
     }
   }
 
-  private loadFromDomain(key: string, currentVersion: number): LoadResult<unknown> {
+  private loadFromDomain(key: string, schema: DomainSchema): LoadResult<unknown> {
     try {
       const stored = this.storage.getItem(key);
       if (!stored) {
@@ -149,7 +171,8 @@ export class RunPersistence implements Persistence {
         return { kind: 'Corrupted' };
       }
 
-      if (envelope.schemaVersion > currentVersion) {
+      if (envelope.schemaVersion > schema.currentVersion) {
+        this.unsupportedDomains.add(key);
         return { kind: 'Unsupported' };
       }
 
@@ -161,7 +184,26 @@ export class RunPersistence implements Persistence {
         return { kind: 'Corrupted' };
       }
 
-      return { kind: 'Valid', data: envelope.data };
+      let migratedData = envelope.data;
+      let dataVersion = envelope.schemaVersion;
+      
+      while (dataVersion < schema.currentVersion) {
+        if (!schema.migrations || !schema.migrations[dataVersion]) {
+          return { kind: 'Corrupted' };
+        }
+        try {
+          migratedData = schema.migrations[dataVersion](migratedData);
+        } catch {
+          return { kind: 'Corrupted' };
+        }
+        dataVersion++;
+      }
+
+      if (schema.validate && !schema.validate(migratedData)) {
+        return { kind: 'Corrupted' };
+      }
+
+      return { kind: 'Valid', data: migratedData };
     } catch {
       return { kind: 'Corrupted' };
     }

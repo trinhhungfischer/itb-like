@@ -1,12 +1,12 @@
 # Story 003: Schema Versioning & Migrations
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -30,10 +30,10 @@
 
 *From GDD `design/gdd/run-persistence.md`, scoped to this story:*
 
-- [ ] **AC8**: GIVEN schemaVersion < CURRENT_VERSION, WHEN loaded, THEN exactly migrationsToApply (F3) migration functions run in ascending order and the result validates against the current schema.
-- [ ] **AC9**: GIVEN a version chain missing one migration function, WHEN loaded, THEN the result is Corrupted (not partially migrated).
-- [ ] **AC10**: GIVEN schemaVersion > CURRENT_VERSION, WHEN loaded, THEN the result is Unsupported(NewerVersion), the stored key is not parsed further and not overwritten by any subsequent write in that session.
-- [ ] **AC21**: GIVEN (v_stored, v_current) pairs incl. equal (0 migrations) and multi-step, THEN migrationsToApply matches F3 exactly.
+- [x] **AC8**: GIVEN schemaVersion < CURRENT_VERSION, WHEN loaded, THEN exactly migrationsToApply (F3) migration functions run in ascending order and the result validates against the current schema.
+- [x] **AC9**: GIVEN a version chain missing one migration function, WHEN loaded, THEN the result is Corrupted (not partially migrated).
+- [x] **AC10**: GIVEN schemaVersion > CURRENT_VERSION, WHEN loaded, THEN the result is Unsupported(NewerVersion), the stored key is not parsed further and not overwritten by any subsequent write in that session.
+- [x] **AC21**: GIVEN (v_stored, v_current) pairs incl. equal (0 migrations) and multi-step, THEN migrationsToApply matches F3 exactly.
 
 ---
 
@@ -67,7 +67,7 @@
 **Required evidence**:
 - Logic: `tests/unit/run-persistence/schema-versioning_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing
 
 ---
 
@@ -75,3 +75,11 @@
 
 - Depends on: Story 002 must be DONE
 - Unlocks: Story 004
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/run-persistence/schema-versioning_test.ts
+**Code Review**: Complete (Approved with suggestions)
+
