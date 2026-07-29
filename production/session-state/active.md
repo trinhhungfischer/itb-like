@@ -345,9 +345,17 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 | Event Bus | 17 | Foundation |
 | Sprint-1 acceptance (integration) | 6 | — |
 
-### Next: sprint close-out sequence
-`/code-review` → `/smoke-check sprint` → `/team-qa sprint` → `/retrospective` → `/sprint-plan new`
+### Sprint 1 Close-out (Completed 2026-07-29)
+✅ `/code-review` ran and 3 required changes were applied.
+✅ `/smoke-check sprint` ran (PASS WITH WARNINGS — expected for headless engine). Report at `production/qa/smoke-2026-07-29.md`.
+✅ `/team-qa sprint` ran (APPROVED WITH CONDITIONS). Report at `production/qa/qa-signoff-sprint-1-2026-07-29.md`.
+✅ `/retrospective` ran. Report at `production/retrospectives/retro-sprint-1-2026-07-29.md`.
+✅ `/sprint-plan new` bypassed, as `production/sprints/sprint-2.md` was already planned. Action items from retro carry forward to Sprint 2.
 
-**Retrospective must cover:** six story-path mismatches (process defect), five of six
-implementation agents stopping mid-edit, and eight spec defects that survived
-design-review + consistency-check + architecture-review but were caught by code.
+### Next: Sprint 2 Execution
+1. Implement Sprint 2 — Feature layer + Content systems (21 stories, 106 pts)
+   - Heroes & Abilities, Enemy AI, Objectives (P0)
+   - Run Persistence, Passive Modules, Gadgets, Enemy Roster (P1)
+2. Follow Execution Order Week 1: Day 1-3 Heroes & Abilities + Enemy AI.
+
+**Immediate next step:** Review Sprint 2 Epic requirements and begin implementation of Heroes & Abilities.
