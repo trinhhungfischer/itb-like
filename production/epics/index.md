@@ -27,3 +27,7 @@
 | [passive-modules](passive-modules/EPIC.md) | Feature | Passive Modules | Ready (5 stories) |
 | [gadgets-secondary](gadgets-secondary/EPIC.md) | Feature | Gadgets & Secondary Weapons | Ready (5 stories) |
 | [enemy-roster-content](enemy-roster-content/EPIC.md) | Content | Enemy Roster Content | Ready (5 stories) |
+| [pilots](pilots/EPIC.md) | Feature | Pilots | Ready (2 stories) |
+| [node-bonuses](node-bonuses/EPIC.md) | Feature | Node Bonuses | Ready (2 stories) |
+| [accessibility](accessibility/EPIC.md) | Presentation | Accessibility | Ready (1 stories) |
+| [settings-and-options](settings-and-options/EPIC.md) | Presentation | Settings & Options | Ready (2 stories) |

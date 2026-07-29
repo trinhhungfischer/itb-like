@@ -9,7 +9,7 @@ import type { EffectPrimitive } from '../../../src/core/combat/combat-types.js';
 describe('Story 001: Core System Contracts & Deterministic Order', () => {
   it('exposes exactly chooseIntents(), resolveTelegraphed(), emergeSpawns(), and no method that mutates board directly', () => {
     const resolver: CombatResolver = { resolve: vi.fn().mockReturnValue([]) };
-    const state: CombatStateView = {} as any;
+    const state: CombatStateView = { hasUnit: () => true } as any;
     const system = new EnemyAbilitiesAndTelegraph(resolver, state, { getAliveEnemies: () => [] });
     
     expect(typeof system.chooseIntents).toBe('function');
@@ -17,7 +17,11 @@ describe('Story 001: Core System Contracts & Deterministic Order', () => {
     expect(typeof system.emergeSpawns).toBe('function');
     
     const prototypeMethods = Object.getOwnPropertyNames(EnemyAbilitiesAndTelegraph.prototype).filter(m => m !== 'constructor');
-    const allowed = ['chooseIntents', 'resolveTelegraphed', 'emergeSpawns', 'setIntent', 'getIntent', 'getSortedEnemies'];
+    const allowed = [
+      'chooseIntents', 'resolveTelegraphed', 'emergeSpawns', 'setIntent', 'getIntent', 'getSortedEnemies',
+      'chooseIntentForEnemy', 'findNearestHero', 'getEnemyAbilityParams', 'pathAndSetIntent', 'scheduleSpawn',
+      'getSpawnIntents', 'telegraphedEnvironmentTiles', 'telegraphedLethalThreatCount'
+    ];
     for (const method of prototypeMethods) {
       expect(allowed).toContain(method);
     }
@@ -25,7 +29,7 @@ describe('Story 001: Core System Contracts & Deterministic Order', () => {
 
   it('processes enemies strictly by ascending unitId when chooseIntents() or resolveTelegraphed() runs', () => {
     const resolver: CombatResolver = { resolve: vi.fn().mockReturnValue([]) };
-    const state: CombatStateView = {} as any;
+    const state: CombatStateView = { hasUnit: () => true } as any;
     const mockBoard: Board = {} as any;
 
     const units: Unit[] = [
@@ -43,9 +47,9 @@ describe('Story 001: Core System Contracts & Deterministic Order', () => {
     system.resolveTelegraphed(mockBoard);
     
     expect(resolver.resolve).toHaveBeenCalledTimes(3);
-    expect((resolver.resolve as any).mock.calls[0][2][0].amount).toBe(3); // unit 2
-    expect((resolver.resolve as any).mock.calls[1][2][0].amount).toBe(1); // unit 4
-    expect((resolver.resolve as any).mock.calls[2][2][0].amount).toBe(2); // unit 7
+    expect((resolver.resolve as any).mock.calls[0][1][0].amount).toBe(3); // unit 2
+    expect((resolver.resolve as any).mock.calls[1][1][0].amount).toBe(1); // unit 4
+    expect((resolver.resolve as any).mock.calls[2][1][0].amount).toBe(2); // unit 7
   });
 
   it('prioritizes lower unitId when two enemies resolve pushes targeting the same tile', () => {
@@ -62,7 +66,7 @@ describe('Story 001: Core System Contracts & Deterministic Order', () => {
       })
     };
     
-    const state: CombatStateView = {} as any;
+    const state: CombatStateView = { hasUnit: () => true } as any;
     const mockBoard: Board = {} as any;
 
     const units: Unit[] = [

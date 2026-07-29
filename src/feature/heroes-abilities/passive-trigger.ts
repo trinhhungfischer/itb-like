@@ -26,7 +26,7 @@ export function registerPassiveModules(
     switch (module.trigger.type) {
       case 'OnAction':
         combatBus.on('on_action', (event) => {
-          if (event.sourceId === heroId) {
+          if (event.sourceId === heroId || module.scope === 'Squad') {
             const effects = evaluateEffect(module, { trigger: 'OnAction', event });
             if (effects.length > 0) {
               event.queuePassiveEffect(effects);
@@ -37,7 +37,7 @@ export function registerPassiveModules(
 
       case 'OnHit':
         combatBus.on('on_hit', (event) => {
-          if (event.sourceId === heroId) {
+          if (event.sourceId === heroId || module.scope === 'Squad') {
             const effects = evaluateEffect(module, { trigger: 'OnHit', event });
             if (effects.length > 0) {
               event.queuePassiveEffect(effects);
@@ -48,7 +48,7 @@ export function registerPassiveModules(
 
       case 'OnKill':
         combatBus.on('on_kill', (event) => {
-          if (event.sourceId === heroId) {
+          if (event.sourceId === heroId || module.scope === 'Squad') {
             const effects = evaluateEffect(module, { trigger: 'OnKill', event });
             if (effects.length > 0) {
               event.queuePassiveEffect(effects);

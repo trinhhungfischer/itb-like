@@ -9,11 +9,13 @@ describe('Story 002: Target Selection AI', () => {
   const mockResolver: CombatResolver = { resolve: vi.fn().mockReturnValue([]) };
   const mockState: CombatStateView = {} as any;
   const mockBoard: Board = {
-    distance: (a: Tile, b: Tile) => Math.abs(a.col - b.col) + Math.abs(a.row - b.row)
+    distance: (a: Tile, b: Tile) => Math.abs(a.col - b.col) + Math.abs(a.row - b.row),
+    getHazard: () => null,
+    reachableTiles: () => []
   } as any;
 
   it('selects hero with lowest unitId when Manhattan distances are equal', () => {
-    const enemy: Unit = { id: 'enemy1', position: { col: 2, row: 2 }, team: 'enemy', abilities: [{ id: 'Attack', range: 5 }] } as any;
+    const enemy: Unit = { id: 'enemy1', position: { col: 2, row: 2 }, team: 'enemy', abilities: [{ id: 'Attack', shape: { range: 5 } }] } as any;
     const hero1: Unit = { id: '2', position: { col: 2, row: 4 }, team: 'hero' } as any; // dist 2
     const hero2: Unit = { id: '1', position: { col: 4, row: 2 }, team: 'hero' } as any; // dist 2
 

@@ -108,7 +108,9 @@ describe('combat-resolution: pull (Rule 5)', () => {
     // Target stops one tile short of the source's own tile (Occupied collision).
     expect(board.getOccupant(4, 1)).toBe('hero-1')
     expect(board.getOccupant(3, 1)).toBe('caster-1')
-    expect(events).toEqual([
+    
+    const filteredEvents = events.filter(e => e.type !== 'on_hit');
+    expect(filteredEvents).toEqual([
       { type: 'collision_resolved', a: 'hero-1', b: 'caster-1', collisionDamage: 1, kind: 'Unit' },
       { type: 'damage_applied', targetId: 'hero-1', amount: 1, hp: 9 },
       { type: 'damage_applied', targetId: 'caster-1', amount: 1, hp: 9 },

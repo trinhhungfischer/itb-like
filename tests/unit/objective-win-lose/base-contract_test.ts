@@ -22,7 +22,8 @@ function createMockHero(): Unit {
 describe('Objective Win-Lose Base Contract', () => {
   it('AC-1: Purity & Idempotency - calling evaluate multiple times returns identical result and does not mutate state', () => {
     const hero = createMockHero();
-    const state: BattleState = { units: [hero] };
+    const enemy: Unit = { ...createMockHero(), id: 'enemy_1', team: 'enemy' };
+    const state: BattleState = { units: [hero, enemy] };
     const stateJson = JSON.stringify(state);
     const config: ObjectiveConfig = { type: 'Clear' };
     
