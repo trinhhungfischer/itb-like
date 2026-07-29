@@ -12,6 +12,7 @@ export type EffectTemplateStep =
   | { kind: 'applyHazard' }
   | { kind: 'setTerrain'; terrainType: TerrainType }
   | { kind: 'swap' }
+  | { kind: 'spawnUnit'; unitSpec: import('../../core/combat/combat-types.js').UnitSpec }
   ;
 
 function getDirection(from: Tile, to: Tile): Direction {
@@ -124,6 +125,14 @@ export function compileEffects(
           kind: 'setTerrain',
           tile: tile,
           terrainType: step.terrainType
+        });
+      } else if (step.kind === 'spawnUnit') {
+        primitives.push({
+          kind: 'spawnUnit',
+          tile: tile,
+          // If we need deterministic unique IDs, the caller should have provided a way.
+          // For now, pass the spec through. The combat resolver will enforce uniqueness if needed.
+          unitSpec: step.unitSpec
         });
       }
     }

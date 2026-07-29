@@ -1,7 +1,7 @@
 # Story 003: Zone Enemies
 
 > **Epic**: Enemy Roster Content
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 3 hours
@@ -65,7 +65,7 @@ Note: Ensure on-death spawn mechanic is correctly attached to Broodmother defini
 **Required evidence**:
 - Logic: `tests/unit/feature/zone-enemies_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passed
 
 ---
 
@@ -73,3 +73,10 @@ Note: Ensure on-death spawn mechanic is correctly attached to Broodmother defini
 
 - Depends on: None
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: Logic: tests/unit/feature/zone-enemies_test.ts
+**Code Review**: Complete
