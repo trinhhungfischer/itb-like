@@ -1,12 +1,12 @@
 # Story 005: Resolution Execution & Range Gate
 
 > **Epic**: Enemy, Abilities & Telegraph
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**:
 > **Manifest Version**: 2026-07-28
-> **Last Updated**:
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -76,7 +76,7 @@ Ensure friendly fire is active by default; do not filter enemy targets from AoEs
 **Required evidence**:
 - Logic: `tests/unit/enemy-abilities-and-telegraph/resolution-execution_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created (tests/unit/enemy-abilities-and-telegraph/resolution-execution_test.ts)
 
 ---
 
@@ -84,3 +84,12 @@ Ensure friendly fire is active by default; do not filter enemy targets from AoEs
 
 - Depends on: Story 004
 - Unlocks: Story 006
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 5/5 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/enemy-abilities-and-telegraph/resolution-execution_test.ts
+**Code Review**: Complete (Approved with suggestions)

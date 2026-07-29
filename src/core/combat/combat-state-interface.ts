@@ -31,6 +31,7 @@
  */
 
 import type { Tile, UnitId, HazardType } from '../board/board-types.js';
+import type { EffectPrimitive, RemovalCause, UnitSpec } from './combat-types.js';
 
 /**
  * Read/write surface for the supplementary battle state `resolve()` mutates
@@ -55,8 +56,14 @@ export interface CombatStateView {
   /** Hazard types `id` takes no damage from. Returns `[]` for an unregistered unit — never throws. */
   getHazardImmunities(id: UnitId): readonly HazardType[];
 
-  /** Registers a unit's HP and immunities at spawn time. */
-  registerUnit(id: UnitId, hp: number, hazardImmunities?: readonly HazardType[]): void;
+  /** Returns the onDeath effect generator for `id`, or undefined. */
+  getOnDeath(id: UnitId): ((lastTile: Tile) => readonly EffectPrimitive[]) | undefined;
+
+  /** Returns the causes of removal that trigger `onDeath` for `id`. Defaults to ['Defeated', 'Fell']. */
+  getOnDeathTriggerCauses(id: UnitId): readonly RemovalCause[];
+
+  /** Registers a unit's stats and effects at spawn time. */
+  registerUnit(id: UnitId, unitSpec: UnitSpec): void;
 
   /** Removes `id`'s record. Called when a unit leaves the board. */
   deleteUnit(id: UnitId): void;

@@ -1,7 +1,7 @@
 # Story 001: Base Contract & Universal Defeat
 
 > **Epic**: Objective / Win-Lose
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
@@ -91,3 +91,10 @@ Objective polls battleState.units which contains the canonical Unit record. Use 
 
 - Depends on: None
 - Unlocks: Story 002, Story 003
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 7/7 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/objective-win-lose/base-contract_test.ts
+**Code Review**: Complete

@@ -420,3 +420,23 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 - Test written: tests/unit/objective-win-lose/base-contract_test.ts
 - Blockers: None
 - Next: /code-review src/feature/objective-win-lose/base-contract.ts then /story-done production/epics/objective-win-lose/story-001-base-contract.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/enemy-abilities-telegraph/story-005-resolution-execution.md — Resolution Execution & Range Gate
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production\epics\objective-win-lose\story-001-base-contract.md — Base Contract & Universal Defeat
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/objective-win-lose/story-002-survive-protect.md — Survive & Protect Objectives
+- Files changed: src/feature/objective-win-lose/base-contract.ts
+- Test written: tests/unit/objective-win-lose/survive-protect_test.ts
+- Blockers: None
+- Next: /code-review src/feature/objective-win-lose/base-contract.ts tests/unit/objective-win-lose/survive-protect_test.ts then /story-done production/epics/objective-win-lose/story-002-survive-protect.md
+

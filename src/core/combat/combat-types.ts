@@ -15,6 +15,15 @@ import type { Direction, HazardType, Tile, UnitId } from '../board/board-types.j
 import type { TerrainType } from '../board/board-types.js';
 
 /**
+ * Vitality-removal cause (GDD "States and Transitions" — `Unit` vitality
+ * state `Alive ↔ Removed(cause)`). `Recalled` is reserved for a future
+ * non-death removal verb (GDD Open Question 8) — no primitive implemented
+ * here produces it, but `removeUnit` accepts it structurally since Rule 8
+ * defines `removeUnit` as the single exit point "regardless of cause."
+ */
+export type RemovalCause = 'Defeated' | 'Fell' | 'Recalled';
+
+/**
  * Minimal projection of a unit's authored starting stats that Combat
  * Resolution's `spawnUnit` primitive needs (GDD Rule 15). Deliberately
  * narrow: `archetype`/`team`/`abilities` are Heroes & Abilities / Enemy
@@ -35,16 +44,17 @@ export interface UnitSpec {
    * threading). Defaults to `[]` (no immunities) if omitted.
    */
   readonly hazardImmunities?: readonly HazardType[];
+  /**
+   * Effects to generate when this unit is removed.
+   * A function that takes the unit's last occupied tile as the effect anchor.
+   */
+  readonly onDeath?: (lastTile: Tile) => readonly EffectPrimitive[];
+  /**
+   * The causes of removal that trigger `onDeath`. Defaults to `['Defeated', 'Fell']`.
+   */
+  readonly onDeathTriggerCauses?: readonly RemovalCause[];
 }
 
-/**
- * Vitality-removal cause (GDD "States and Transitions" — `Unit` vitality
- * state `Alive ↔ Removed(cause)`). `Recalled` is reserved for a future
- * non-death removal verb (GDD Open Question 8) — no primitive implemented
- * here produces it, but `removeUnit` accepts it structurally since Rule 8
- * defines `removeUnit` as the single exit point "regardless of cause."
- */
-export type RemovalCause = 'Defeated' | 'Fell' | 'Recalled';
 
 /**
  * The closed, 10-primitive vocabulary (ADR-0006 Decision; registry entry

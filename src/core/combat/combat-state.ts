@@ -27,10 +27,13 @@ import type { CombatStateView } from './combat-state-interface.js';
 import { invariant } from '../board/board-result.js';
 import type { HazardType, Tile } from '../board/board-types.js';
 import type { UnitId } from '../board/board-types.js';
+import type { EffectPrimitive, RemovalCause, UnitSpec } from './combat-types.js';
 
 interface UnitRecord {
   readonly currentHP: number;
   readonly hazardImmunities: readonly HazardType[];
+  readonly onDeath?: (lastTile: Tile) => readonly EffectPrimitive[];
+  readonly onDeathTriggerCauses?: readonly RemovalCause[];
 }
 
 function tileKey(tile: Tile): string {
@@ -72,7 +75,12 @@ export class CombatState implements CombatStateView {
   setHp(id: UnitId, hp: number): void {
     const record = this.units.get(id);
     invariant(record !== undefined, `CombatState.setHp: unit ${id} is not registered`);
-    this.units.set(id, { currentHP: hp, hazardImmunities: record.hazardImmunities });
+    this.units.set(id, {
+      currentHP: hp,
+      hazardImmunities: record.hazardImmunities,
+      onDeath: record.onDeath,
+      onDeathTriggerCauses: record.onDeathTriggerCauses,
+    });
   }
 
   /** Hazard types `id` takes no damage from. Returns `[]` for an unregistered unit (never throws — used opportunistically at hazard sites). */
@@ -80,9 +88,24 @@ export class CombatState implements CombatStateView {
     return this.units.get(id)?.hazardImmunities ?? [];
   }
 
-  /** Registers a newly spawned unit's starting HP/immunities (`spawnUnit` primitive). */
-  registerUnit(id: UnitId, hp: number, hazardImmunities: readonly HazardType[] = []): void {
-    this.units.set(id, { currentHP: hp, hazardImmunities });
+  /** Returns the onDeath effect generator for `id`, or undefined. */
+  getOnDeath(id: UnitId): ((lastTile: Tile) => readonly EffectPrimitive[]) | undefined {
+    return this.units.get(id)?.onDeath;
+  }
+
+  /** Returns the causes of removal that trigger `onDeath` for `id`. Defaults to ['Defeated', 'Fell']. */
+  getOnDeathTriggerCauses(id: UnitId): readonly RemovalCause[] {
+    return this.units.get(id)?.onDeathTriggerCauses ?? ['Defeated', 'Fell'];
+  }
+
+  /** Registers a unit's stats and effects at spawn time. */
+  registerUnit(id: UnitId, unitSpec: UnitSpec): void {
+    this.units.set(id, {
+      currentHP: unitSpec.hp,
+      hazardImmunities: unitSpec.hazardImmunities ?? [],
+      onDeath: unitSpec.onDeath,
+      onDeathTriggerCauses: unitSpec.onDeathTriggerCauses,
+    });
   }
 
   /** Removes `id`'s record (`removeUnit` primitive — the unit is no longer on the board). */

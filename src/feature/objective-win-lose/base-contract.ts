@@ -12,6 +12,7 @@ export type ObjectiveType = 'Survive' | 'Protect' | 'Clear' | 'Reach';
 export interface ObjectiveConfig {
   type: ObjectiveType;
   max_turns?: number | null;
+  protectedUnitId?: string;
 }
 
 export interface BattleState {
@@ -41,10 +42,27 @@ export function evaluate(battleState: BattleState, turn: number, config: Objecti
     throw new Error('Contract violation: Survive/Protect config must have max_turns');
   }
 
+  if (config.type === 'Protect' && !config.protectedUnitId) {
+    throw new Error('Contract violation: Protect config must have protectedUnitId');
+  }
+
+  if (config.type === 'Protect') {
+    const protectedUnit = battleState.units.find(u => u.id === config.protectedUnitId);
+    if (!protectedUnit) {
+      return { status: 'Defeat', reason: 'ProtectedUnitLost' };
+    }
+  }
+
   // Universal party-wipe defeat predicate
   const heroUnits = battleState.units.filter(u => u.team === 'hero');
   if (heroUnits.length === 0) {
     return { status: 'Defeat', reason: 'PartyWiped' };
+  }
+
+  if (config.type === 'Survive' || config.type === 'Protect') {
+    if (turn >= config.max_turns!) {
+      return { status: 'Victory', reason: 'TurnLimitReached' };
+    }
   }
 
   // (Specific objective logic for Survive/Protect/Clear/Reach will be added here in subsequent stories)
