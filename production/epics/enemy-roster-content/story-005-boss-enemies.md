@@ -1,7 +1,7 @@
 # Story 005: Boss Enemies
 
 > **Epic**: Enemy Roster Content
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 4 hours
@@ -63,7 +63,7 @@ N/A — The GDD deferred boss multi-ability implementation, recommending a simpl
 **Required evidence**:
 - Logic: `tests/unit/feature/boss-enemies_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passed
 
 ---
 
@@ -71,3 +71,10 @@ N/A — The GDD deferred boss multi-ability implementation, recommending a simpl
 
 - Depends on: None
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: Logic: tests/unit/feature/boss-enemies_test.ts
+**Code Review**: Complete
