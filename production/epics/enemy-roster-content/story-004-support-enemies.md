@@ -1,7 +1,7 @@
 # Story 004: Support Enemies
 
 > **Epic**: Enemy Roster Content
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 4 hours
@@ -63,7 +63,7 @@ N/A — The GDD deferred the aura implementation to the implementation phase, re
 **Required evidence**:
 - Logic: `tests/unit/feature/support-enemies_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passed
 
 ---
 
@@ -71,3 +71,10 @@ N/A — The GDD deferred the aura implementation to the implementation phase, re
 
 - Depends on: None
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 1/1 passing
+**Deviations**: None
+**Test Evidence**: Logic: tests/unit/feature/support-enemies_test.ts
+**Code Review**: Complete
