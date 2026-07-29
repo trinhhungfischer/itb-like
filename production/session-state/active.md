@@ -359,3 +359,38 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 2. Follow Execution Order Week 1: Day 1-3 Heroes & Abilities + Enemy AI.
 
 **Immediate next step:** Review Sprint 2 Epic requirements and begin implementation of Heroes & Abilities.
+<!-- QA-PLAN: 2026-07-29 | System: feature: heroes-abilities | Plan written: production/qa/qa-plan-feature-heroes-abilities-2026-07-29.md -->
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/heroes-abilities/story-001-chassis-loadout-action-economy.md — Story 001: Chassis, Loadout, and Action Economy
+- Files changed: src/feature/heroes-abilities/unit.ts, src/feature/heroes-abilities/loadout.ts, src/feature/heroes-abilities/action-economy.ts
+- Test written: tests/unit/heroes-abilities/chassis-loadout_test.ts (10 test functions)
+- Blockers: None
+- Next: /code-review src/feature/heroes-abilities/unit.ts src/feature/heroes-abilities/loadout.ts src/feature/heroes-abilities/action-economy.ts then /story-done production/epics/heroes-abilities/story-001-chassis-loadout-action-economy.md
+<!-- QA-PLAN: 2026-07-29 | System: enemy-abilities-telegraph | Plan written: production/qa/qa-plan-enemy-abilities-telegraph-2026-07-29.md -->
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/heroes-abilities/story-002-legal-move-selection.md — Story 002: Legal Move Selection
+- Files changed: src/feature/heroes-abilities/move-selection.ts, tests/unit/heroes-abilities/move-selection_test.ts
+- Test written: tests/unit/heroes-abilities/move-selection_test.ts
+- Blockers: None
+- Next: /code-review src/feature/heroes-abilities/move-selection.ts then /story-done production/epics/heroes-abilities/story-002-legal-move-selection.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/heroes-abilities/story-002-legal-move-selection.md — Legal Move Selection
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/enemy-abilities-telegraph/story-002-target-selection.md — Target Selection AI
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/heroes-abilities/story-003-ability-targeting.md — Ability Targeting Geometry
+- Files changed: src/feature/heroes-abilities/ability-targeting.ts
+- Test written: tests/unit/heroes-abilities/story-003-ability-targeting_test.ts
+- Blockers: None
+- Next: /code-review src/feature/heroes-abilities/ability-targeting.ts tests/unit/heroes-abilities/story-003-ability-targeting_test.ts then /story-done production/epics/heroes-abilities/story-003-ability-targeting.md
+

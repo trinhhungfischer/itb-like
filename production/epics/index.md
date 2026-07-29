@@ -5,10 +5,10 @@
 | [board-grid](board-grid/EPIC.md) | Foundation | Board & Grid | Ready (5 stories) |
 | [turn-phase-manager](turn-phase-manager/EPIC.md) | Foundation | Turn & Phase Manager | Ready (4 stories) |
 | [combat-resolution](combat-resolution/EPIC.md) | Core | Combat Resolution | Ready (6 stories) |
-| [heroes-abilities](heroes-abilities/EPIC.md) | Feature | Heroes & Abilities | Ready |
-| [enemy-abilities-telegraph](enemy-abilities-telegraph/EPIC.md) | Feature | Enemy, Abilities & Telegraph | Ready |
+| [heroes-abilities](heroes-abilities/EPIC.md) | Feature | Heroes & Abilities | Ready (5 stories) |
+| [enemy-abilities-telegraph](enemy-abilities-telegraph/EPIC.md) | Feature | Enemy, Abilities & Telegraph | Ready (7 stories) |
 | [move-preview](move-preview/EPIC.md) | Core | Move Preview | Ready (3 stories) |
-| [objective-win-lose](objective-win-lose/EPIC.md) | Feature | Objective / Win-Lose | Ready |
+| [objective-win-lose](objective-win-lose/EPIC.md) | Feature | Objective / Win-Lose | Ready (3 stories) |
 | [input-selection](input-selection/EPIC.md) | Core | Input & Selection | Ready (4 stories) |
 | [board-rendering-juice](board-rendering-juice/EPIC.md) | Presentation | Board Rendering & Juice | Ready |
 | [battle-hud](battle-hud/EPIC.md) | Presentation | Battle HUD | Ready |

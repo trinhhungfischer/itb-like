@@ -3,7 +3,15 @@
 > **GDD**: design/gdd/objective-and-win-lose.md
 > **Architecture Module**: Objective / Win-Lose
 > **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories objective-win-lose`
+> **Stories**: 3 stories
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | Base Contract & Universal Defeat | Logic | Ready | ADR-0008 |
+| 002 | Survive & Protect Objectives | Logic | Ready | ADR-0008 |
+| 003 | Clear & Reach Objectives | Logic | Ready | ADR-0008 |
 
 ## Overview
 Objective / Win-Lose is the battle's **judge**: a single pure function, `evaluate(battleState, turn, config) -> {Ongoing, Victory, Defeat}`, that answers "is this battle still going, won, or lost?" from nothing but the current board state, the current unit state, and the turn number. It owns the four v1 mission archetypes — **Survive N turns**, **Protect a target**, **Clear all enemies**, **Reach a tile** — plus the one lose condition that applies no matter which archetype is in play: a total party wipe. It also owns `max_turns`, the per-encounter turn limit that either defines a Survive/ Protect mission's win trigger or acts as an optional deadline for Clear/ Reach missions. Objective never mutates the board, never queries other systems, and never remembers anything between calls — it is asked the same question, from scratch, up to four times a turn by Turn & Phase Manager, and it must give the same answer every time it is asked with the same inputs. This purity is what makes Pillar #1 (Perfect Information, Perfect Blame) possible at the meta level of "did I win or lose, and why": the verdict is never a special case, a race condition, or a hidden counter — it is always a deterministic readout of the board the player can already see.

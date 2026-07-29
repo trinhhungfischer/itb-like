@@ -3,7 +3,7 @@
 > **GDD**: design/gdd/heroes-and-abilities.md
 > **Architecture Module**: Heroes & Abilities
 > **Status**: Ready
-> **Stories**: Not yet created — run `/create-stories heroes-abilities`
+> **Stories**: 5 stories
 
 ## Overview
 Heroes & Abilities defines the **hero chassis** (the data schema for a playable unit: HP, move range, size, and a class tag) and the **Ability Definition Schema** — a formal, reusable structure that expresses Pillar #4's promise that *every hero is a verb*: a named ability with a targeting shape, a target filter, and an ordered template of Combat Resolution effect primitives, compiled at cast time into the exact effect list that both the live game and Move Preview execute. A **Loadout** is the squad of hero instances (`squad_size` heroes) the player brings into one battle. This system owns *what a hero can do and where it can do it to* — it does not resolve any effect itself (Combat Resolution owns that), does not decide enemy behavior (Enemy, Abilities & Telegraph owns that, reusing this same Ability Definition Schema), and does not decide which heroes a player has access to across a run (Draft / Loadout Meta owns that). Because the same `compileEffects()` function is used to build the ordered effect list for both the real action and its dry-run preview, a hero's ability can never resolve differently than what the player was shown — this is the mechanical guarantee that makes Pillar #4's "unique verb" promise trustworthy rather than just a marketing label, and it is what lets Pillar #2 (Positioning Over Power) treat `push`/`pull`/`swap` as first-class win conditions rather than gimmicks bolted onto a damage-centric roster.
@@ -31,3 +31,13 @@ This epic is complete when:
 - All stories are implemented, reviewed, and closed via `/story-done`
 - All acceptance criteria from the GDD are verified
 - All Logic and Integration stories have passing test files in `tests/`
+
+## Stories
+
+| # | Story | Type | Status | ADR |
+|---|-------|------|--------|-----|
+| 001 | Chassis, Loadout, and Action Economy | Logic | Ready | ADR-0008 |
+| 002 | Legal Move Selection | Logic | Ready | ADR-0009 |
+| 003 | Ability Targeting Geometry | Logic | Ready | ADR-0006 |
+| 004 | Effect Compilation and Preview Integration | Integration | Ready | ADR-0006, ADR-0007 |
+| 005 | Presentation and Highlighting | Visual/Feel | Ready | N/A |
