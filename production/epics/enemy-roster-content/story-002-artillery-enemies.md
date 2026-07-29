@@ -1,7 +1,7 @@
 # Story 002: Artillery Enemies
 
 > **Epic**: Enemy Roster Content
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 3 hours
@@ -66,7 +66,7 @@ Note: Ensure `Mine` hazard is used for Sentinel's abilities.
 **Required evidence**:
 - Logic: `tests/unit/feature/artillery-enemies_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passed
 
 ---
 
@@ -74,3 +74,10 @@ Note: Ensure `Mine` hazard is used for Sentinel's abilities.
 
 - Depends on: None
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 3/3 passing
+**Deviations**: None
+**Test Evidence**: Logic: tests/unit/feature/artillery-enemies_test.ts
+**Code Review**: Complete
