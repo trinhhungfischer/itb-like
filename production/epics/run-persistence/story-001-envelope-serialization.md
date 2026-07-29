@@ -1,12 +1,12 @@
 # Story 001: Envelope Serialization & Round Trip
 
 > **Epic**: Run Persistence
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -77,3 +77,10 @@
 
 - Depends on: None
 - Unlocks: Story 002
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Logic: `tests/unit/run-persistence/envelope-serialization_test.ts`
+**Code Review**: Complete (Approved)
