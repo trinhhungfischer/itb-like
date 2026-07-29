@@ -1,12 +1,12 @@
 # Story 004: Telegraph State & Environment Queries
 
 > **Epic**: Enemy, Abilities & Telegraph
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**:
 > **Manifest Version**: 2026-07-28
-> **Last Updated**:
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -29,9 +29,9 @@
 
 *From GDD `design/gdd/enemy-abilities-and-telegraph.md`, scoped to this story:*
 
-- [ ] **GIVEN** battle setup completes, **WHEN** queried before any player input, **THEN** every living enemy already has a non-`Idle`-or-`Idle` `Intent` recorded for Turn 1.
-- [ ] **GIVEN** an `Intent` has been telegraphed for turn `n`, **WHEN** the board mutates during Player Phase (heroes move, abilities fire), **THEN** `telegraphedEffectTiles` and `telegraphedMoveDestination` on that stored `Intent` do not change.
-- [ ] **GIVEN** an enemy spawns during the Spawn Phase, **WHEN** the same turn's Telegraph Phase runs, **THEN** that enemy has a valid `Intent` recorded for the next turn, and it performed no move/attack action during the current turn's EnemyResolve (which already passed).
+- [x] **GIVEN** battle setup completes, **WHEN** queried before any player input, **THEN** every living enemy already has a non-`Idle`-or-`Idle` `Intent` recorded for Turn 1.
+- [x] **GIVEN** an `Intent` has been telegraphed for turn `n`, **WHEN** the board mutates during Player Phase (heroes move, abilities fire), **THEN** `telegraphedEffectTiles` and `telegraphedMoveDestination` on that stored `Intent` do not change.
+- [x] **GIVEN** an enemy spawns during the Spawn Phase, **WHEN** the same turn's Telegraph Phase runs, **THEN** that enemy has a valid `Intent` recorded for the next turn, and it performed no move/attack action during the current turn's EnemyResolve (which already passed).
 
 ---
 
@@ -71,7 +71,7 @@ Both are computed at Telegraph Phase and fixed for the turn.
 **Required evidence**:
 - Logic: `tests/unit/enemy-abilities-and-telegraph/telegraph-state_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Verified by telegraph-state_test.ts
 
 ---
 
@@ -79,3 +79,11 @@ Both are computed at Telegraph Phase and fixed for the turn.
 
 - Depends on: Story 003
 - Unlocks: Story 005
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 3/3 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/enemy-abilities-and-telegraph/telegraph-state_test.ts passes.
+**Code Review**: Complete and APPROVED.
+
