@@ -6,12 +6,24 @@ export interface GadgetDefinition {
   compatible: string[];
 }
 
-export interface PassiveDefinition {
+export interface PassiveModuleDefinition {
   type: 'passive';
   id: string;
+  name: string;
+  category: string;
+  scope: string;
+  trigger: any;
+  effect: any;
+  rarity: string;
+  incompatible: string[];
 }
 
-export type EquipmentDefinition = GadgetDefinition | PassiveDefinition;
+export type PassiveDefinition = PassiveModuleDefinition; // backwards compatibility
+export type PassiveModule = PassiveModuleDefinition;
+export type Gadget = GadgetDefinition;
+
+export type EquipmentDefinition = GadgetDefinition | PassiveModuleDefinition;
+export type EquipmentSlot = PassiveModule | Gadget | null;
 
 export interface HeroRunState {
   heroId: string;

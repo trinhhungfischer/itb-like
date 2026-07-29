@@ -1,7 +1,7 @@
 # Story 005: Draft Pool Integration
 
 > **Epic**: Gadgets & Secondary Weapons
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Integration
 > **Estimate**: 

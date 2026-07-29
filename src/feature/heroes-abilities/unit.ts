@@ -30,6 +30,7 @@ export interface HeroDefinition {
   id: string;
   maxHP: number;
   moveRange: number;
+  equipmentSlots: [import('./equipment').EquipmentSlot, import('./equipment').EquipmentSlot];
 }
 
 export function constructHeroUnit(id: UnitId, heroDef: HeroDefinition, position: Tile): Unit {

@@ -1,7 +1,7 @@
 # Story 001: Equipment Slot Data Model
 
 > **Epic**: Passive Modules
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
@@ -72,7 +72,16 @@ No specific ADR applies. Implement the base schema `PassiveModuleDefinition` wit
 **Required evidence**:
 - Logic: `tests/unit/heroes-and-abilities/equipment-slot_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: tests/unit/heroes-abilities/equipment-slot_test.ts
+**Code Review**: Complete
 
 ---
 
