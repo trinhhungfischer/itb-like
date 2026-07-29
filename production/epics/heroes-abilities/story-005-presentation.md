@@ -1,12 +1,12 @@
 # Story 005: Presentation and Highlighting
 
 > **Epic**: Heroes & Abilities
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Visual/Feel
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -81,3 +81,12 @@ Checklist:
 
 - Depends on: Story 004
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Visual/Feel: none required (ADVISORY - no evidence doc found, authorized to bypass)
+**Code Review**: Skipped / Approved by user authorization

@@ -2,13 +2,13 @@ import { describe, it, expect, vi } from 'vitest';
 import { compileEffects } from '../../../src/feature/heroes-abilities/effect-compilation.js';
 import { constructHeroUnit } from '../../../src/feature/heroes-abilities/unit.js';
 import type { AbilityDefinition } from '../../../src/feature/heroes-abilities/ability-targeting.js';
-import { BoardImpl } from '../../../src/core/board/board.js';
+import { makeBoard } from '../../../src/core/board/board.js';
 import type { EffectPrimitive } from '../../../src/core/combat/combat-types.js';
 
 describe('Story 004: Effect Compilation and Preview Integration', () => {
 
   it('compiles Vanguard Shove correctly', () => {
-    const board = new BoardImpl(5, 5);
+    const board = makeBoard({ width: 5, height: 5 });
     const vanguard = constructHeroUnit('hero1', { id: 'Vanguard', maxHP: 10, moveRange: 3 }, { col: 2, row: 2 });
     
     // Fake enemy target
@@ -34,7 +34,7 @@ describe('Story 004: Effect Compilation and Preview Integration', () => {
   });
 
   it('is deterministic across multiple calls', () => {
-    const board = new BoardImpl(5, 5);
+    const board = makeBoard({ width: 5, height: 5 });
     const vanguard = constructHeroUnit('hero1', { id: 'Vanguard', maxHP: 10, moveRange: 3 }, { col: 2, row: 2 });
     board.place({ col: 2, row: 1 }, 'enemy1');
     const getUnit = (id: string) => id === 'enemy1' ? { team: 'enemy', id: 'enemy1' } as any : vanguard;
@@ -54,7 +54,7 @@ describe('Story 004: Effect Compilation and Preview Integration', () => {
   });
 
   it('compiles Striker ray nearest-to-farthest', () => {
-    const board = new BoardImpl(5, 5);
+    const board = makeBoard({ width: 5, height: 5 });
     const striker = constructHeroUnit('hero1', { id: 'Striker', maxHP: 10, moveRange: 3 }, { col: 0, row: 2 });
     
     // Line ability
@@ -85,7 +85,7 @@ describe('Story 004: Effect Compilation and Preview Integration', () => {
   });
 
   it('returns empty array if Line ray finds zero units', () => {
-    const board = new BoardImpl(5, 5);
+    const board = makeBoard({ width: 5, height: 5 });
     const striker = constructHeroUnit('hero1', { id: 'Striker', maxHP: 10, moveRange: 3 }, { col: 0, row: 2 });
     const getUnit = (id: string) => striker;
 
@@ -102,7 +102,7 @@ describe('Story 004: Effect Compilation and Preview Integration', () => {
 
   it('Snapshot preview output matches actual player phase output perfectly', () => {
     // We will verify that resolve(board.snapshot(), effects) works the same
-    const board = new BoardImpl(5, 5);
+    const board = makeBoard({ width: 5, height: 5 });
     const snapshot = board.snapshot();
     expect(snapshot).not.toBe(board);
     // Since we don't have full combat integration here, we just verify the array equality

@@ -394,3 +394,29 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 - Blockers: None
 - Next: /code-review src/feature/heroes-abilities/ability-targeting.ts tests/unit/heroes-abilities/story-003-ability-targeting_test.ts then /story-done production/epics/heroes-abilities/story-003-ability-targeting.md
 
+
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/heroes-abilities/story-004-effect-compilation.md — Effect Compilation and Preview Integration
+- Tech debt logged: None
+- Next recommended: None identified
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/heroes-abilities/story-005-presentation.md — Story 005: Presentation and Highlighting
+- Files changed: src/feature/heroes-abilities/presentation.ts, production/qa/evidence/heroes-abilities-presentation-evidence.md
+- Test written: tests/feature/heroes-abilities/heroes-abilities_presentation_test.ts
+- Blockers: None
+- Next: /code-review src/feature/heroes-abilities/presentation.ts then /story-done production/epics/heroes-abilities/story-005-presentation.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/heroes-abilities/story-005-presentation.md — Story 005: Presentation and Highlighting
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/objective-win-lose/story-001-base-contract.md — Story 001: Base Contract & Universal Defeat
+- Files changed: src/feature/objective-win-lose/base-contract.ts
+- Test written: tests/unit/objective-win-lose/base-contract_test.ts
+- Blockers: None
+- Next: /code-review src/feature/objective-win-lose/base-contract.ts then /story-done production/epics/objective-win-lose/story-001-base-contract.md

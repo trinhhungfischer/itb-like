@@ -98,6 +98,7 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
         abilityId,
         targetId: nearestHero.id,
         telegraphedMoveDestination: null,
+        telegraphedEffectTiles: [nearestHero.position],
         effects: [{ kind: 'damage', targetId: nearestHero.id, amount: 1 }]
       });
       return;
@@ -173,6 +174,7 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
         abilityId,
         targetId: target.id,
         telegraphedMoveDestination: bestDest,
+        telegraphedEffectTiles: [target.position],
         effects: [{ kind: 'damage', targetId: target.id, amount: 1 }]
       });
     } else {
@@ -189,14 +191,105 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
     const allEvents: BusEvent[] = [];
     
     for (const enemy of enemies) {
+      if (!this.state.hasUnit(enemy.id)) {
+        continue;
+      }
       const intent = this.intents.get(enemy.id);
-      if (intent && intent.effects && intent.effects.length > 0) {
-        // Mutates board strictly via CombatResolver as per TR-ENEMY-001
-        // Removed state arg as per current CombatResolver interface
-        const events = this.combatResolver.resolve(board, intent.effects as any);
+      if (!intent || !intent.effects) {
+        continue;
+      }
+
+      const effectsToResolve: EffectPrimitive[] = [];
+      let enemyPos: Tile | null = null;
+      for (let r = 0; r < board.height; r++) {
+        for (let c = 0; c < board.width; c++) {
+          if (board.getOccupant(c, r) === enemy.id) {
+            enemyPos = { col: c, row: r };
+            break;
+          }
+        }
+        if (enemyPos) break;
+      }
+
+      if (intent.telegraphedMoveDestination && enemyPos) {
+        const dest = intent.telegraphedMoveDestination;
+        if (enemyPos.col !== dest.col || enemyPos.row !== dest.row) {
+          effectsToResolve.push({ kind: 'removeUnit', targetId: enemy.id, cause: 'Recalled' });
+          effectsToResolve.push({
+            kind: 'spawnUnit',
+            tile: dest,
+            unitSpec: { id: enemy.id, hp: this.state.getHp(enemy.id), hazardImmunities: this.state.getHazardImmunities(enemy.id) }
+          });
+          enemyPos = dest;
+        }
+      }
+
+      let whiff = false;
+      if (intent.targetId && enemyPos) {
+        const { attackRange } = this.getEnemyAbilityParams(enemy);
+        let targetPos: Tile | null = null;
+        for (let r = 0; r < board.height; r++) {
+          for (let c = 0; c < board.width; c++) {
+            if (board.getOccupant(c, r) === intent.targetId) {
+              targetPos = { col: c, row: r };
+              break;
+            }
+          }
+          if (targetPos) break;
+        }
+
+        if (!targetPos) {
+          whiff = false; // Target is gone, attack still fires at telegraphed tiles (no-op)
+        } else {
+          const dist = board.distance(enemyPos, targetPos);
+          if (dist > attackRange) {
+            whiff = true;
+          } else {
+             // simple ray check to ensure not blocked by a wall
+             // calculate direction
+             const dx = Math.sign(targetPos.col - enemyPos.col);
+             const dy = Math.sign(targetPos.row - enemyPos.row);
+             // if it's orthogonal, we can check rayTiles
+             if ((dx === 0 || dy === 0) && dist > 1) {
+                const dir = dx > 0 ? 'E' : dx < 0 ? 'W' : dy > 0 ? 'S' : 'N';
+                const tiles = board.rayTiles(enemyPos, dir as any, dist);
+                if (tiles.length < dist) {
+                   whiff = true;
+                }
+             }
+          }
+        }
+      }
+
+      if (whiff) {
+        allEvents.push({ type: 'enemy_action_whiffed', unitId: enemy.id } as any);
+      } else {
+        if (intent.telegraphedEffectTiles && intent.telegraphedEffectTiles.length > 0) {
+          for (const tile of intent.telegraphedEffectTiles) {
+            const occupant = board.getOccupant(tile.col, tile.row);
+            if (occupant) {
+              for (const eff of intent.effects) {
+                if (eff.kind === 'damage') {
+                  effectsToResolve.push({ ...eff, targetId: occupant });
+                } else if (eff.kind === 'push' || eff.kind === 'pull') {
+                  effectsToResolve.push({ ...eff, targetId: occupant } as any);
+                } else {
+                  effectsToResolve.push(eff);
+                }
+              }
+            }
+          }
+        } else if (intent.effects.length > 0) {
+          effectsToResolve.push(...intent.effects);
+        }
+      }
+
+      if (effectsToResolve.length > 0) {
+        const events = this.combatResolver.resolve(board, effectsToResolve as any);
         allEvents.push(...events);
       }
     }
+    
     return allEvents;
   }
 
