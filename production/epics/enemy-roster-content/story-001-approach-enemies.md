@@ -1,7 +1,7 @@
 # Story 001: Approach Enemies
 
 > **Epic**: Enemy Roster Content
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 3 hours
@@ -67,7 +67,7 @@ N/A — configure `AbilityDefinition`s that compile into the 10 Combat primitive
 **Required evidence**:
 - Logic: `tests/unit/feature/approach-enemies_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passed
 
 ---
 
@@ -75,3 +75,10 @@ N/A — configure `AbilityDefinition`s that compile into the 10 Combat primitive
 
 - Depends on: None
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 3/3 passing
+**Deviations**: None
+**Test Evidence**: Logic: tests/unit/feature/approach-enemies_test.ts
+**Code Review**: Complete
