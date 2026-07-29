@@ -440,3 +440,39 @@ the seam. Found during pre-close verification, implemented, now genuinely 61/61.
 - Blockers: None
 - Next: /code-review src/feature/objective-win-lose/base-contract.ts tests/unit/objective-win-lose/survive-protect_test.ts then /story-done production/epics/objective-win-lose/story-002-survive-protect.md
 
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/objective-win-lose/story-002-survive-protect.md — Survive & Protect Objectives
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract - /dev-story 2026-07-29
+- Story: production/epics/objective-win-lose/story-003-clear-reach.md - Story 003: Clear & Reach Objectives
+- Files changed: src/feature/objective-win-lose/base-contract.ts
+- Test written: tests/unit/objective-win-lose/clear-reach_test.ts
+- Next: /code-review src/feature/objective-win-lose/base-contract.ts tests/unit/objective-win-lose/clear-reach_test.ts then /story-done production/epics/objective-win-lose/story-003-clear-reach.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/objective-win-lose/story-003-clear-reach.md — Clear & Reach Objectives
+- Tech debt logged: None
+- Next recommended: None identified
+
+## Session Extract - /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/enemy-abilities-telegraph/story-006-on-death-effects.md - On-Death Effects
+- Tech debt logged: None
+- Next recommended: None identified
+- Next recommended: None identified
+## Session Extract — /dev-story 2026-07-29
+- Story: production/epics/enemy-abilities-telegraph/story-007-spawn-emergence.md — Story 007: Spawn Emergence
+- Files changed: src/feature/enemy/enemy-abilities-and-telegraph.ts
+- Test written: tests/unit/enemy-abilities-and-telegraph/spawn-emergence_test.ts
+- Blockers: None
+- Next: /code-review src/feature/enemy/enemy-abilities-and-telegraph.ts tests/unit/enemy-abilities-and-telegraph/spawn-emergence_test.ts then /story-done production/epics/enemy-abilities-telegraph/story-007-spawn-emergence.md
+
+## Session Extract — /story-done 2026-07-29
+- Verdict: COMPLETE
+- Story: production/epics/enemy-abilities-telegraph/story-007-spawn-emergence.md — Story 007: Spawn Emergence
+- Tech debt logged: None
+- Next recommended: None identified

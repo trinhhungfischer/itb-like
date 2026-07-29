@@ -11,6 +11,21 @@ export interface EnemyUnitProvider {
   getAliveHeroes(): readonly Unit[];
 }
 
+export interface SpawnInstruction {
+  readonly tile: Tile;
+  readonly unitSpec: { readonly id: string; readonly hp: number; readonly hazardImmunities: readonly string[] };
+}
+
+export interface ScheduledSpawn {
+  readonly instruction: SpawnInstruction;
+  delayCount: number;
+}
+
+export interface SpawnIntent {
+  readonly tile: Tile;
+  readonly delayCount: number;
+}
+
 export interface Intent {
   readonly abilityId: string;
   readonly targetId?: string;
@@ -20,6 +35,8 @@ export interface Intent {
 }
 
 export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
+  public readonly SPAWN_RETRY_CAP = 3;
+  private readonly scheduledSpawns: ScheduledSpawn[] = [];
   private readonly intents = new Map<string, Intent>();
   private currentTurnEnvironmentTiles = new Set<Tile>();
   private currentTurnLethalThreatCount = 0;
@@ -293,9 +310,53 @@ export class EnemyAbilitiesAndTelegraph implements EnemyDriver {
     return allEvents;
   }
 
-  public emergeSpawns(_board: Board): readonly BusEvent[] {
-    // Spawn emergence logic goes here.
-    return [];
+  public emergeSpawns(board: Board): readonly BusEvent[] {
+    const allEvents: BusEvent[] = [];
+    const currentSpawns = [...this.scheduledSpawns];
+    this.scheduledSpawns.length = 0; // Clear it to re-queue delayed spawns
+    
+    for (const spawn of currentSpawns) {
+      const occupant = board.getOccupant(spawn.instruction.tile.col, spawn.instruction.tile.row);
+      const isOccupied = occupant !== null;
+      
+      if (!isOccupied || spawn.delayCount >= this.SPAWN_RETRY_CAP) {
+         const effectsToResolve: EffectPrimitive[] = [];
+         
+         if (isOccupied) {
+           // Forced emergence with collision consequence to the blocking occupant.
+           effectsToResolve.push({ kind: 'damage', targetId: occupant, amount: 1 } as any);
+           effectsToResolve.push({ kind: 'removeUnit', targetId: occupant, cause: 'Defeated' } as any);
+         }
+         
+         effectsToResolve.push({
+           kind: 'spawnUnit',
+           tile: spawn.instruction.tile,
+           unitSpec: spawn.instruction.unitSpec
+         } as any);
+         
+         const events = this.combatResolver.resolve(board, effectsToResolve);
+         allEvents.push(...events);
+         
+         // Spawned units must be flagged unable to act this turn
+         this.intents.set(spawn.instruction.unitSpec.id, { abilityId: 'Spawned_Inactive', effects: [] });
+      } else {
+         // Delay it
+         spawn.delayCount++;
+         this.scheduledSpawns.push(spawn);
+      }
+    }
+    return allEvents;
+  }
+
+  public scheduleSpawn(instruction: SpawnInstruction): void {
+    this.scheduledSpawns.push({ instruction, delayCount: 0 });
+  }
+
+  public getSpawnIntents(): readonly SpawnIntent[] {
+    return this.scheduledSpawns.map(s => ({
+      tile: s.instruction.tile,
+      delayCount: s.delayCount
+    }));
   }
 
   /**

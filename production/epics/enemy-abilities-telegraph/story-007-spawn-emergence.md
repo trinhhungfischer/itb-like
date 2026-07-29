@@ -1,12 +1,12 @@
 # Story 007: Spawn Emergence
 
 > **Epic**: Enemy, Abilities & Telegraph
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**:
 > **Manifest Version**: 2026-07-28
-> **Last Updated**:
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -82,3 +82,12 @@ Spawned units must be flagged inactive for the turn they emerge.
 
 - Depends on: Story 006
 - Unlocks: None
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at tests/unit/enemy-abilities-and-telegraph/spawn-emergence_test.ts
+**Code Review**: Complete
