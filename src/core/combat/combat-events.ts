@@ -140,6 +140,28 @@ export interface SpawnUnitRejectedEvent extends BusEvent {
  * structurally satisfy `EventMap = Record<string, BusEvent>` (TS2344
  * otherwise).
  */
+export interface OnActionEvent extends BusEvent {
+  readonly type: 'on_action';
+  readonly sourceId: UnitId;
+  readonly abilityId: string;
+  readonly queuePassiveEffect: (effects: EffectPrimitive[]) => void;
+}
+
+export interface OnHitEvent extends BusEvent {
+  readonly type: 'on_hit';
+  readonly sourceId: UnitId;
+  readonly targetId: UnitId;
+  readonly amount: number;
+  readonly queuePassiveEffect: (effects: EffectPrimitive[]) => void;
+}
+
+export interface OnKillEvent extends BusEvent {
+  readonly type: 'on_kill';
+  readonly sourceId: UnitId;
+  readonly targetId: UnitId;
+  readonly queuePassiveEffect: (effects: EffectPrimitive[]) => void;
+}
+
 export type CombatEventMap = {
   damage_applied: DamageAppliedEvent;
   displacement_complete: DisplacementCompleteEvent;
@@ -153,6 +175,9 @@ export type CombatEventMap = {
   swap_failed: SwapFailedEvent;
   set_terrain_rejected: SetTerrainRejectedEvent;
   spawn_unit_rejected: SpawnUnitRejectedEvent;
+  on_action: OnActionEvent;
+  on_hit: OnHitEvent;
+  on_kill: OnKillEvent;
 };
 
 /** Union of every event shape `resolve()` may return/emit. */

@@ -38,6 +38,8 @@ export interface ResolveOptions {
    * effects)` call never leaks onto any shared stream by accident.
    */
   readonly bus?: EventBus<CombatEventMap>;
+  /** Optional metadata about the action that initiated this resolve chain. If provided, emits an `on_action` event at start. */
+  readonly actionMetadata?: { readonly sourceId: UnitId; readonly abilityId: string };
 }
 
 /** Internal per-call context threaded through every primitive handler. */
@@ -91,17 +93,28 @@ function validateEffects(effects: readonly EffectPrimitive[]): void {
 // ── Primitive handlers ─────────────────────────────────────────────────────
 
 /** `damage(targetId, amount)` — GDD Rule 3, Formula F1. */
-function applyDamage(ctx: ResolveContext, targetId: UnitId, amount: number): void {
+function applyDamage(ctx: ResolveContext, targetId: UnitId, amount: number, sourceId?: UnitId): void {
   if (!ctx.state.hasUnit(targetId)) return; // stale/already-removed target (Rule 8/11): silent no-op, chain continues
   const hp = ctx.state.getHp(targetId);
   const newHp = Math.max(0, hp - amount);
   ctx.state.setHp(targetId, newHp);
   emit(ctx, { type: 'damage_applied', targetId, amount, hp: newHp });
-  if (newHp === 0) removeUnitPrimitive(ctx, targetId, 'Defeated');
+
+  if (sourceId) {
+    emit(ctx, {
+      type: 'on_hit',
+      sourceId,
+      targetId,
+      amount,
+      queuePassiveEffect: (effects) => ctx.followUps.push(...effects)
+    });
+  }
+
+  if (newHp === 0) removeUnitPrimitive(ctx, targetId, 'Defeated', sourceId);
 }
 
 /** `removeUnit(targetId, cause)` — GDD Rule 8: the single, idempotent board exit point. */
-function removeUnitPrimitive(ctx: ResolveContext, targetId: UnitId, cause: RemovalCause): void {
+function removeUnitPrimitive(ctx: ResolveContext, targetId: UnitId, cause: RemovalCause, sourceId?: UnitId): void {
   if (!ctx.state.hasUnit(targetId)) return; // idempotent no-op: already removed
   const tile = findTile(ctx.board, targetId);
   invariant(tile !== null, `Combat.removeUnit: unit ${targetId} is registered but not found on the board`);
@@ -112,6 +125,15 @@ function removeUnitPrimitive(ctx: ResolveContext, targetId: UnitId, cause: Remov
   ctx.board.clear(tile);
   ctx.state.deleteUnit(targetId);
   emit(ctx, { type: 'unit_removed', targetId, cause, tile });
+
+  if (cause === 'Defeated' && sourceId) {
+    emit(ctx, {
+      type: 'on_kill',
+      sourceId,
+      targetId,
+      queuePassiveEffect: (effects) => ctx.followUps.push(...effects)
+    });
+  }
 
   if (onDeath && triggerCauses.includes(cause)) {
     ctx.followUps.push(...onDeath(tile));
@@ -231,7 +253,7 @@ function swapPrimitive(ctx: ResolveContext, unitAId: UnitId, unitBId: UnitId): v
  * `distance` is covered with no collision — a collision emits
  * `collision_resolved` instead and returns without it.
  */
-function resolveDisplacement(ctx: ResolveContext, unitId: UnitId, direction: Direction, distance: number): void {
+function resolveDisplacement(ctx: ResolveContext, unitId: UnitId, direction: Direction, distance: number, sourceId?: UnitId): void {
   if (!ctx.state.hasUnit(unitId)) return; // stale target (Rule 8/11): silent no-op
   let currentTile = findTile(ctx.board, unitId);
   invariant(currentTile !== null, `Combat displacement: unit ${unitId} is registered but not found on the board`);
@@ -252,12 +274,12 @@ function resolveDisplacement(ctx: ResolveContext, unitId: UnitId, direction: Dir
       }
       case 'OutOfBounds': {
         emit(ctx, { type: 'collision_resolved', a: unitId, collisionDamage: ctx.config.collisionDamage, kind: 'Edge' });
-        applyDamage(ctx, unitId, ctx.config.collisionDamage);
+        applyDamage(ctx, unitId, ctx.config.collisionDamage, sourceId);
         return;
       }
       case 'BlockedTerrain': {
         emit(ctx, { type: 'collision_resolved', a: unitId, collisionDamage: ctx.config.collisionDamage, kind: 'Wall' });
-        applyDamage(ctx, unitId, ctx.config.collisionDamage);
+        applyDamage(ctx, unitId, ctx.config.collisionDamage, sourceId);
         return;
       }
       case 'Lethal': {
@@ -275,8 +297,8 @@ function resolveDisplacement(ctx: ResolveContext, unitId: UnitId, direction: Dir
           collisionDamage: ctx.config.collisionDamage,
           kind: 'Unit',
         });
-        applyDamage(ctx, unitId, ctx.config.collisionDamage);
-        applyDamage(ctx, otherId, ctx.config.collisionDamage);
+        applyDamage(ctx, unitId, ctx.config.collisionDamage, sourceId);
+        applyDamage(ctx, otherId, ctx.config.collisionDamage, sourceId);
         return;
       }
     }
@@ -289,13 +311,13 @@ function resolveDisplacement(ctx: ResolveContext, unitId: UnitId, direction: Dir
 function dispatch(ctx: ResolveContext, effect: EffectPrimitive): void {
   switch (effect.kind) {
     case 'damage':
-      applyDamage(ctx, effect.targetId, effect.amount);
+      applyDamage(ctx, effect.targetId, effect.amount, effect.sourceId);
       return;
     case 'push':
-      resolveDisplacement(ctx, effect.targetId, effect.direction, effect.distance);
+      resolveDisplacement(ctx, effect.targetId, effect.direction, effect.distance, effect.sourceId);
       return;
     case 'pull':
-      resolveDisplacement(ctx, effect.targetId, effect.direction, effect.distance);
+      resolveDisplacement(ctx, effect.targetId, effect.direction, effect.distance, effect.sourceId);
       return;
     case 'swap':
       swapPrimitive(ctx, effect.unitAId, effect.unitBId);
@@ -350,8 +372,19 @@ export function resolve(
     events: [],
     followUps: [],
   };
+
+  if (options.actionMetadata) {
+    emit(ctx, {
+      type: 'on_action',
+      sourceId: options.actionMetadata.sourceId,
+      abilityId: options.actionMetadata.abilityId,
+      queuePassiveEffect: (effects) => ctx.followUps.push(...effects)
+    });
+  }
   
-  let currentEffects: readonly EffectPrimitive[] = effects;
+  let currentEffects: readonly EffectPrimitive[] = [...effects, ...ctx.followUps];
+  ctx.followUps.length = 0;
+  
   let cascadeDepth = 0;
   const MAX_CASCADE_DEPTH = 100;
 

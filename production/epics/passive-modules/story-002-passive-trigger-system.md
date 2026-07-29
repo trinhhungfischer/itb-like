@@ -1,12 +1,12 @@
 # Story 002: Passive Trigger System
 
 > **Epic**: Passive Modules
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: 
 > **Manifest Version**: 2026-07-28
-> **Last Updated**: 
+> **Last Updated**: 2026-07-29
 
 ## Context
 
@@ -31,8 +31,8 @@
 
 *From GDD `design/content/passive-modules-and-equipment.md`, scoped to this story:*
 
-- [ ] AC3: Passive effects are deterministically applied during the Combat Resolution phase and reflected accurately in the Move Preview.
-- [ ] `resolve()` must emit `OnAction`, `OnHit`, `OnKill` events to trigger passive modules.
+- [x] AC3: Passive effects are deterministically applied during the Combat Resolution phase and reflected accurately in the Move Preview.
+- [x] `resolve()` must emit `OnAction`, `OnHit`, `OnKill` events to trigger passive modules.
 
 ---
 
@@ -81,3 +81,10 @@ Passives with `OnAction`/`OnKill` triggers resolve as follow-up `resolve()` call
 
 - Depends on: Story 001
 - Unlocks: Story 003
+
+## Completion Notes
+**Completed**: 2026-07-29
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: tests/unit/combat-resolution/passive-trigger_test.ts
+**Code Review**: Complete
