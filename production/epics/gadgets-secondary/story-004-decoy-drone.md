@@ -1,7 +1,7 @@
 # Story 004: Decoy Drone
 
 > **Epic**: Gadgets & Secondary Weapons
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: 
