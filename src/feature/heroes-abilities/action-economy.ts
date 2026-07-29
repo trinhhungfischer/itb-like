@@ -29,14 +29,38 @@ export function consumeMoveSlot(hero: Unit): void {
     hero.moveSlot = 'Used';
 }
 
-export function consumeAbilitySlot(hero: Unit): void {
+export function consumeAbilitySlot(hero: Unit, source: 'innate' | 'gadget' = 'innate'): void {
     if (isHeroRemoved(hero)) {
         throw new ActionEconomyError("Cannot request action from a removed hero.");
     }
     if (hero.abilitySlot !== 'Available') {
-        throw new ActionEconomyError("Ability slot already used.");
+        throw new ActionEconomyError(`Ability slot already used (attempted by ${source}).`);
     }
     hero.abilitySlot = 'Used';
+}
+
+export interface GadgetState {
+    currentCooldown: number;
+    remainingUses: number | null; // null means unlimited
+}
+
+export function canUseGadget(state: GadgetState): boolean {
+    if (state.currentCooldown > 0) return false;
+    if (state.remainingUses !== null && state.remainingUses <= 0) return false;
+    return true;
+}
+
+export function useGadget(hero: Unit, state: GadgetState, cooldownTurns: number): GadgetState {
+    if (!canUseGadget(state)) {
+        throw new ActionEconomyError("Gadget is not available (on cooldown or no uses left).");
+    }
+    
+    consumeAbilitySlot(hero, 'gadget');
+    
+    return {
+        currentCooldown: cooldownTurns,
+        remainingUses: state.remainingUses !== null ? state.remainingUses - 1 : null
+    };
 }
 
 export function getSquadMaxActions(squadSize: number): number {
