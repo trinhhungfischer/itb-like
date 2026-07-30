@@ -1,7 +1,7 @@
 # Story 002: Move Preview Overlay
 
 > **Epic**: Interaction Patterns
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 2 days
@@ -42,7 +42,7 @@
 **Required evidence**:
 - UI: `production/qa/evidence/interaction-preview-evidence.md`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created (`production/qa/evidence/interaction-preview-evidence.md`)
 
 ---
 
@@ -50,3 +50,10 @@
 
 - Depends on: Story 001
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-30
+**Criteria**: 3/3 passing
+**Deviations**: None
+**Test Evidence**: UI: evidence doc at `production/qa/evidence/interaction-preview-evidence.md`
+**Code Review**: Complete
