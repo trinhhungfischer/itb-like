@@ -1,5 +1,8 @@
 import { Application } from 'pixi.js';
 import './feature/battle-hud/battle-hud.css';
+import './feature/battle-hud/zone-c.css';
+import { BattleHud } from './feature/battle-hud/BattleHud';
+import './feature/battle-hud/zone-c.css';
 
 async function bootstrap() {
   console.log('Vanguard Engine booting...');
@@ -26,6 +29,13 @@ async function bootstrap() {
   });
 
   console.log('Renderer initialized. Waiting for UI layer...');
+
+  const hud = new BattleHud();
+  hud.populateRoster([
+    { id: 'h1', name: 'Vanguard', hp: 120, maxHp: 150, abilityColorClass: 'ability-shove' },
+    { id: 'h2', name: 'Aegis', hp: 80, maxHp: 80, abilityColorClass: 'ability-wall' },
+    { id: 'h3', name: 'Specter', hp: 45, maxHp: 60, abilityColorClass: 'ability-swap' },
+  ]);
 }
 
 bootstrap().catch(console.error);

@@ -1,7 +1,7 @@
 # Story 002: HUD Zone C (Ability Bar)
 
 > **Epic**: Battle HUD UI
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 2 days
