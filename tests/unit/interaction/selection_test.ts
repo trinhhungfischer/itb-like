@@ -23,12 +23,17 @@ describe('Interaction Patterns - Selection & Targeting (Story 001)', () => {
       isLegalTarget: vi.fn().mockReturnValue(true),
     };
     const actionCommitter: ActionCommitter = {
-      commit: vi.fn().mockReturnValue({ committed: true, unitHasActionsRemaining: false }),
+      commit: vi.fn().mockImplementation(() => {
+        isAnimating = true;
+        return { committed: true, unitHasActionsRemaining: false };
+      }),
     };
     const view: ViewTransform = {
-      offsetX: 0,
-      offsetY: 0,
+      originX: 0,
+      originY: 0,
       tileSize: 10,
+      boardWidth: 5,
+      boardHeight: 5,
     };
 
     let isAnimating = false;
@@ -70,6 +75,7 @@ describe('Interaction Patterns - Selection & Targeting (Story 001)', () => {
     // Setup: Idle -> UnitSelected -> Targeting
     // Fake a friendly eligible unit at (1, 1)
     vi.mocked(h.board.getOccupant).mockImplementation((col, row) => (col === 1 && row === 1 ? 'hero-1' : null));
+    vi.mocked(h.unitLookup.unitAt).mockImplementation((tile, _b) => (tile.col === 1 && tile.row === 1 ? { id: 'hero-1', team: 'hero', actingEligible: true } : null));
     vi.mocked(h.unitLookup.unit).mockReturnValue({ id: 'hero-1', team: 'hero', actingEligible: true });
     
     // Select unit at (1,1) -> center is (15, 15)
@@ -87,9 +93,6 @@ describe('Interaction Patterns - Selection & Targeting (Story 001)', () => {
     expect(h.machine.getHoveredTile()).toEqual({ col: 2, row: 2 });
     
     // Click the target to commit
-    // During commit, we pretend animation starts
-    h.setAnimating(true);
-    
     h.manager.onPointerDown(25, 25, 20);
     h.manager.onPointerUp(25, 25, 30);
     
@@ -105,8 +108,8 @@ describe('Interaction Patterns - Selection & Targeting (Story 001)', () => {
     // Animation completes
     h.setAnimating(false);
     
-    // Lock gate is synced on next pointer event (or frame sync)
-    h.manager.onPointerDown(35, 35, 60);
+    // Lock gate is synced on next interaction that queries it (e.g. pointerUp)
+    h.manager.onPointerUp(35, 35, 60);
     expect(h.machine.getState().status).toBe('Idle'); // Transitioned to Idle because the commit didn't leave actions
   });
 

@@ -1,11 +1,12 @@
 # Story 001: Selection State Machine
 
 > **Epic**: Interaction Patterns
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Logic
 > **Estimate**: 3 days
 > **Manifest Version**: 2026-07-28
+> **Last Updated**: 2026-07-30
 
 ## Context
 
@@ -21,10 +22,10 @@
 
 ## Acceptance Criteria
 
-- [ ] Implements state transitions: Idle → UnitSelected → Targeting(mode) → Locked → Idle
-- [ ] Hovering a valid target shows highlight
-- [ ] Clicking a valid target commits the action and locks input
-- [ ] Tab/Shift-Tab cycles through living heroes
+- [x] Implements state transitions: Idle → UnitSelected → Targeting(mode) → Locked → Idle
+- [x] Hovering a valid target shows highlight
+- [x] Clicking a valid target commits the action and locks input
+- [x] Tab/Shift-Tab cycles through living heroes
 
 ---
 
@@ -43,7 +44,7 @@
 **Required evidence**:
 - Logic: `tests/unit/interaction/selection_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Tests created and passing in `tests/unit/interaction/selection_test.ts`
 
 ---
 
@@ -51,3 +52,10 @@
 
 - Depends on: None
 - Unlocks: Story 002
+
+## Completion Notes
+**Completed**: 2026-07-30
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at `tests/unit/interaction/selection_test.ts`
+**Code Review**: Complete (All constraints satisfied, tests passing)
