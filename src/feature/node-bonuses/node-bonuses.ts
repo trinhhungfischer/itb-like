@@ -56,7 +56,7 @@ export function getStackCap(bonusId: NodeBonusId): number {
   return NODE_BONUS_CONFIG.node_bonus_stack_cap;
 }
 
-function countClaims(bonusId: NodeBonusId, claims: NodeBonusId[]): number {
+export function countClaims(bonusId: NodeBonusId, claims: NodeBonusId[]): number {
   return claims.filter(c => c === bonusId).length;
 }
 

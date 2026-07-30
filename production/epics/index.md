@@ -31,3 +31,6 @@
 | [node-bonuses](node-bonuses/EPIC.md) | Feature | Node Bonuses | Ready (2 stories) |
 | [accessibility](accessibility/EPIC.md) | Presentation | Accessibility | Ready (1 stories) |
 | [settings-and-options](settings-and-options/EPIC.md) | Presentation | Settings & Options | Ready (2 stories) |
+| [pixi-renderer](pixi-renderer/EPIC.md) | Presentation | PIXI Renderer | Ready (3 stories) |
+| [battle-hud-ui](battle-hud-ui/EPIC.md) | Presentation | Battle HUD UI | Ready (4 stories) |
+| [interaction-patterns](interaction-patterns/EPIC.md) | Presentation | Interaction Patterns | Ready (3 stories) |
