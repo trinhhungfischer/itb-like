@@ -43,14 +43,14 @@ describe('BoardRenderer', () => {
   });
 
   describe('Layers rendering', () => {
-    it('renders layers correctly based on engine getTile', () => {
+    it('renders layers correctly based on engine getTile and occupancy', () => {
       const mockBoard: Board = {
         width: 8,
         height: 8,
         getTile: vi.fn().mockReturnValue({ terrain: 'Normal' }),
         getHazard: vi.fn().mockReturnValue(null),
-        isOccupied: vi.fn().mockReturnValue(false),
-        getOccupant: vi.fn().mockReturnValue(null),
+        isOccupied: vi.fn().mockImplementation((col, row) => col === 3 && row === 4),
+        getOccupant: vi.fn().mockImplementation((col, row) => col === 3 && row === 4 ? 'unit-123' : null),
         isBlocked: vi.fn().mockReturnValue(false),
         hasFlag: vi.fn().mockReturnValue(false),
         inBounds: vi.fn().mockReturnValue(true),
@@ -71,12 +71,14 @@ describe('BoardRenderer', () => {
       
       const renderer = new BoardRenderer(mockBoard);
       
-      expect(renderer.container.children.length).toBe(4);
+      expect(renderer.container.children.length).toBe(5);
       
       renderer.resize(960, 720);
       
       expect(mockBoard.getTile).toHaveBeenCalled();
       expect(mockBoard.getHazard).toHaveBeenCalled();
+      expect(mockBoard.isOccupied).toHaveBeenCalled();
+      expect(mockBoard.getOccupant).toHaveBeenCalledWith(3, 4);
     });
   });
 });

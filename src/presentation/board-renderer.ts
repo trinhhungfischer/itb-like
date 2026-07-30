@@ -5,6 +5,8 @@ import type { ViewTransform } from '../core/input/coordinate-transform.js';
 export const MIN_TILE_SIZE = 32;
 export const MAX_TILE_SIZE = 128;
 
+import { tileToScreenCenter } from '../core/input/coordinate-transform.js';
+
 /**
  * F1: Compute viewport fit
  * tileSize = floor( min(viewportWidth / grid_width, viewportHeight / grid_height) )
@@ -43,6 +45,7 @@ export class BoardRenderer {
   private terrainLayer: Graphics;
   private gridLinesLayer: Graphics;
   private hazardsLayer: Graphics;
+  private entitiesLayer: Graphics;
   
   private currentTransform: ViewTransform | null = null;
   private currentViewport = { width: 0, height: 0 };
@@ -54,16 +57,19 @@ export class BoardRenderer {
     this.terrainLayer = new Graphics();
     this.gridLinesLayer = new Graphics();
     this.hazardsLayer = new Graphics();
+    this.entitiesLayer = new Graphics();
     
     // Core Rule 2: Render layer stack (fixed z-order, back to front)
     // 1: Board background
     // 2: Terrain
     // 3: Grid lines
     // 4: Hazard
+    // 7: Units/Entities (Skipping 5,6 for now)
     this.container.addChild(this.backgroundLayer);
     this.container.addChild(this.terrainLayer);
     this.container.addChild(this.gridLinesLayer);
     this.container.addChild(this.hazardsLayer);
+    this.container.addChild(this.entitiesLayer);
   }
   
   public resize(viewportWidth: number, viewportHeight: number): void {
@@ -87,6 +93,7 @@ export class BoardRenderer {
     this.drawBackground();
     this.drawGridLines();
     this.drawTerrainAndHazards();
+    this.drawEntities();
   }
   
   private drawBackground(): void {
@@ -157,6 +164,36 @@ export class BoardRenderer {
           
           this.hazardsLayer.rect(x + 2, y + 2, t.tileSize - 4, t.tileSize - 4);
           this.hazardsLayer.fill({ color: hazardColor, alpha: 0.4 });
+        }
+      }
+    }
+  }
+
+  private drawEntities(): void {
+    const t = this.currentTransform!;
+    this.entitiesLayer.clear();
+    
+    for (let col = 0; col < t.boardWidth; col++) {
+      for (let row = 0; row < t.boardHeight; row++) {
+        if (this.board.isOccupied(col, row)) {
+          const occupantId = this.board.getOccupant(col, row);
+          if (occupantId) {
+            const center = tileToScreenCenter(col, row, t);
+            
+            // Draw a distinct circle for the unit centered in the tile
+            // In a real implementation this would use a Sprite with the unit's texture
+            const radius = (t.tileSize / 2) * 0.7; // 70% of half-tile size
+            
+            // Just a placeholder color (e.g. green for hero, red for enemy)
+            // Since we just have the ID, we'll hash it loosely or just use a distinct color
+            const entityColor = 0xFFD700; // Gold/Yellow for all entities for now
+            
+            this.entitiesLayer.circle(center.px, center.py, radius);
+            this.entitiesLayer.fill({ color: entityColor });
+            
+            // Optional: Draw a small outline to make it pop
+            this.entitiesLayer.stroke({ width: 2, color: 0xFFFFFF });
+          }
         }
       }
     }

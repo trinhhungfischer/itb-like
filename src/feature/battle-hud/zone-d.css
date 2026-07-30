@@ -1,0 +1,84 @@
+/* Zone D: Threat Ticker (Right Edge) */
+#zone-d {
+  top: 50%;
+  right: 24px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.threat-card {
+  pointer-events: auto;
+  background-color: var(--panel-bg);
+  border: 1px solid var(--accent-intent);
+  border-left: 4px solid var(--accent-lethal);
+  border-radius: 6px;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  animation: slideIn 0.3s ease-out;
+}
+
+.threat-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--accent-lethal);
+}
+
+.threat-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.threat-source {
+  font-size: 0.8rem;
+  color: var(--text-subdued);
+  text-transform: uppercase;
+}
+
+.threat-intent {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Floating Enemy HP bars */
+.enemy-hp-container {
+  position: absolute;
+  pointer-events: none;
+  background-color: rgba(34, 34, 48, 0.8);
+  border: 1px solid #333344;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.enemy-hp-bar {
+  width: 60px;
+  height: 8px;
+  background-color: #11111a;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.enemy-hp-fill {
+  height: 100%;
+  background-color: var(--accent-intent);
+}
+
+.enemy-hp-text {
+  font-size: 0.7rem;
+  font-weight: bold;
+}
