@@ -138,19 +138,19 @@ describe('Interaction Patterns - Selection & Targeting (Story 001)', () => {
     });
 
     // Press Tab
-    h.manager.onKeyDown('Tab', false, 0);
+    h.manager.onKeyDown('Tab', false, false, 0);
     expect(h.machine.getState()).toEqual({ status: 'UnitSelected', unitId: 'hero-1' });
 
     // Press Tab again
-    h.manager.onKeyDown('Tab', false, 10);
+    h.manager.onKeyDown('Tab', false, false, 10);
     expect(h.machine.getState()).toEqual({ status: 'UnitSelected', unitId: 'hero-2' });
 
     // Press Shift-Tab (back to hero 1)
-    h.manager.onKeyDown('Tab', true, 20);
+    h.manager.onKeyDown('Tab', true, false, 20);
     expect(h.machine.getState()).toEqual({ status: 'UnitSelected', unitId: 'hero-1' });
     
     // Press Shift-Tab (wrap around to hero 3)
-    h.manager.onKeyDown('Tab', true, 30);
+    h.manager.onKeyDown('Tab', true, false, 30);
     expect(h.machine.getState()).toEqual({ status: 'UnitSelected', unitId: 'hero-3' });
   });
 });

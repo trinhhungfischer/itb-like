@@ -1,7 +1,7 @@
 # Story 003: Undo/Redo & Confirm
 
 > **Epic**: Interaction Patterns
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Logic
 > **Estimate**: 2 days
@@ -48,7 +48,7 @@
 **Required evidence**:
 - Logic: `tests/unit/interaction/undo_test.ts` — must exist and pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created (`tests/unit/interaction/undo_test.ts`)
 
 ---
 
@@ -56,3 +56,10 @@
 
 - Depends on: Story 001
 - Unlocks: None
+
+## Completion Notes
+**Completed**: 2026-07-30
+**Criteria**: 4/4 passing
+**Deviations**: None
+**Test Evidence**: Logic: test file at `tests/unit/interaction/undo_test.ts`
+**Code Review**: Complete

@@ -9,6 +9,12 @@ export interface InputManagerDeps {
   board: Board;
   unitLookup: UnitLookup;
   getView: () => ViewTransform;
+  undo?: () => void;
+  redo?: () => void;
+  canUndo?: () => boolean;
+  commitTurn?: () => void;
+  endTurnWarning?: () => void;
+  isHeroInTelegraph?: () => boolean;
 }
 
 /**
@@ -32,11 +38,29 @@ export class InputManager {
     this.deps.machine.hoverTile(tile);
   }
 
-  onKeyDown(key: string, shiftKey: boolean, timestamp: number): void {
+  onKeyDown(key: string, shiftKey: boolean, ctrlKey: boolean, timestamp: number): void {
     if (key === 'Tab') {
       this.cycleHero(shiftKey ? -1 : 1, timestamp);
     } else if (key === 'Escape') {
       this.deps.machine.escape();
+    } else if (key === 'z' && (shiftKey === false) && ctrlKey) {
+      if (this.deps.canUndo?.() !== false) {
+        this.deps.undo?.();
+      }
+    } else if (key === 'y' && ctrlKey) {
+      if (this.deps.canUndo?.() !== false) {
+        this.deps.redo?.();
+      }
+    } else if (key === 'z' && shiftKey === true && ctrlKey) { // Ctrl+Shift+Z
+      if (this.deps.canUndo?.() !== false) {
+        this.deps.redo?.();
+      }
+    } else if (key === ' ' || key === 'EndTurn') {
+      if (this.deps.isHeroInTelegraph?.()) {
+        this.deps.endTurnWarning?.();
+      } else {
+        this.deps.commitTurn?.();
+      }
     }
   }
 
