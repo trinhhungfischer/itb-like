@@ -1,7 +1,7 @@
 # Story 002: Entity & State Rendering
 
 > **Epic**: PIXI Renderer
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Visual/Feel
 > **Estimate**: 3 days
@@ -41,7 +41,16 @@
 **Required evidence**:
 - Visual/Feel: `production/qa/evidence/pixi-renderer-entities-evidence.md` + sign-off
 
-**Status**: [ ] Not yet created
+**Status**: [x] Approved
+
+---
+
+## Completion Notes
+**Completed**: 2026-07-30
+**Criteria**: 2/2 passing
+**Deviations**: None
+**Test Evidence**: Visual/Feel: evidence doc at production/qa/evidence/pixi-renderer-entities-evidence.md
+**Code Review**: Complete
 
 ---
 
