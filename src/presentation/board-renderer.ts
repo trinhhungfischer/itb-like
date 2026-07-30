@@ -1,5 +1,6 @@
 import { Container, Graphics } from 'pixi.js';
 import type { Board } from '../core/board/board-interface.js';
+import type { CombatEvent } from '../core/combat/combat-events.js';
 import type { ViewTransform } from '../core/input/coordinate-transform.js';
 
 export const MIN_TILE_SIZE = 32;
@@ -49,6 +50,12 @@ export class BoardRenderer {
   
   private currentTransform: ViewTransform | null = null;
   private currentViewport = { width: 0, height: 0 };
+  
+  private _isAnimating = false;
+
+  // Tuning Knobs
+  private readonly step_duration_ms = 120;
+  private readonly flash_duration_ms = 120;
 
   constructor(private board: Board) {
     this.container = new Container();
@@ -85,6 +92,35 @@ export class BoardRenderer {
   
   public get transform(): ViewTransform | null {
     return this.currentTransform;
+  }
+  
+  public isAnimating(): boolean {
+    return this._isAnimating;
+  }
+  
+  public async playEvents(events: CombatEvent[]): Promise<void> {
+    if (events.length === 0) return;
+    
+    this._isAnimating = true;
+    
+    for (const event of events) {
+      if (event.type === 'displacement_complete') {
+        const duration = this.step_duration_ms * Math.max(1, event.stepsMoved);
+        await new Promise(resolve => setTimeout(resolve, duration));
+      } else if (
+        event.type === 'collision_resolved' || 
+        event.type === 'damage_applied' || 
+        event.type === 'hazard_applied'
+      ) {
+        await new Promise(resolve => setTimeout(resolve, this.flash_duration_ms));
+      }
+      // other events could be added here
+    }
+    
+    // Core Rule 11: Render always mirrors Board occupancy after playback
+    this.renderAll();
+    
+    this._isAnimating = false;
   }
   
   public renderAll(): void {

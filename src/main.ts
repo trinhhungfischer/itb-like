@@ -2,6 +2,7 @@ import { Application } from 'pixi.js';
 import './feature/battle-hud/battle-hud.css';
 import './feature/battle-hud/zone-c.css';
 import './feature/battle-hud/zone-d.css';
+import './feature/battle-hud/inspect-panel.css';
 import { BattleHud } from './feature/battle-hud/BattleHud';
 import './feature/battle-hud/zone-c.css';
 

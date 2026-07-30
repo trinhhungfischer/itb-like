@@ -1,7 +1,7 @@
 # Story 004: Unit Inspect Panel
 
 > **Epic**: Battle HUD UI
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: UI
 > **Estimate**: 1 day

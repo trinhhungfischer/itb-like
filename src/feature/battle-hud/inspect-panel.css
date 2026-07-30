@@ -1,0 +1,58 @@
+/* Inspect Panel (Centered overlay) */
+#inspect-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  background-color: rgba(34, 34, 48, 0.95);
+  border: 2px solid #555570;
+  border-radius: 8px;
+  padding: 24px;
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  pointer-events: auto;
+  display: none; /* Hidden by default */
+  z-index: 100;
+  backdrop-filter: blur(4px);
+}
+
+.inspect-header {
+  font-size: 1.5rem;
+  font-weight: bold;
+  border-bottom: 1px solid #555570;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.inspect-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.inspect-stat-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+}
+
+.inspect-stat-label {
+  color: var(--text-subdued);
+}
+
+.inspect-intents {
+  background-color: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.inspect-intents-title {
+  font-size: 0.9rem;
+  color: var(--text-subdued);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}

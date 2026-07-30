@@ -20,11 +20,21 @@ export interface EnemyHpData {
   y: number;
 }
 
+export interface InspectData {
+  name: string;
+  hp: number;
+  maxHp: number;
+  attack: number;
+  speed: number;
+  intents: string[];
+}
+
 export class BattleHud {
   private container: HTMLElement;
   private zoneC: HTMLElement;
   private zoneD: HTMLElement;
   private floatingLayer: HTMLElement;
+  private inspectPanel: HTMLElement;
 
   constructor() {
     this.container = document.getElementById('battle-hud') as HTMLElement;
@@ -46,6 +56,33 @@ export class BattleHud {
     this.floatingLayer.style.height = '100%';
     this.floatingLayer.style.pointerEvents = 'none';
     this.container.appendChild(this.floatingLayer);
+
+    this.inspectPanel = document.createElement('div');
+    this.inspectPanel.id = 'inspect-panel';
+    this.container.appendChild(this.inspectPanel);
+
+    this.setupInspectListeners();
+  }
+
+  private setupInspectListeners() {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Alt') {
+        this.showInspectPanel({
+          name: 'Orc Boss',
+          hp: 80,
+          maxHp: 150,
+          attack: 40,
+          speed: 3,
+          intents: ['Cleave (40 DMG)', 'Move (3 Tiles)']
+        });
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'Alt') {
+        this.hideInspectPanel();
+      }
+    });
   }
 
   public populateRoster(heroes: HeroData[]) {
@@ -130,5 +167,36 @@ export class BattleHud {
       this.floatingLayer.appendChild(el);
     });
   }
-}
 
+  public showInspectPanel(data: InspectData) {
+    this.inspectPanel.style.display = 'block';
+    // push zone c down or make it transparent per spec
+    this.zoneC.style.opacity = '0.5';
+
+    this.inspectPanel.innerHTML = `
+      <div class="inspect-header">
+        <span>${data.name}</span>
+        <span style="color: var(--accent-intent)">${data.hp}/${data.maxHp} HP</span>
+      </div>
+      <div class="inspect-stats">
+        <div class="inspect-stat-row">
+          <span class="inspect-stat-label">Attack</span>
+          <span>${data.attack}</span>
+        </div>
+        <div class="inspect-stat-row">
+          <span class="inspect-stat-label">Speed</span>
+          <span>${data.speed}</span>
+        </div>
+      </div>
+      <div class="inspect-intents">
+        <div class="inspect-intents-title">Next Turn Intents</div>
+        ${data.intents.map(i => `<div>${i}</div>`).join('')}
+      </div>
+    `;
+  }
+
+  public hideInspectPanel() {
+    this.inspectPanel.style.display = 'none';
+    this.zoneC.style.opacity = '1';
+  }
+}
