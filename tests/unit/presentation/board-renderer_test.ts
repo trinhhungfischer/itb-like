@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { computeViewportTransform, BoardRenderer } from '../../../src/presentation/board-renderer.js';
 import type { Board } from '../../../src/core/board/board-interface.js';
+import type { CombatEvent } from '../../../src/core/combat/combat-events.js';
 
 describe('BoardRenderer', () => {
   describe('F1: Viewport fit (computeViewportTransform)', () => {
@@ -79,6 +80,55 @@ describe('BoardRenderer', () => {
       expect(mockBoard.getHazard).toHaveBeenCalled();
       expect(mockBoard.isOccupied).toHaveBeenCalled();
       expect(mockBoard.getOccupant).toHaveBeenCalledWith(3, 4);
+    });
+  });
+
+  describe('Juice animations', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('blocks input while animating and unblocks after playback', async () => {
+      const mockBoard = { width: 8, height: 8, getTile: vi.fn().mockReturnValue({ terrain: 'Normal' }), getHazard: vi.fn().mockReturnValue(null), isOccupied: vi.fn().mockReturnValue(false), getOccupant: vi.fn().mockReturnValue(null) } as unknown as Board;
+      const renderer = new BoardRenderer(mockBoard);
+      renderer.resize(960, 720);
+      
+      expect(renderer.isAnimating()).toBe(false);
+      
+      const promise = renderer.playEvents([
+        { type: 'displacement_complete', targetId: 'unit-1', stepsMoved: 2 } as CombatEvent
+      ]);
+      
+      expect(renderer.isAnimating()).toBe(true);
+      
+      // Advance timers by step_duration_ms * stepsMoved = 120 * 2 = 240
+      await vi.advanceTimersByTimeAsync(240);
+      
+      await promise;
+      
+      expect(renderer.isAnimating()).toBe(false);
+    });
+
+    it('plays flashes for 120ms', async () => {
+      const mockBoard = { width: 8, height: 8, getTile: vi.fn().mockReturnValue({ terrain: 'Normal' }), getHazard: vi.fn().mockReturnValue(null), isOccupied: vi.fn().mockReturnValue(false), getOccupant: vi.fn().mockReturnValue(null) } as unknown as Board;
+      const renderer = new BoardRenderer(mockBoard);
+      renderer.resize(960, 720);
+      
+      const promise = renderer.playEvents([
+        { type: 'damage_applied', targetId: 'unit-1', amount: 1, hp: 1 } as CombatEvent
+      ]);
+      
+      expect(renderer.isAnimating()).toBe(true);
+      
+      // 120ms per tuning knobs for flashes
+      await vi.advanceTimersByTimeAsync(120);
+      await promise;
+      
+      expect(renderer.isAnimating()).toBe(false);
     });
   });
 });
